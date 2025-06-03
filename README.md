@@ -12,7 +12,7 @@ PCLA (Pretrained CARLA Leaderboard Agent) is a versatile framework that allows y
 * Is fully compatible with the latest version of CARLA and independent of the Leaderboard’s specific CARLA version.
 * Includes nine different high-performing ADAs trained with 17 distinct training seeds. 
 
-Paper available at <a href="https://arxiv.org/abs/2503.09385">Arxiv</a>. It will be published at the FSE 2025 demonstration track.
+Paper available at <a href="https://arxiv.org/abs/2503.09385">Arxiv</a>. It will be published at the <a href="https://conf.researchr.org/track/fse-2025/fse-2025-demonstrations?#program">FSE 2025 demonstration track<a>.
 
 </p>
 
