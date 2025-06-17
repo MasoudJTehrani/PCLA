@@ -17,7 +17,7 @@ Paper available at <a href="https://arxiv.org/abs/2503.09385">Arxiv</a>. It will
 </p>
 
 <p align="center">
-<strong>PCLA was tested on Linux Ubuntu 22 and CARLA 9.15 Unreal Engine 4.</strong> </br>
+<strong>PCLA was tested on Linux Ubuntu 22, Windows and CARLA 9.15 Unreal Engine 4.</strong> </br>
 A video tutorial on how to use PCLA is available below.
   
 <div align="center">
@@ -41,7 +41,7 @@ A video tutorial on how to use PCLA is available below.
 
 ## Setup
 Download and install the <a href="https://carla.readthedocs.io/en/latest/">CARLA simulator</a> from the official website. Based on your preference, you can either use quick installation or build from source.</br>
-Clone the repository and build the conda environment:
+On **Ubuntu**, clone the repository and build the conda environment:
 ```Shell
 git clone https://github.com/MasoudJTehrani/PCLA
 cd PCLA
@@ -56,6 +56,7 @@ Please make sure CUDA and PyTorch are installed.</br>
 <a href="https://www.gpu-mart.com/blog/install-nvidia-cuda-11-on-ubuntu">Tutorial for installing CUDA on ubuntu<a></br>
 <a href="https://pytorch.org/get-started/locally/">Tutorial for PyTorch<a>
 
+On **Windows**, do the same this but with the `WindowsEnvironment.yml` file forked by <a href="https://github.com/Mutahar789/PCLA/tree/main">Mutahar789</a>
 
 ## Pre-Trained Weights
 
