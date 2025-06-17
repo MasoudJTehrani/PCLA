@@ -56,7 +56,7 @@ Please make sure CUDA and PyTorch are installed.</br>
 <a href="https://www.gpu-mart.com/blog/install-nvidia-cuda-11-on-ubuntu">Tutorial for installing CUDA on ubuntu<a></br>
 <a href="https://pytorch.org/get-started/locally/">Tutorial for PyTorch<a>
 
-On **Windows**, do the same this but with the `WindowsEnvironment.yml` file forked by <a href="https://github.com/Mutahar789/PCLA/tree/main">Mutahar789</a>
+On **Windows**, follow the same process but now with the `WindowsEnvironment.yml` file forked by <a href="https://github.com/Mutahar789/PCLA/tree/main">Mutahar789</a>
 
 ## Pre-Trained Weights
 
