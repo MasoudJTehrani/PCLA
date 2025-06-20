@@ -17,7 +17,7 @@ Paper available at <a href="https://arxiv.org/abs/2503.09385">Arxiv</a>. It will
 </p>
 
 <p align="center">
-<strong>PCLA was tested on Linux Ubuntu 22, Windows and CARLA 9.15 Unreal Engine 4.</strong> </br>
+<strong>PCLA was tested on Linux Ubuntu 22, Windows and <a href="https://github.com/carla-simulator/carla/tree/0.9.15.2">CARLA 9.15.2</a> Unreal Engine 4.</strong> </br>
 A video tutorial on how to use PCLA is available below.
   
 <div align="center">
