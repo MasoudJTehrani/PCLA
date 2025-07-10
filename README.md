@@ -1,5 +1,5 @@
 <p align="center" style="font-size:40px;">
-<b>PCLA: A framework for testing autonomous agents in CARLA simulator</b>
+<b>PCLA: A framework for testing autonomous agents in the CARLA simulator</b>
 </p>
 
 <p align="center">
