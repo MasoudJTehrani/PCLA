@@ -12,7 +12,7 @@ PCLA (Pretrained CARLA Leaderboard Agent) is a versatile framework that allows y
 * Is fully compatible with the latest version of CARLA and independent of the Leaderboard’s specific CARLA version.
 * Includes nine different high-performing ADAs trained with 17 distinct training seeds. 
 
-Paper available at <a href="https://arxiv.org/abs/2503.09385">Arxiv</a>. It will be published at the <a href="https://conf.researchr.org/track/fse-2025/fse-2025-demonstrations?#program">FSE 2025 demonstration track<a>.
+Paper available at <a href="[https://arxiv.org/abs/2503.09385](https://dl.acm.org/doi/abs/10.1145/3696630.3728577)">Foundations of Software Engineering</a>
 
 </p>
 
@@ -220,10 +220,11 @@ If you have a request for a new agent, feel free to ask me.
 If you find PCLA useful, please consider giving it a star &#127775;, and cite the published paper:
 https://arxiv.org/abs/2503.09385
 ```bibtex
-@article{tehrani2025pcla,
+@inproceedings{tehrani2025pcla,
   title={PCLA: A Framework for Testing Autonomous Agents in the CARLA Simulator},
   author={Tehrani, Masoud Jamshidiyan and Kim, Jinhan and Tonella, Paolo},
-  journal={arXiv preprint arXiv:2503.09385},
+  booktitle={Proceedings of the 33rd ACM International Conference on the Foundations of Software Engineering},
+  pages={1040--1044},
   year={2025}
 }
 ```
