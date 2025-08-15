@@ -7,7 +7,7 @@ PCLA (Pretrained CARLA Leaderboard Agent) is a versatile framework that allows y
 
 * PCLA provides a clear method to deploy Autonomous Driving Agents (ADAs) onto a vehicle without relying on the Leaderboard codebase.
 * Enables easy switching between ADAs without requiring changes to CARLA versions or programming environments.
-* Allows you to have multiple vehicles with different autonomous agents.
+* Allows you to have multiple vehicles with different autonomous agents (requires high graphical memory).
 * Provides the next movement action computed by the chosen agent, which can then be utilized in any desired application.
 * Is fully compatible with the latest version of CARLA and independent of the Leaderboard’s specific CARLA version.
 * Includes nine different high-performing ADAs trained with 17 distinct training seeds. 
