@@ -84,7 +84,7 @@ PCLA includes 9 different autonomous agents and 17 distinct training seeds to ch
 
   - Replace # with the seed number from 0 to 2.
   - Repository: [https://github.com/autonomousvision/carla_garage](https://github.com/autonomousvision/carla_garage)
-- **Neat**
+- **NEAT**
   - Contains 4 different autonomous agents. No environment variables are needed for these agents.
       - **neat_neat**
       - **neat_aimbev**
