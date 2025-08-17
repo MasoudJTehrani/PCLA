@@ -218,8 +218,8 @@ Frequently asked questions and possible issues are solved in <a href="https://gi
 If you have a request for a new agent, feel free to ask me.
 
 ## Citation
-If you find PCLA useful, please consider giving it a star &#127775;, and cite the published paper:
-https://arxiv.org/abs/2503.09385
+If you find PCLA useful, please consider giving it a star &#127775;, and cite the published <a href="https://dl.acm.org/doi/abs/10.1145/3696630.3728577">paper</a>.
+
 ```bibtex
 @inproceedings{tehrani2025pcla,
   title={PCLA: A Framework for Testing Autonomous Agents in the CARLA Simulator},
