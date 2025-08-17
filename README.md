@@ -1,5 +1,6 @@
 <p align="center" style="font-size:40px;">
-<b>PCLA: A framework for testing autonomous agents in the CARLA simulator</b>
+<b>PCLA: A framework for testing autonomous agents in the CARLA simulator</b> </br> 
+<b>--- Includes: Transfuser++, Interfuser, NEAT ---</b>
 </p>
 
 <p align="center">
