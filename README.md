@@ -1,6 +1,13 @@
 <p align="center" style="font-size:40px;">
-<b>PCLA: A framework for testing autonomous agents in the CARLA simulator</b> </br> 
-<b>--- Includes: Transfuser++, Interfuser, NEAT ---</b>
+  <b>PCLA: A framework for testing autonomous agents in the CARLA simulator</b>
+  <br>
+  <br>
+  <b>Introducing PCLA 2, Now includes Simlingo(CarLLava) from Leaderboard 2</b>
+  <br>
+  <br>
+  <b>--- PCLA 2: Simlingo (CarLLava) ---</b>
+  <br>
+  <b>--- PCLA 1: Transfuser++, Interfuser, NEAT ---</b>
 </p>
 
 <p align="center">
@@ -43,11 +50,12 @@ A video tutorial on how to use PCLA is available below.
 ## Setup
 Download and install the <a href="https://carla.readthedocs.io/en/latest/">CARLA simulator</a> from the official website. Based on your preference, you can either use quick installation or build from source.</br>
 On **Ubuntu**, clone the repository and build the conda environment:
+# PCLA 1
 ```Shell
 git clone https://github.com/MasoudJTehrani/PCLA
 cd PCLA
-conda env create -f environment.yml
-conda activate PCLA
+conda env create -f environment1.yml
+conda activate PCLA1
 ```
 Alternatively, you can use the `requirements.txt` file to install the required libraries by using:</br>
 ```Shell
@@ -59,6 +67,14 @@ Please make sure CUDA and PyTorch are installed.</br>
 
 On **Windows**, follow the same process but now with the `WindowsEnvironment.yml` file forked by <a href="https://github.com/Mutahar789/PCLA/tree/main">Mutahar789</a>
 
+# PCLA 2
+You just need another environment that uses Python 3.8
+```Shell
+git clone https://github.com/MasoudJTehrani/PCLA
+cd PCLA
+conda env create -f environment2.yml
+conda activate PCLA2
+```
 ## Pre-Trained Weights
 
 Download the pre-trained weights from <a href="https://zenodo.org/records/15422537">Zenodo</a> or directly from <a href="https://zenodo.org/records/15422537/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br> 
@@ -71,13 +87,19 @@ Ensure that each folder of pre-trained weights is placed directly next to its re
    ├── interfuserPretrained
    ├── neat
    └── neatPretrained
+   ├── simlingo
+   └── simlingoPretrained
 ```
 
 ## Autonomous Agents
 
-PCLA includes 9 different autonomous agents and 17 distinct training seeds to choose from.
+PCLA includes 10 different autonomous agents and 17 distinct training seeds to choose from.
+- **SimLingo(CarLLava)**
+  - Contains 1 agent from the leaderboard, 2 previously named CarLLava. No need for any environment variables.
+    - **simlingo_simlingo** : The best performing agent, first place at <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 2</a> SENSORS track.
+  - Repository: [https://github.com/RenzKa/simlingo](https://github.com/RenzKa/simlingo)
 - **Transfuser++**
-  - Contains 4 different autonomous agents of Transfuser++ with 3 training seeds for each agent. To use these agents you need to set some [Environment Variables](#environment-variables).
+  - Contains 4 different autonomous agents of Transfuser++ with 3 training seeds for each agent. To use these agents, you need to set some [Environment Variables](#environment-variables).
     - **tfpp_l6_#** : Best performing Transfuser++ agent. Second place at <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 2</a> SENSORS track(Tuebingen_AI team)
     - **tfpp_lav_#** : Transfuser++ but it's not trained on Town02 and Town05.
     - **tfpp_wp_#** : Transfuser++ WP from their paper's appendix.
@@ -93,7 +115,7 @@ PCLA includes 9 different autonomous agents and 17 distinct training seeds to ch
       - **neat_aim2ddepth**
   - Repository: [https://github.com/autonomousvision/neat](https://github.com/autonomousvision/neat)
 - **Interfuser**
-  - Contains 1 autonomous agent. To use this agent you need to set an [Environment Variables](#environment-variables).
+  - Contains 1 autonomous agent. To use this agent, you need to set an [Environment Variables](#environment-variables).
      - **if_if** : Second best performing <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 1</a> SENSORS track agent.
   - Repository: [https://github.com/opendilab/InterFuser](https://github.com/opendilab/InterFuser)
 
