@@ -231,7 +231,7 @@ A sample code is provided for you to test PCLA. Just go to the PCLA directory an
 ```Shell
 python sample.py
 ```
-This sample is in Town02 of the CARLA simulator. 
+This sample is in Town02 of the CARLA simulator and uses SimLingo from PCLA 2.
 
 ***Attention: you may need to change the vehicle spawn point's number on line 43 to something else based on your CARLA version.***
 
