@@ -68,7 +68,7 @@ Please make sure CUDA and PyTorch are installed.</br>
 On **Windows**, follow the same process but now with the `WindowsEnvironment.yml` file forked by <a href="https://github.com/Mutahar789/PCLA/tree/main">Mutahar789</a>
 
 # PCLA 2
-You just need another environment that uses Python 3.8
+You just need another environment that uses Python 3.8.18
 ```Shell
 git clone https://github.com/MasoudJTehrani/PCLA
 cd PCLA
@@ -77,7 +77,7 @@ conda activate PCLA2
 ```
 ## Pre-Trained Weights
 
-Download the pre-trained weights from <a href="https://zenodo.org/records/17086969">Zenodo</a> and extract them into the `PCLA/agents/` directory.</br>
+Download the pre-trained weights from <a href="https://zenodo.org/records/17088842">Zenodo</a> or directly from <a href="https://zenodo.org/records/17088842/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
 Ensure that each folder of pre-trained weights is placed directly next to its respective model's folder. The `agents` folder should look like this.
 ```bash
 ├── agents
