@@ -2,10 +2,10 @@
   <b>PCLA: A framework for testing autonomous agents in the CARLA simulator</b>
   <br>
   <br>
-  <b style="font-size: 50px; color: #E44D26;">Introducing PCLA 2, Now includes Simlingo(CarLLava) from Leaderboard 2</b>
+  <b style="font-size: 50px; color: #E44D26;">Introducing PCLA 2, Now includes SimLingo(CarLLava) from Leaderboard 2</b>
   <br>
   <br>
-  <b>--- PCLA 2: Simlingo (CarLLava) ---</b>
+  <b>--- PCLA 2: SimLingo (CarLLava) ---</b>
   <br>
   <b>--- PCLA 1: Transfuser++, Interfuser, NEAT ---</b>
 </p>
