@@ -1,0 +1,23 @@
+defaults:
+  - driving
+
+train_partitions:
+  all: 0.082
+  acceleration_negative_5: 0.03  # smaller than -5 m/s^2  -> -20 AND -5
+  acceleration_negative_1: 0.03  # between -1 and -5 m/s^2 -> -1
+  acceleration_positive_1: 0.03  # between 1 and 5 m/s^2 -> 5
+  acceleration_positive_5: 0.03  # larger than 5 m/s^2 -> 20
+  lateral_control_1_2: 0.12  # wp diff in y dir larger than 0.1 and smaller than 1 -> 1
+  lateral_control_higher_5: 0.12  # wp diff in y dir larger than 5 -> 5 AND 1000000
+  start_from_stop: 0.07
+  vehicle_front: 0.04
+  vehicle_side: 0.08
+  leading_object_vehicle: 0.09
+  leading_object_traffic.stop: 0.07
+  leading_object_traffic.traffic_light: 0.07
+  leading_object_walker: 0.05
+  changed_route: 0.08
+  parkinglane: 0.008
+
+train_partitions_dreamer:
+  all: 1.0

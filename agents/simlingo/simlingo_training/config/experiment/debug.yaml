@@ -1,0 +1,47 @@
+# @package _global_
+defaults:
+  - /data_module: carla_no_buckets #carla_no_buckets #carla_bucket_v12
+  - /model/vision_model: vlm 
+  - /data_module/base_dataset: dataset
+
+model:
+  lr: 3e-5
+  predict_route_as_wps: True
+  speed_wps_mode: 2d
+  language_model:
+    variant: 'OpenGVLab/InternVL2-1B'
+    lora: True
+    lora_alpha: 64
+    lora_r: 32
+    lora_dropout: 0.1
+  vision_model:
+    variant: 'OpenGVLab/InternVL2-1B'
+
+data_module:
+  batch_size: 2
+  num_workers: 0
+  # dreamer_dataset: null
+  base_dataset:
+    data_path: database/simlingo
+    bucket_path: database/bucketsv2_simlingo
+    pred_len: 11
+    cut_bottom_quarter: True
+    use_commentary: True
+    use_qa: True
+    qa_augmentation: True
+    img_shift_augmentation: True
+    img_shift_augmentation_prob: 0.5
+    hist_len: 1
+    route_as: target_point_command
+    use_lmdrive_commands: True
+    use_old_towns: True
+    use_town13: True
+
+    use_safety_flag: True
+
+max_epochs: 15
+val_every_n_epochs: 1
+
+gpus: 1
+seed: 42
+name: debug

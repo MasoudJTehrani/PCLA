@@ -1,4 +1,4 @@
-name: PCLA
+name: PCLA1
 channels:
   - pytorch
   - nvidia

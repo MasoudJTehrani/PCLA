@@ -1,0 +1,4 @@
+defaults:
+  - train_base
+  - model/language_model: llm
+  - experiment: debug #simlingo_seed1

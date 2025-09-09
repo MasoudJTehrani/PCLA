@@ -149,7 +149,7 @@ class PCLA():
         self.world = client.get_world()
         self.vehicle = vehicle
         self.routePath = route
-        self._watchdog = Watchdog(10)
+        self._watchdog = Watchdog(160) # TODO: Change watchdog timeout based on your internet speed for loading the agents
         self.setup_agent(agent)
         self.setup_route()
         self.setup_sensors()

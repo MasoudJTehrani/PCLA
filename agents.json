@@ -1,4 +1,11 @@
 {
+    "simlingo":{
+        "simlingo": {
+            "agent": "/agents/simlingo/agent_simlingo.py",
+            "config": "/agents/simlingoPretrained/checkpoints/epoch=013.ckpt/pytorch_model.pt",
+            "envs": []
+        }
+    },
     "tfpp":{
         "lav": {
             "agent": "/agents/transfuserpp/sensor_agent.py",
