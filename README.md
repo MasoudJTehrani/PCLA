@@ -77,8 +77,10 @@ conda activate PCLA2
 ```
 ## Pre-Trained Weights
 
-Download the pre-trained weights from <a href="https://zenodo.org/records/15422537">Zenodo</a> or directly from <a href="https://zenodo.org/records/15422537/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br> 
-For the SimLingo, download the pretrained weights from here https://huggingface.co/RenzKa/simlingo/tree/main/simlingo, make a folder called "simlingoPretrained" and put them there. I will upload everything to Zenodo soon. </br>
+Download the pre-trained weights from <a href="https://zenodo.org/records/15422537">Zenodo</a> or directly from <a href="https://zenodo.org/records/15422537/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
+
+**For the SimLingo, download the pretrained weights from here https://huggingface.co/RenzKa/simlingo/tree/main/simlingo, make a folder called "simlingoPretrained" and put them there. The folder should contain ".hydra" and "checkpoint" folders. I will upload everything to Zenodo soon.** </br>
+
 Ensure that each folder of pre-trained weights is placed directly next to its respective model's folder. The `agents` folder should look like this.
 ```bash
 ├── agents
