@@ -1,4 +1,45 @@
 {
+    "lbc":{
+        "lb": {
+            "agent": "/agents/wor/lbc_agent.py",
+            "config": "/agents/worPretrained/leaderboard_weights/config_leaderboard.yaml",
+            "envs": []
+        },
+        "nc": {
+            "agent": "/agents/wor/lbc_agent.py",
+            "config": "/agents/worPretrained/nocrash_weights/config_nocrash.yaml",
+            "envs": []
+        }
+    },
+    "wor":{
+        "lb": {
+            "agent": "/agents/wor/image_agent.py",
+            "config": "/agents/worPretrained/leaderboard_weights/config_leaderboard.yaml",
+            "envs": []
+        },
+        "nc": {
+            "agent": "/agents/wor/image_agent.py",
+            "config": "/agents/worPretrained/nocrash_weights/config_nocrash.yaml",
+            "envs": []
+        }
+    },
+    "lmdrive":{
+        "llava": {
+            "agent": "/agents/lmdrive/lmdriver_agent.py",
+            "config": "/agents/lmdrivePretrained/llava-v1.5-checkpoint.pth",
+            "envs": []
+        },
+        "vicuna": {
+            "agent": "/agents/lmdrive/lmdriver_agent.py",
+            "config": "/agents/lmdrivePretrained/vicuna-v1.5-checkpoint.pth",
+            "envs": []
+        },
+        "llama": {
+            "agent": "/agents/lmdrive/lmdriver_agent.py",
+            "config": "/agents/lmdrivePretrained/llama-7b-checkpoint.pth",
+            "envs": []
+        }
+    },
     "simlingo":{
         "simlingo": {
             "agent": "/agents/simlingo/agent_simlingo.py",
