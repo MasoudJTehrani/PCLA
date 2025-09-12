@@ -7,7 +7,7 @@
   <br>
   <b>--- PCLA 2: SimLingo (CarLLava) ---</b>
   <br>
-  <b>--- PCLA 1: Transfuser++, Interfuser, NEAT ---</b>
+  <b>--- PCLA 1: Transfuser++, Interfuser, NEAT, World on Rails, Learning By Cheating ---</b>
 </p>
 
 <p align="center">
@@ -49,7 +49,11 @@ A video tutorial on how to use PCLA is available below.
 
 ## Setup
 Download and install the <a href="https://carla.readthedocs.io/en/latest/">CARLA simulator</a> from the official website. Based on your preference, you can either use quick installation or build from source.</br>
-On **Ubuntu**, clone the repository and build the conda environment:
+Please make sure CUDA and PyTorch are installed.</br>
+<a href="https://www.gpu-mart.com/blog/install-nvidia-cuda-11-on-ubuntu">Tutorial for installing CUDA on ubuntu<a></br>
+<a href="https://pytorch.org/get-started/locally/">Tutorial for PyTorch<a>
+
+Clone the repository and build the conda environment:
 # PCLA 1
 ```Shell
 git clone https://github.com/MasoudJTehrani/PCLA
@@ -57,24 +61,14 @@ cd PCLA
 conda env create -f environment1.yml
 conda activate PCLA1
 ```
-Alternatively, you can use the `requirements.txt` file to install the required libraries by using:</br>
+Alternatively, you can use the `requirements1.txt` file to install the required libraries by using:</br>
 ```Shell
-pip install -r requirements.txt
+pip install -r requirements1.txt
 ```
-Please make sure CUDA and PyTorch are installed.</br>
-<a href="https://www.gpu-mart.com/blog/install-nvidia-cuda-11-on-ubuntu">Tutorial for installing CUDA on ubuntu<a></br>
-<a href="https://pytorch.org/get-started/locally/">Tutorial for PyTorch<a>
 
-On **Windows**, follow the same process but now with the `WindowsEnvironment.yml` file forked by <a href="https://github.com/Mutahar789/PCLA/tree/main">Mutahar789</a>
 
 # PCLA 2
-You just need another environment that uses Python 3.8.18
-```Shell
-git clone https://github.com/MasoudJTehrani/PCLA
-cd PCLA
-conda env create -f environment2.yml
-conda activate PCLA2
-```
+Follow the same steps from PCLA 1, but change all the numbers from 1 to 2.
 ## Pre-Trained Weights
 
 Download the pre-trained weights from <a href="https://zenodo.org/records/17088842">Zenodo</a> or directly from <a href="https://zenodo.org/records/17088842/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
@@ -87,17 +81,20 @@ Ensure that each folder of pre-trained weights is placed directly next to its re
    ├── interfuserPretrained
    ├── neat
    ├── neatPretrained
+   ├── wor
+   ├── worPretrained
    ├── simlingo
    └── simlingoPretrained
 ```
 
 ## Autonomous Agents
 
-PCLA includes 10 different autonomous agents and 17 distinct training seeds to choose from.
+PCLA includes 14 different autonomous agents and 21 distinct training seeds to choose from.
 - **SimLingo(CarLLava)**
-  - Contains 1 agent from the leaderboard, 2 previously named CarLLava. No need for any environment variables.
+  - Contains 1 agent from the leaderboard 2, previously named CarLLava.
     - **simlingo_simlingo** : The best performing agent, first place at <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 2</a> SENSORS track.
   - Repository: [https://github.com/RenzKa/simlingo](https://github.com/RenzKa/simlingo)
+    
 - **Transfuser++**
   - Contains 4 different autonomous agents of Transfuser++ with 3 training seeds for each agent. To use these agents, you need to set some [Environment Variables](#environment-variables).
     - **tfpp_l6_#** : Best performing Transfuser++ agent. Second place at <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 2</a> SENSORS track(Tuebingen_AI team)
@@ -107,20 +104,34 @@ PCLA includes 10 different autonomous agents and 17 distinct training seeds to c
 
   - Replace # with the seed number from 0 to 2.
   - Repository: [https://github.com/autonomousvision/carla_garage](https://github.com/autonomousvision/carla_garage)
+    
+- **Learning By Cheating**
+  - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
+    - **lbc_nc** : Learning by Cheating, the NoCrash model.
+    - **lbc_ld** : Learning by Cheating, the Leaderboard model.
+  - Repository: https://github.com/dotchen/WorldOnRails
+    
+- **World on Rails**
+  - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
+    - **wor_nc** : World on Rails, the NoCrash model.
+    - **wor_ld** : World on Rails, the Leaderboard model.
+  - Repository: https://github.com/dotchen/WorldOnRails
+    
 - **NEAT**
-  - Contains 4 different autonomous agents. No environment variables are needed for these agents.
+  - Contains 4 different autonomous agents.
       - **neat_neat**
       - **neat_aimbev**
       - **neat_aim2dsem**
       - **neat_aim2ddepth**
   - Repository: [https://github.com/autonomousvision/neat](https://github.com/autonomousvision/neat)
+    
 - **Interfuser**
   - Contains 1 autonomous agent. To use this agent, you need to set an [Environment Variables](#environment-variables).
      - **if_if** : Second best performing <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 1</a> SENSORS track agent.
   - Repository: [https://github.com/opendilab/InterFuser](https://github.com/opendilab/InterFuser)
 
 ## How to Use
-First, run CARLA. You don't need any special arguments.
+First, run CARLA. You also need -vulkan or LBC and WoR agents
 ```Shell
 ./CarlaUE4.sh
 ```
@@ -138,15 +149,15 @@ vehicle.apply_control(ego_action)
 ```
 In the code above, the agent is your chosen autonomous agent. You can choose your agent from the list of [Autonomous Agents](#autonomous-agents).</br>
 You also need to pass the `route` that you want your vehicle to follow. The route should be in the format of the Leaderboard waypoints as an `XML` file.</br>
-To make it easy, PCLA provides you with a function called `routeMaker()` that gets an array of <a href="https://carla.readthedocs.io/en/latest/core_map/#waypoints" target="_blank">CARLA waypoints</a>, reformats it to a Leaderboard format and save it as an XML file. A tutorial on how to use that is provided in [Navigation](#navigation)</br>
-The other arguments you have to pass to PCLA are the client, and the vehicle you want to put the agent on. </br>
-To get one action in a frame from the agent and apply it to your vehicle you can call the `pcla.get_action` method. </br>
+To make it easy, PCLA provides you with a function called `routeMaker()` that gets an array of <a href="https://carla.readthedocs.io/en/latest/core_map/#waypoints" target="_blank">CARLA waypoints</a>, reformats it to a Leaderboard format, and save it as an XML file. A tutorial on how to use that is provided in [Navigation](#navigation)</br>
+The other arguments you have to pass to PCLA are the client and the vehicle you want to put the agent on. </br>
+To get one action in a frame from the agent and apply it to your vehicle, you can call the `pcla.get_action` method. </br>
 Example:
 ```python
 ego_action = pcla.get_action()
 vehicle.apply_control(ego_action)
 ```
-Finally to destroy and cleanup the vehicle, sensors and the PCLA variables you can call
+Finally, to destroy and cleanup the vehicle, sensors, and the PCLA variables, you can call
 ```python
 pcla.cleanup()
 ```
@@ -159,7 +170,7 @@ python spawn_points.py
 
 <hr />
 
-You can then use the `location_to_waypoint()` method to generate waypoints between two carla locations. For example:
+You can then use the `location_to_waypoint()` method to generate waypoints between two CARLA locations. For example:
 ```python
 from PCLA import location_to_waypoint
 
@@ -231,7 +242,7 @@ A sample code is provided for you to test PCLA. Just go to the PCLA directory an
 ```Shell
 python sample.py
 ```
-This sample is in Town02 of the CARLA simulator and uses SimLingo from PCLA 2.
+This sample is in Town02 of the CARLA simulator and uses the World on Rails agent.
 
 ***Attention: you may need to change the vehicle spawn point's number on line 43 to something else based on your CARLA version.***
 
