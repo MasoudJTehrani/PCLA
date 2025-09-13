@@ -76,7 +76,7 @@ pip install -r requirements1.txt
 Follow the same steps from PCLA 1, but change all the numbers from 1 to 2.
 ## Pre-Trained Weights
 
-Download the pre-trained weights from <a href="https://zenodo.org/records/17104440">Zenodo</a> or directly from <a href="https://zenodo.org/records/17104440/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
+Download the pre-trained weights from <a href="https://zenodo.org/records/17110968">Zenodo</a> or directly from <a href="https://zenodo.org/records/17110968/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
 Ensure that each folder of pre-trained weights is placed directly next to its respective model's folder. The `agents` folder should look like this.
 ```bash
 ├── agents
