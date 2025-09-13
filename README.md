@@ -5,9 +5,14 @@
   <b style="font-size: 50px; color: #E44D26;">Introducing PCLA 2, Now includes SimLingo(CarLLava) from Leaderboard 2</b>
   <br>
   <br>
-  <b>--- PCLA 2: SimLingo (CarLLava) ---</b>
+  <b> PCLA 2 </b>
   <br>
-  <b>--- PCLA 1: Transfuser++, Interfuser, NEAT, World on Rails, Learning By Cheating ---</b>
+  <b>--- SimLingo (CarLLava) ---</b>
+  <br>
+  <br>
+  <b> PCLA 1 </b>
+  <br>
+  <b>--- Transfuser++, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
 </p>
 
 <p align="center">
@@ -18,7 +23,7 @@ PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework that allows 
 * Allows you to have multiple vehicles with different autonomous agents (requires high graphical memory).
 * Provides the next movement action computed by the chosen agent, which can then be utilized in any desired application.
 * Is fully compatible with the latest version of CARLA and independent of the Leaderboard’s specific CARLA version.
-* Includes 10 different high-performing ADAs trained with 17 distinct training seeds. 
+* Includes 16 different high-performing ADAs trained with 24 distinct training seeds. 
 
 Paper available at <a href="https://dl.acm.org/doi/abs/10.1145/3696630.3728577">Foundations of Software Engineering</a>
 
@@ -26,7 +31,7 @@ Paper available at <a href="https://dl.acm.org/doi/abs/10.1145/3696630.3728577">
 
 <p align="center">
 <strong>PCLA was tested on Linux Ubuntu 22, Windows and CARLA 9.15.2 Unreal Engine 4.</strong> </br>
-A video tutorial on how to use PCLA is available below.
+A video tutorial on how to use PCLA is available below (update will come soon).
   
 <div align="center">
   <a href="https://www.youtube.com/watch?v=QyaMK6vclBg"><img src="https://img.youtube.com/vi/QyaMK6vclBg/0.jpg" alt="PCLA Video Tutorial"></a>
@@ -81,6 +86,8 @@ Ensure that each folder of pre-trained weights is placed directly next to its re
    ├── interfuserPretrained
    ├── neat
    ├── neatPretrained
+   ├── lav
+   ├── lavPretrained
    ├── wor
    ├── worPretrained
    ├── simlingo
@@ -93,7 +100,7 @@ PCLA includes 14 different autonomous agents and 21 distinct training seeds to c
 - **SimLingo(CarLLava)**
   - Contains 1 agent from the leaderboard 2, previously named CarLLava.
     - **simlingo_simlingo** : The best performing agent, first place at <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 2</a> SENSORS track.
-  - Repository: [https://github.com/RenzKa/simlingo](https://github.com/RenzKa/simlingo)
+  - Repository: https://github.com/RenzKa/simlingo
     
 - **Transfuser++**
   - Contains 4 different autonomous agents of Transfuser++ with 3 training seeds for each agent. To use these agents, you need to set some [Environment Variables](#environment-variables).
@@ -103,12 +110,18 @@ PCLA includes 14 different autonomous agents and 21 distinct training seeds to c
     - **tfpp_aim_#** : Reproduction of the <a href="https://openaccess.thecvf.com/content/CVPR2021/html/Prakash_Multi-Modal_Fusion_Transformer_for_End-to-End_Autonomous_Driving_CVPR_2021_paper.html" target="_blank">AIM </a>method, explained in their paper's appendix.
 
   - Replace # with the seed number from 0 to 2.
-  - Repository: [https://github.com/autonomousvision/carla_garage](https://github.com/autonomousvision/carla_garage)
+  - Repository: https://github.com/autonomousvision/carla_garage
+    
+- **Learning from All Vehicles**
+  - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
+    - **lav_lav** : The original LAV agent.
+    - **lav_fast** : The leaderboard submission of LAV. The codes are slightly optimized for leaderboard inference speed with temporal LiDAR scans.
+  - Repository: https://github.com/dotchen/LAV
     
 - **Learning By Cheating**
   - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
-    - **lbc_nc** : Learning by Cheating, the NoCrash model.
-    - **lbc_ld** : Learning by Cheating, the Leaderboard model.
+    - **lbc_nc** : Learning By Cheating, the NoCrash model.
+    - **lbc_ld** : Learning By Cheating, the Leaderboard model.
   - Repository: https://github.com/dotchen/WorldOnRails
     
 - **World on Rails**
@@ -123,17 +136,17 @@ PCLA includes 14 different autonomous agents and 21 distinct training seeds to c
       - **neat_aimbev**
       - **neat_aim2dsem**
       - **neat_aim2ddepth**
-  - Repository: [https://github.com/autonomousvision/neat](https://github.com/autonomousvision/neat)
+  - Repository: https://github.com/autonomousvision/neat
     
 - **Interfuser**
   - Contains 1 autonomous agent. To use this agent, you need to set an [Environment Variables](#environment-variables).
      - **if_if** : Second best performing <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 1</a> SENSORS track agent.
-  - Repository: [https://github.com/opendilab/InterFuser](https://github.com/opendilab/InterFuser)
+  - Repository: https://github.com/opendilab/InterFuser
 
 ## How to Use
-First, run CARLA. You also need -vulkan or LBC and WoR agents
+First, run CARLA. You **only** need -vulkan for LBC, WoR, and LAV agents
 ```Shell
-./CarlaUE4.sh
+./CarlaUE4.sh -vulkan
 ```
 Then open another terminal and run your code.</br>
 To use PCLA, simply import it and use the PCLA class to define an autonomous vehicle with your chosen autonomous agent.
