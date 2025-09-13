@@ -100,7 +100,7 @@ PCLA includes 14 different autonomous agents and 21 distinct training seeds to c
 - **SimLingo(CarLLava)**
   - Contains 1 agent from the leaderboard 2, previously named CarLLava.
     - **simlingo_simlingo** : The best performing agent, first place at <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 2</a> SENSORS track.
-  - Repository: https://github.com/RenzKa/simlingo
+  - <a href="https://github.com/RenzKa/simlingo ">Repository</a>
     
 - **Transfuser++**
   - Contains 4 different autonomous agents of Transfuser++ with 3 training seeds for each agent. To use these agents, you need to set some [Environment Variables](#environment-variables).
@@ -110,25 +110,25 @@ PCLA includes 14 different autonomous agents and 21 distinct training seeds to c
     - **tfpp_aim_#** : Reproduction of the <a href="https://openaccess.thecvf.com/content/CVPR2021/html/Prakash_Multi-Modal_Fusion_Transformer_for_End-to-End_Autonomous_Driving_CVPR_2021_paper.html" target="_blank">AIM </a>method, explained in their paper's appendix.
 
   - Replace # with the seed number from 0 to 2.
-  - Repository: https://github.com/autonomousvision/carla_garage
+  - <a href="https://github.com/autonomousvision/carla_garage">Repository</a>
     
 - **Learning from All Vehicles**
   - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
     - **lav_lav** : The original LAV agent.
     - **lav_fast** : The leaderboard submission of LAV. The codes are slightly optimized for leaderboard inference speed with temporal LiDAR scans.
-  - Repository: https://github.com/dotchen/LAV
+  - <a href="https://github.com/dotchen/LAV">Repository</a>
     
 - **Learning By Cheating**
   - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
     - **lbc_nc** : Learning By Cheating, the NoCrash model.
     - **lbc_ld** : Learning By Cheating, the Leaderboard model.
-  - Repository: https://github.com/dotchen/WorldOnRails
+  - <a href="https://github.com/dotchen/WorldOnRails">Repository</a>
     
 - **World on Rails**
   - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
     - **wor_nc** : World on Rails, the NoCrash model.
     - **wor_ld** : World on Rails, the Leaderboard model.
-  - Repository: https://github.com/dotchen/WorldOnRails
+  - <a href="https://github.com/dotchen/WorldOnRails">Repository</a>
     
 - **NEAT**
   - Contains 4 different autonomous agents.
@@ -136,12 +136,12 @@ PCLA includes 14 different autonomous agents and 21 distinct training seeds to c
       - **neat_aimbev**
       - **neat_aim2dsem**
       - **neat_aim2ddepth**
-  - Repository: https://github.com/autonomousvision/neat
+  - <a href="https://github.com/autonomousvision/neat">Repository</a>
     
 - **Interfuser**
   - Contains 1 autonomous agent. To use this agent, you need to set an [Environment Variables](#environment-variables).
      - **if_if** : Second best performing <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 1</a> SENSORS track agent.
-  - Repository: https://github.com/opendilab/InterFuser
+  - <a href="https://github.com/opendilab/InterFuser">Repository</a>
 
 ## How to Use
 First, run CARLA. You **only** need -vulkan for LBC, WoR, and LAV agents
