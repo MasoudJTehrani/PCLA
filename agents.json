@@ -1,4 +1,16 @@
 {
+    "lav":{
+        "lav": {
+            "agent": "/agents/lav/lav/lav_agent.py",
+            "config": "/agents/lav/lav/config.yaml",
+            "envs": []
+        },
+        "fast": {
+            "agent": "/agents/lav/fast/lav_agent_fast.py",
+            "config": "/agents/lav/fast/config.yaml",
+            "envs": []
+        }
+    },
     "lbc":{
         "lb": {
             "agent": "/agents/wor/lbc_agent.py",

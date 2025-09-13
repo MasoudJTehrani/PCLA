@@ -82,6 +82,7 @@ dependencies:
       - tifffile==2021.11.2
       - timm==0.9.12
       - torch==1.13.1
+      - torch-scatter==2.1.1+pt113cu117
       - torchvision==0.14.1
       - tqdm==4.67.1
       - typing-extensions==4.7.1

@@ -50,7 +50,7 @@ def main():
 
         world.tick()
 
-        agent = "wor_nc"
+        agent = "lav_fast"
         route = "./sampleRoute.xml"
         pcla = PCLA(agent, vehicle, route, client)
         
