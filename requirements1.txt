@@ -1,5 +1,4 @@
 carla==0.9.15
-certifi @ file:///croot/certifi_1671487769961/work/certifi
 charset-normalizer==3.4.0
 click==8.1.8
 cycler==0.11.0
