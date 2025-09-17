@@ -1,5 +1,4 @@
 carla==0.9.15
-certifi @ file:///croot/certifi_1671487769961/work/certifi
 charset-normalizer==3.4.0
 click==8.1.8
 cycler==0.11.0
@@ -56,7 +55,7 @@ threadpoolctl==3.1.0
 tifffile==2021.11.2
 timm==0.9.12
 torch==1.13.1
-torch-scatter==2.1.1+pt113cu117
+#torch-scatter==2.1.1+pt113cu117
 torchvision==0.14.1
 tqdm==4.67.1
 typing_extensions==4.7.1
