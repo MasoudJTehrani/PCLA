@@ -2,17 +2,10 @@
   <b>PCLA: A framework for testing autonomous agents in the CARLA simulator</b>
   <br>
   <br>
-  <b style="font-size: 50px; color: #E44D26;">Introducing PCLA 2, Now includes SimLingo(CarLLava) from Leaderboard 2</b>
+  <b style="font-size: 50px; color: #E44D26;">PCLA 2 will soon be released to support CARLA 9.16 and Python 3.12</b>
   <br>
   <br>
-  <b> PCLA 2 </b>
-  <br>
-  <b>--- SimLingo (CarLLava) ---</b>
-  <br>
-  <br>
-  <b> PCLA 1 </b>
-  <br>
-  <b>--- Transfuser++, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
+  <b>--- SimLingo (CarLLava), Transfuser++, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
 </p>
 
 <p align="center">
@@ -30,7 +23,7 @@ Paper available at <a href="https://dl.acm.org/doi/abs/10.1145/3696630.3728577">
 </p>
 
 <p align="center">
-<strong>PCLA was tested on Linux Ubuntu 22, Windows and CARLA 9.15.2 Unreal Engine 4.</strong> </br>
+<strong>PCLA was tested on Linux Ubuntu 22 and CARLA 9.15.2 Unreal Engine 4.</strong> </br>
 A video tutorial on how to use PCLA is available below (update will come soon).
   
 <div align="center">
@@ -59,21 +52,15 @@ Please make sure CUDA and PyTorch are installed.</br>
 <a href="https://pytorch.org/get-started/locally/">Tutorial for PyTorch<a>
 
 Clone the repository and build the conda environment:
-# PCLA 1
+
 ```Shell
 git clone https://github.com/MasoudJTehrani/PCLA
 cd PCLA
-conda env create -f environment1.yml
-conda activate PCLA1
-```
-Alternatively, you can use the `requirements1.txt` file to install the required libraries by using:</br>
-```Shell
-pip install -r requirements1.txt
+conda env create -f environment.yml
+conda activate PCLA
 ```
 
 
-# PCLA 2
-Follow the same steps from PCLA 1, but change all the numbers from 1 to 2.
 ## Pre-Trained Weights
 
 Download the pre-trained weights from <a href="https://zenodo.org/records/17110968">Zenodo</a> or directly from <a href="https://zenodo.org/records/17110968/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
@@ -255,7 +242,7 @@ A sample code is provided for you to test PCLA. Just go to the PCLA directory an
 ```Shell
 python sample.py
 ```
-This sample is in Town02 of the CARLA simulator and uses the World on Rails agent.
+This sample is in Town02 of the CARLA simulator and uses the LAV agent.
 
 ***Attention: you may need to change the vehicle spawn point's number on line 43 to something else based on your CARLA version.***
 
