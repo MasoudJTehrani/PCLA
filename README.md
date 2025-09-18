@@ -121,13 +121,13 @@ PCLA includes 14 different autonomous agents and 21 distinct training seeds to c
 - **Learning By Cheating**
   - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
     - **lbc_nc** : Learning By Cheating, the NoCrash model.
-    - **lbc_ld** : Learning By Cheating, the Leaderboard model.
+    - **lbc_lb** : Learning By Cheating, the Leaderboard model.
   - <a href="https://github.com/dotchen/WorldOnRails">Repository</a>
     
 - **World on Rails**
   - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
     - **wor_nc** : World on Rails, the NoCrash model.
-    - **wor_ld** : World on Rails, the Leaderboard model.
+    - **wor_lb** : World on Rails, the Leaderboard model.
   - <a href="https://github.com/dotchen/WorldOnRails">Repository</a>
     
 - **NEAT**
