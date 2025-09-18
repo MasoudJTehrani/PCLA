@@ -3,7 +3,7 @@ import json
 import datetime
 import pathlib
 import time
-import imp
+import importlib
 import cv2
 import carla
 from collections import deque
@@ -113,6 +113,17 @@ class DisplayInterface(object):
 def get_entry_point():
     return "InterfuserAgent"
 
+def load_module_from_path(module_name, file_path):
+    """
+    Loads a module from a given file path using importlib.
+    """
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    if spec is None:
+        raise ImportError(f"Cannot find module '{module_name}' at '{file_path}'")
+    
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 class Resize2FixedSize:
     def __init__(self, size):
@@ -182,7 +193,7 @@ class InterfuserAgent(autonomous_agent1.AutonomousAgent):
             "thetas": deque(),
         }
 
-        self.config = imp.load_source("MainModel", path_to_conf_file).GlobalConfig()
+        self.config = load_module_from_path("MainModel", path_to_conf_file).GlobalConfig()
         self.skip_frames = self.config.skip_frames
         self.controller = InterfuserController(self.config)
         if isinstance(self.config.model, list):
@@ -204,7 +215,7 @@ class InterfuserAgent(autonomous_agent1.AutonomousAgent):
             self.net = create_model(self.config.model)
             path_to_model_file = self.config.model_path
             print('load model: %s' % path_to_model_file)
-            self.net.load_state_dict(torch.load(path_to_model_file)["state_dict"])
+            self.net.load_state_dict(torch.load(path_to_model_file, weights_only=False)["state_dict"])
             self.net.cuda()
             self.net.eval()
         self.softmax = torch.nn.Softmax(dim=1)

@@ -14,10 +14,10 @@ def add_rect(img, loc, ori, box, value, pixels_per_meter, max_distance, color):
     left_down = (loc + hor_offset - vet_offset + max_distance) * pixels_per_meter
     right_up = (loc - hor_offset + vet_offset + max_distance) * pixels_per_meter
     right_down = (loc - hor_offset - vet_offset + max_distance) * pixels_per_meter
-    left_up = np.around(left_up).astype(np.int)
-    left_down = np.around(left_down).astype(np.int)
-    right_down = np.around(right_down).astype(np.int)
-    right_up = np.around(right_up).astype(np.int)
+    left_up = np.around(left_up).astype(int)
+    left_down = np.around(left_down).astype(int)
+    right_down = np.around(right_down).astype(int)
+    right_up = np.around(right_up).astype(int)
     left_up = list(left_up)
     left_down = list(left_down)
     right_up = list(right_up)
@@ -126,7 +126,7 @@ def render_waypoints(waypoints, pixels_per_meter=5, max_distance=18, color=(0, 2
         new_loc = waypoints[i]
         new_loc = new_loc * pixels_per_meter + pixels_per_meter * max_distance
         new_loc = np.around(new_loc)
-        new_loc = tuple(new_loc.astype(np.int))
+        new_loc = tuple(new_loc.astype(int))
         img = cv2.circle(img, new_loc, 6, color, -1)
     img = np.clip(img, 0, 255)
     img = img.astype(np.uint8)
