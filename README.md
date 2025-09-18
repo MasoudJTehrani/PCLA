@@ -62,7 +62,7 @@ cd PCLA
 conda env create -f environment.yml
 conda activate PCLA
 ```
-
+Please make sure to install torch-scatter according to your own CUDA version. You can check your CUDA version using the `python cuda.py` code.
 
 ## Pre-Trained Weights
 
