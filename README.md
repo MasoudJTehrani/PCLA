@@ -2,11 +2,13 @@
   <b>PCLA: A framework for testing autonomous agents in the CARLA simulator</b>
   <br>
   <br>
-  <b style="font-size: 50px;">PCLA agents:</b>
+  PCLA agents:
   <br>
   <br>
   <b>--- SimLingo (CarLLava), Transfuser++, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
 </p>
+
+---
 
 <p align="center">
 PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework that allows you to utilize the autonomous agents from the <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard</a> independently of its core codebase and put them on your vehicle. </br>
@@ -16,7 +18,7 @@ PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework that allows 
 * Allows you to have multiple vehicles with different autonomous agents (requires high graphical memory).
 * Provides the next movement action computed by the chosen agent, which can then be utilized in any desired application.
 * Is fully compatible with the latest version of CARLA and independent of the Leaderboard’s specific CARLA version.
-* Includes 16 different high-performing ADAs trained with 24 distinct training seeds. 
+* Includes **16** different high-performing ADAs trained with 24 distinct training seeds. 
 
 Paper available at <a href="https://dl.acm.org/doi/abs/10.1145/3696630.3728577">Foundations of Software Engineering</a>
 
