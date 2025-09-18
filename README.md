@@ -2,7 +2,7 @@
   <b>PCLA: A framework for testing autonomous agents in the CARLA simulator</b>
   <br>
   <br>
-  <b style="font-size: 50px; color: #E44D26;">PCLA 2 will soon be released to support CARLA 9.16 and Python 3.12</b>
+  <b style="font-size: 50px;">PCLA agents:</b>
   <br>
   <br>
   <b>--- SimLingo (CarLLava), Transfuser++, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
@@ -30,6 +30,7 @@ A video tutorial on how to use PCLA is available below (update will come soon).
   <a href="https://www.youtube.com/watch?v=QyaMK6vclBg"><img src="https://img.youtube.com/vi/QyaMK6vclBg/0.jpg" alt="PCLA Video Tutorial"></a>
 </div>
 
+<b style="font-size: 20px; color: #E44D26;">PCLA 2 will soon be released to support CARLA 9.16 and Python 3.12</b>
 </p>
 
 
