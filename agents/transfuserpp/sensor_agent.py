@@ -16,7 +16,7 @@ import torch.nn.functional as F
 import numpy as np
 import math
 
-from leaderboardcodes import autonomous_agent2
+from leaderboardcodes import autonomous_agent2 as autonomous_agent
 from model import LidarCenterNet
 from config import GlobalConfig
 from data import CARLA_Data
@@ -45,7 +45,7 @@ def get_entry_point():
   return 'SensorAgent'
 
 
-class SensorAgent(autonomous_agent2.AutonomousAgent):
+class SensorAgent(autonomous_agent.AutonomousAgent):
   """
     Main class that runs the agents with the run_step function
     """
@@ -54,7 +54,7 @@ class SensorAgent(autonomous_agent2.AutonomousAgent):
     """Sets up the agent. route_index is for logging purposes"""
 
     torch.cuda.empty_cache()
-    self.track = autonomous_agent2.Track.SENSORS
+    self.track = autonomous_agent.Track.SENSORS
     self.config_path = path_to_conf_file
     self.step = -1
     self.initialized = False
