@@ -36,12 +36,28 @@ class LBCAgent(AutonomousAgent):
         
         self.alpha_errors = deque()
         self.accel_errors = deque()
-        
+
+        config_dir = os.path.dirname(os.path.abspath(path_to_conf_file))
+
         with open(path_to_conf_file, 'r') as f:
             config = yaml.safe_load(f)
-            
+
+        # Loop through the items and correct the paths
         for key, value in config.items():
-            setattr(self, key, value)
+            if key.endswith('_dir'):
+                # The paths in your YAML file are relative to the PCLA folder.
+                # We need to go up two directories from the config folder to get to PCLA.
+                
+                project_root = os.path.dirname(os.path.dirname(config_dir))
+                
+                # Construct the absolute path by joining the project root and the relative path from the YAML
+                absolute_path = os.path.join(project_root, value)
+                
+                # Now, set the attribute with the corrected absolute path
+                setattr(self, key, absolute_path)
+            else:
+                # For non-path values, set them as is
+                setattr(self, key, value)
             
         self.device = torch.device('cuda')
         
