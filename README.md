@@ -11,12 +11,12 @@
 ---
 
 <p align="center">
-PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework that allows you to utilize the autonomous agents from the <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard</a> independently of its core codebase and put them on your vehicle. </br>
+PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework that allows you to use and evaluate the autonomous agents from the <a href="https://leaderboard.carla.org">CARLA Leaderboard</a> independently of its core codebase and put them on your vehicle. </br>
 
 * PCLA provides a clear method to deploy Autonomous Driving Agents (ADAs) onto a vehicle without relying on the Leaderboard codebase.
 * Enables easy switching between ADAs without requiring changes to CARLA versions or programming environments.
 * Allows you to have multiple vehicles with different autonomous agents (requires high graphical memory).
-* Provides the next movement action computed by the chosen agent, which can then be utilized in any desired application.
+* Provides the next movement action computed by the chosen agent, which can then be used in any desired application.
 * Is fully compatible with the latest version of CARLA and independent of the Leaderboard’s specific CARLA version.
 * Includes **16** different high-performing ADAs trained with 24 distinct training seeds. 
 
@@ -89,12 +89,12 @@ Ensure that each folder of pre-trained weights is placed directly next to its re
 PCLA includes 14 different autonomous agents and 21 distinct training seeds to choose from.
 - **SimLingo(CarLLava)**
   - Contains 1 agent from the leaderboard 2, previously named CarLLava.
-    - **simlingo_simlingo** : The best performing agent, first place at <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 2</a> SENSORS track.
+    - **simlingo_simlingo** : The best performing agent, first place at <a href="https://leaderboard.carla.org">CARLA Leaderboard 2</a> SENSORS track.
   - <a href="https://github.com/RenzKa/simlingo ">Repository</a>
     
 - **Transfuser++**
   - Contains 4 different autonomous agents of Transfuser++ with 3 training seeds for each agent. To use these agents, you need to set some [Environment Variables](#environment-variables).
-    - **tfpp_l6_#** : Best performing Transfuser++ agent. Second place at <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 2</a> SENSORS track(Tuebingen_AI team)
+    - **tfpp_l6_#** : Best performing Transfuser++ agent. Second place at <a href="https://leaderboard.carla.org">CARLA Leaderboard 2</a> SENSORS track(Tuebingen_AI team)
     - **tfpp_lav_#** : Transfuser++ but it's not trained on Town02 and Town05.
     - **tfpp_wp_#** : Transfuser++ WP from their paper's appendix.
     - **tfpp_aim_#** : Reproduction of the <a href="https://openaccess.thecvf.com/content/CVPR2021/html/Prakash_Multi-Modal_Fusion_Transformer_for_End-to-End_Autonomous_Driving_CVPR_2021_paper.html" target="_blank">AIM </a>method, explained in their paper's appendix.
@@ -130,7 +130,7 @@ PCLA includes 14 different autonomous agents and 21 distinct training seeds to c
     
 - **Interfuser**
   - Contains 1 autonomous agent. To use this agent, you need to set an [Environment Variables](#environment-variables).
-     - **if_if** : Second best performing <a href="https://leaderboard.carla.org/leaderboard/">CARLA Leaderboard 1</a> SENSORS track agent.
+     - **if_if** : Second best performing <a href="https://leaderboard.carla.org">CARLA Leaderboard 1</a> SENSORS track agent.
   - <a href="https://github.com/opendilab/InterFuser">Repository</a>
 
 ## How to Use
