@@ -25,14 +25,13 @@ Paper available at <a href="https://dl.acm.org/doi/abs/10.1145/3696630.3728577">
 </p>
 
 <p align="center">
-<strong>PCLA was tested on Linux Ubuntu 22 and CARLA 9.15.2 Unreal Engine 4.</strong> </br>
+<strong>PCLA was tested on Linux Ubuntu 22 and CARLA 0.9.16 Unreal Engine 4.</strong> </br>
 A video tutorial on how to use PCLA is available below (update will come soon).
   
 <div align="center">
   <a href="https://www.youtube.com/watch?v=QyaMK6vclBg"><img src="https://img.youtube.com/vi/QyaMK6vclBg/0.jpg" alt="PCLA Video Tutorial"></a>
 </div>
 
-<b style="font-size: 20px; color: #E44D26;">PCLA 2 will soon be released to support CARLA 9.16 and Python 3.12</b>
 </p>
 
 
@@ -63,6 +62,14 @@ conda env create -f environment.yml
 conda activate PCLA
 ```
 Please make sure to install torch-scatter according to your own CUDA version. You can check your CUDA version using the `python cuda.py` code.
+
+--If you want to use PCLA for **CARLA 0.9.16**, you need to install the wheel from the `dist` folder.
+
+```Shell
+cd dist
+python3 -m pip install carla-0.9.16-cp38-cp38-linux_x86_64.whl
+```
+**Note**: Some agents act _weird_ in CARLA 0.9.16
 
 ## Pre-Trained Weights
 
