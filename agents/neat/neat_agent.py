@@ -12,7 +12,7 @@ import carla
 import numpy as np
 from PIL import Image, ImageDraw
 
-from leaderboardcodes import autonomous_agent1
+from leaderboard_codes import autonomous_agent1 as autonomous_agent
 from neat.architectures import AttentionField
 from neat.config import GlobalConfig
 from neat.utils import flow_to_color
@@ -41,10 +41,10 @@ def scale_and_crop_image(image, scale=1, crop=256):
     return cropped_image
 
 
-class MultiTaskAgent(autonomous_agent1.AutonomousAgent):
+class MultiTaskAgent(autonomous_agent.AutonomousAgent):
 
 	def setup(self, path_to_conf_file):
-		self.track = autonomous_agent1.Track.SENSORS
+		self.track = autonomous_agent.Track.SENSORS
 		self.config_path = path_to_conf_file
 		self.step = -1
 		self.wall_start = time.time()

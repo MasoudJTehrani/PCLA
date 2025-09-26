@@ -50,7 +50,7 @@ def main():
 
         world.tick()
 
-        agent = "lav_lav"
+        agent = "tfpp_wp_2"
         route = "./sampleRoute.xml"
         pcla = PCLA(agent, vehicle, route, client)
         

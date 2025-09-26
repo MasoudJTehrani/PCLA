@@ -11,7 +11,7 @@ import torch
 import numpy as np
 from PIL import Image
 
-from leaderboardcodes import autonomous_agent1
+from leaderboard_codes import autonomous_agent1
 from aim_mt_2d.architectures import MultiTaskImageNetwork
 from aim_mt_2d.config import GlobalConfig
 from aim_mt_2d.data import scale_and_crop_image

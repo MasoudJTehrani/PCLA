@@ -11,7 +11,7 @@ import string
 
 from torch.distributions.categorical import Categorical
 
-from leaderboardcodes.autonomous_agent1 import AutonomousAgent, Track
+from leaderboard_codes.autonomous_agent1 import AutonomousAgent, Track
 from utils import visualize_obs
 
 from rails.models import EgoModel, CameraModel

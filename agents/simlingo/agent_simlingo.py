@@ -25,7 +25,7 @@ import ujson
 from filterpy.kalman import MerweScaledSigmaPoints
 from filterpy.kalman import UnscentedKalmanFilter as UKF
 from hydra.utils import get_original_cwd, to_absolute_path
-from leaderboardcodes import autonomous_agent2
+from leaderboard_codes import autonomous_agent2 as autonomous_agent
 from omegaconf import OmegaConf
 from PIL import Image, ImageDraw, ImageFont
 from scipy.interpolate import PchipInterpolator
@@ -62,7 +62,7 @@ DEBUG = False # saves images during evaluation
 HD_VIZ = False
 USE_UKF = True
 
-class LingoAgent(autonomous_agent2.AutonomousAgent):
+class LingoAgent(autonomous_agent.AutonomousAgent):
     """
         Main class that runs the agents with the run_step function
         """
@@ -71,7 +71,7 @@ class LingoAgent(autonomous_agent2.AutonomousAgent):
         """Sets up the agent. route_index is for logging purposes"""
 
         torch.cuda.empty_cache()
-        self.track = autonomous_agent2.Track.SENSORS
+        self.track = autonomous_agent.Track.SENSORS
         if '+' in path_to_conf_file:
             print(f"path to conf file: {path_to_conf_file}")
             self.config_path = path_to_conf_file.split('+')[0]

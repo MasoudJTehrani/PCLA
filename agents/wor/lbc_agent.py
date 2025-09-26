@@ -11,7 +11,7 @@ import string
 from collections import deque
 from torch.distributions.categorical import Categorical
 
-from leaderboardcodes.autonomous_agent1 import AutonomousAgent, Track
+from leaderboard_codes.autonomous_agent1 import AutonomousAgent, Track
 from utils import visualize_obs, _numpy
 from utils.ls_fit import ls_circle, project_point_to_circle, signed_angle
 

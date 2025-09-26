@@ -15,7 +15,7 @@ from PIL import Image
 from easydict import EasyDict
 
 from torchvision import transforms
-from leaderboardcodes import autonomous_agent1
+from leaderboard_codes import autonomous_agent1 as autonomous_agent
 from timm.models import create_model
 from utils import lidar_to_histogram_features, transform_2d_points
 from planner import RoutePlanner
@@ -167,12 +167,12 @@ def create_carla_rgb_transform(
     return transforms.Compose(tfl)
 
 
-class InterfuserAgent(autonomous_agent1.AutonomousAgent):
+class InterfuserAgent(autonomous_agent.AutonomousAgent):
     def setup(self, path_to_conf_file):
 
         self._hic = DisplayInterface()
         self.lidar_processed = list()
-        self.track = autonomous_agent1.Track.SENSORS
+        self.track = autonomous_agent.Track.SENSORS
         self.step = -1
         self.wall_start = time.time()
         self.initialized = False

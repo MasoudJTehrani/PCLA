@@ -12,7 +12,7 @@ import carla
 import numpy as np
 from PIL import Image
 
-from leaderboardcodes import autonomous_agent1
+from leaderboard_codes import autonomous_agent1
 from aim_mt_bev.architectures import MultiTaskImageBDNetwork
 from aim_mt_bev.config import GlobalConfig
 from planner import RoutePlanner

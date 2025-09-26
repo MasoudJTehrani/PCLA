@@ -8,8 +8,8 @@ from collections import deque
 import xml.etree.ElementTree as ET
 import numpy as np
 
-from leaderboardcodes.global_route_planner import GlobalRoutePlanner
-from leaderboardcodes.global_route_planner_dao import GlobalRoutePlannerDAO
+from leaderboard_codes.global_route_planner import GlobalRoutePlanner
+from leaderboard_codes.global_route_planner_dao import GlobalRoutePlannerDAO
 
 
 class PIDController(object):

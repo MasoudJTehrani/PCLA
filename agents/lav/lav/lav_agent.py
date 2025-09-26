@@ -10,7 +10,7 @@ import string
 
 from torch.nn import functional as F
 
-from leaderboardcodes.autonomous_agent1 import AutonomousAgent, Track
+from leaderboard_codes.autonomous_agent1 import AutonomousAgent, Track
 
 from models.lidar import LiDARModel
 from models.bev_planner import BEVPlanner

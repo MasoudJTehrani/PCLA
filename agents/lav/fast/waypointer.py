@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-from leaderboardcodes.local_planner import RoadOption
+from leaderboard_codes.local_planner import RoadOption
 
 
 class Waypointer:

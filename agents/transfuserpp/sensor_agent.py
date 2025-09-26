@@ -16,7 +16,7 @@ import torch.nn.functional as F
 import numpy as np
 import math
 
-from leaderboardcodes import autonomous_agent2 as autonomous_agent
+from leaderboard_codes import autonomous_agent2 as autonomous_agent
 from model import LidarCenterNet
 from config import GlobalConfig
 from data import CARLA_Data

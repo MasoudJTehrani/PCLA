@@ -17,13 +17,13 @@ import sys
 import carla
 import traceback
 import json
-from leaderboardcodes.watchdog import Watchdog
-from leaderboardcodes.timer import GameTime
-from leaderboardcodes.route_indexer import RouteIndexer
-from leaderboardcodes.route_manipulation import interpolate_trajectory
-from leaderboardcodes.sensor_interface import CallBack, OpenDriveMapReader, SpeedometerReader
-from leaderboardcodes.global_route_planner import GlobalRoutePlanner
-from leaderboardcodes.global_route_planner_dao import GlobalRoutePlannerDAO
+from leaderboard_codes.watchdog import Watchdog
+from leaderboard_codes.timer import GameTime
+from leaderboard_codes.route_indexer import RouteIndexer
+from leaderboard_codes.route_manipulation import interpolate_trajectory
+from leaderboard_codes.sensor_interface import CallBack, OpenDriveMapReader, SpeedometerReader
+from leaderboard_codes.global_route_planner import GlobalRoutePlanner
+from leaderboard_codes.global_route_planner_dao import GlobalRoutePlannerDAO
 
 def print_guide():
     print("""
