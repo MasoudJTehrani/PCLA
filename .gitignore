@@ -1,3 +1,6 @@
 __pycache__/
 agents/*Pretrained*/
 agents/lmdrive/
+wandb/
+pretrained/
+eval/
