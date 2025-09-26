@@ -190,7 +190,6 @@ endLoc = vehicle_spawn_points[42].location # End location
 waypoints = location_to_waypoint(client, startLoc, endLoc) # Returns waypoints between two locations
 ```
 
-<hr />
 
 Then pass the waypoints to `route_maker()` to make the XML file usable for PCLA.
 ```python
