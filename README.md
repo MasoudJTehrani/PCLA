@@ -93,7 +93,7 @@ Ensure that each folder of pre-trained weights is placed directly next to its re
 
 ## Autonomous Agents
 
-PCLA includes 14 different autonomous agents and 21 distinct training seeds to choose from.
+PCLA includes 16 different autonomous agents and 24 distinct training seeds to choose from.
 - **SimLingo(CarLLava)**
   - Contains 1 agent from the leaderboard 2, previously named CarLLava.
     - **simlingo_simlingo** : The best performing agent, first place at <a href="https://leaderboard.carla.org">CARLA Leaderboard 2</a> SENSORS track.
