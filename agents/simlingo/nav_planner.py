@@ -14,7 +14,7 @@ from scipy.interpolate import interp1d
 import time
 from scipy.spatial import cKDTree
 
-from leaderboardcodes.global_route_planner import GlobalRoutePlanner
+from leaderboard_codes.global_route_planner import GlobalRoutePlanner
 
 class PIDController(object):
     """
