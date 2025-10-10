@@ -218,7 +218,7 @@ Transfuser++ and Interfuser require you to set an environment variable before us
 Environment variables for each agent are:
 - **tfpp_l6_#**
   ```Shell
-  export UNCERTAINTY_THRESHOLD=033
+  export UNCERTAINTY_THRESHOLD=0.33
   ```
 - **tfpp_lav_#**
   ```Shell
