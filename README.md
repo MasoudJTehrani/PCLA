@@ -73,22 +73,22 @@ python3 -m pip install carla-0.9.16-cp38-cp38-linux_x86_64.whl
 
 ## Pre-Trained Weights
 
-Download the pre-trained weights from <a href="https://zenodo.org/records/17110968">Zenodo</a> or directly from <a href="https://zenodo.org/records/17110968/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
+Download the pre-trained weights from <a href="https://zenodo.org/records/17313599">Zenodo</a> or directly from <a href="https://zenodo.org/records/17313599/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
 Ensure that each folder of pre-trained weights is placed directly next to its respective model's folder. The `agents` folder should look like this.
 ```bash
 ├── agents
    ├── transfuserpp
-   ├── transfuserppPretrained
+   ├── transfuserpp_pretrained
    ├── interfuser
-   ├── interfuserPretrained
+   ├── interfuser_pretrained
    ├── neat
-   ├── neatPretrained
+   ├── neat_pretrained
    ├── lav
-   ├── lavPretrained
+   ├── lav_pretrained
    ├── wor
-   ├── worPretrained
+   ├── wor_pretrained
    ├── simlingo
-   └── simlingoPretrained
+   └── simlingo_pretrained
 ```
 
 ## Autonomous Agents

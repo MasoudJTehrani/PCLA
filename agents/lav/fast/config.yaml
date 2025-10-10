@@ -81,10 +81,10 @@ no_forecast: False
 no_refine: False
 #### MODEL DIR ####
 pixels_per_meter: 4
-lidar_model_dir: 'lavPretrained/lidar_v2_7.th'
-uniplanner_dir: 'lavPretrained/uniplanner_v2_7.th'
-bra_model_dir: 'lavPretrained/bra_v2_9.th'
-seg_model_dir: 'lavPretrained/seg_1.th'
-bev_model_dir: 'lavPretrained/bev_v2_64.th'
-bra_model_trace_dir: 'lavPretrained/bra_v2_9.pt'
-seg_model_trace_dir: 'lavPretrained/seg_1.pt'
+lidar_model_dir: 'lav_pretrained/lidar_v2_7.th'
+uniplanner_dir: 'lav_pretrained/uniplanner_v2_7.th'
+bra_model_dir: 'lav_pretrained/bra_v2_9.th'
+seg_model_dir: 'lav_pretrained/seg_1.th'
+bev_model_dir: 'lav_pretrained/bev_v2_64.th'
+bra_model_trace_dir: 'lav_pretrained/bra_v2_9.pt'
+seg_model_trace_dir: 'lav_pretrained/seg_1.pt'

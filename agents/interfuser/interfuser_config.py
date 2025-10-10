@@ -24,7 +24,7 @@ class GlobalConfig:
 
     # Get the directory of the current file (interfuser_config.py)
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    model_path = os.path.join(current_dir, "../interfuserPretrained/interfuser.pth.tar")
+    model_path = os.path.join(current_dir, "../interfuser_pretrained/interfuser.pth.tar")
     
     momentum = 0
     skip_frames = 1

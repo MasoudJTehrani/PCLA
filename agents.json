@@ -14,92 +14,92 @@
     "lbc":{
         "lb": {
             "agent": "/agents/wor/lbc_agent.py",
-            "config": "/agents/worPretrained/leaderboard_weights/config_leaderboard.yaml",
+            "config": "/agents/wor_pretrained/leaderboard_weights/config_leaderboard.yaml",
             "envs": []
         },
         "nc": {
             "agent": "/agents/wor/lbc_agent.py",
-            "config": "/agents/worPretrained/nocrash_weights/config_nocrash.yaml",
+            "config": "/agents/wor_pretrained/nocrash_weights/config_nocrash.yaml",
             "envs": []
         }
     },
     "wor":{
         "lb": {
             "agent": "/agents/wor/image_agent.py",
-            "config": "/agents/worPretrained/leaderboard_weights/config_leaderboard.yaml",
+            "config": "/agents/wor_pretrained/leaderboard_weights/config_leaderboard.yaml",
             "envs": []
         },
         "nc": {
             "agent": "/agents/wor/image_agent.py",
-            "config": "/agents/worPretrained/nocrash_weights/config_nocrash.yaml",
+            "config": "/agents/wor_pretrained/nocrash_weights/config_nocrash.yaml",
             "envs": []
         }
     },
     "lmdrive":{
         "llava": {
             "agent": "/agents/lmdrive/lmdriver_agent.py",
-            "config": "/agents/lmdrivePretrained/llava-v1.5-checkpoint.pth",
+            "config": "/agents/lmdrive_pretrained/llava-v1.5-checkpoint.pth",
             "envs": []
         },
         "vicuna": {
             "agent": "/agents/lmdrive/lmdriver_agent.py",
-            "config": "/agents/lmdrivePretrained/vicuna-v1.5-checkpoint.pth",
+            "config": "/agents/lmdrive_pretrained/vicuna-v1.5-checkpoint.pth",
             "envs": []
         },
         "llama": {
             "agent": "/agents/lmdrive/lmdriver_agent.py",
-            "config": "/agents/lmdrivePretrained/llama-7b-checkpoint.pth",
+            "config": "/agents/lmdrive_pretrained/llama-7b-checkpoint.pth",
             "envs": []
         }
     },
     "simlingo":{
         "simlingo": {
             "agent": "/agents/simlingo/agent_simlingo.py",
-            "config": "/agents/simlingoPretrained/checkpoints/epoch=013.ckpt/pytorch_model.pt",
+            "config": "/agents/simlingo_pretrained/checkpoints/epoch=013.ckpt/pytorch_model.pt",
             "envs": []
         }
     },
     "tfpp":{
         "lav": {
             "agent": "/agents/transfuserpp/sensor_agent.py",
-            "config": "/agents/transfuserppPretrained/lav/tfpp_02_05_withheld_",
+            "config": "/agents/transfuserpp_pretrained/lav/tfpp_02_05_withheld_",
             "envs": ["STOP_CONTROL"]
         },
         "aim": {
             "agent": "/agents/transfuserpp/sensor_agent.py",
-            "config": "/agents/transfuserppPretrained/lav/aim_02_05_withheld_",
+            "config": "/agents/transfuserpp_pretrained/lav/aim_02_05_withheld_",
             "envs": ["DIRECT"]
         },
         "wp": {
             "agent": "/agents/transfuserpp/sensor_agent.py",
-            "config": "/agents/transfuserppPretrained/leaderboard/tfpp_wp_all_",
+            "config": "/agents/transfuserpp_pretrained/leaderboard/tfpp_wp_all_",
             "envs": ["DIRECT"]
         },
         "l6": {
             "agent": "/agents/transfuserpp/sensor_agent.py",
-            "config": "/agents/transfuserppPretrained/longest6/tfpp_all_",
+            "config": "/agents/transfuserpp_pretrained/longest6/tfpp_all_",
             "envs": ["UNCERTAINTY_THRESHOLD"]
         }
     },
     "neat": {
         "neat": {
             "agent": "/agents/neat/neat_agent.py",
-            "config": "/agents/neatPretrained/neat",
+            "config": "/agents/neat_pretrained/neat",
             "envs": []
         },
         "aimbev": {
             "agent": "/agents/neat/aim_mt_bev_agent.py",
-            "config": "/agents/neatPretrained/aim_mt_bev",
+            "config": "/agents/neat_pretrained/aim_mt_bev",
             "envs": []
         },
         "aim2dsem": {
             "agent": "/agents/neat/aim_mt_2d_agent.py",
-            "config": "/agents/neatPretrained/aim_mt_sem",
+            "config": "/agents/neat_pretrained/aim_mt_sem",
             "envs": []
         },
         "aim2ddepth": {
             "agent": "/agents/neat/aim_mt_2d_agent.py",
-            "config": "/agents/neatPretrained/aim_mt_sem_depth",
+            "config": "/agents/neat_pretrained/aim_mt_sem_depth",
             "envs": []
         }
     },

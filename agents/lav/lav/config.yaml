@@ -78,10 +78,10 @@ no_forecast: False
 no_refine: False
 #### MODEL DIR ####
 pixels_per_meter: 4
-lidar_model_dir: "lavPretrained/lidar_15.th"
-bev_model_dir: "lavPretrained/bev_160.th"
-uniplanner_dir: "lavPretrained/uniplanner_15.th"
-bra_model_dir: "lavPretrained/bra_10.th"
-seg_model_dir: "lavPretrained/seg_1.th"
+lidar_model_dir: "lav_pretrained/lidar_15.th"
+bev_model_dir: "lav_pretrained/bev_160.th"
+uniplanner_dir: "lav_pretrained/uniplanner_15.th"
+bra_model_dir: "lav_pretrained/bra_10.th"
+seg_model_dir: "lav_pretrained/seg_1.th"
 ### DATASET DIR ###
 #data_dir: [PATH TO DATASET]
