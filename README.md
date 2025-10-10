@@ -73,7 +73,11 @@ python3 -m pip install carla-0.9.16-cp38-cp38-linux_x86_64.whl
 
 ## Pre-Trained Weights
 
-Download the pre-trained weights from <a href="https://zenodo.org/records/17313599">Zenodo</a> or directly from <a href="https://zenodo.org/records/17313599/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
+You can either run this code to download and unzip the weights automatically
+```bash
+python download_weights.py
+``` 
+or manually download the pre-trained weights from <a href="https://zenodo.org/records/17313599">Zenodo</a> or directly from <a href="https://zenodo.org/records/17313599/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
 Ensure that each folder of pre-trained weights is placed directly next to its respective model's folder. The `agents` folder should look like this.
 ```bash
 ├── agents
@@ -81,14 +85,7 @@ Ensure that each folder of pre-trained weights is placed directly next to its re
    ├── transfuserpp_pretrained
    ├── interfuser
    ├── interfuser_pretrained
-   ├── neat
-   ├── neat_pretrained
-   ├── lav
-   ├── lav_pretrained
-   ├── wor
-   ├── wor_pretrained
-   ├── simlingo
-   └── simlingo_pretrained
+   ├── ...
 ```
 
 ## Autonomous Agents
@@ -151,7 +148,7 @@ To use PCLA, simply import it and use the PCLA class to define an autonomous veh
 from PCLA import PCLA
 
 agent = "neat_neat"
-route = "./sampleRoute.xml"
+route = "./sample_route.xml"
 pcla = PCLA(agent, vehicle, route, client)
 
 ego_action = pcla.get_action()
