@@ -1,8 +1,9 @@
-# Copyright (c) 2025 Testing Automated group (TAU) at the università della svizzera 
-# italiana (USI) Switzerland
+# Copyright (c) 2025 Testing Automated group (TAU) at 
+# the università della svizzera italiana (USI), Switzerland
 #
-# This work is licensed under the terms of the MIT license.
-# For a copy, see <https://opensource.org/licenses/MIT>.
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0
+# https://www.apache.org/licenses/LICENSE-2.0
 
 import importlib
 import os
@@ -10,7 +11,7 @@ import sys
 # Get the directory of the current file (PCLA.py)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Add the directory containing leaderboardcodes to the Python path
+# Add the directory containing leaderboard_codes to the Python path
 sys.path.append(current_dir)
 
 import sys
