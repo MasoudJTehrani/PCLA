@@ -751,7 +751,10 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
                     line_width = 100
                     y_dist = 30
                     y_start = H + 20
-                font = ImageFont.truetype("arial.ttf", font_size)
+                try:
+                    font = ImageFont.truetype("arial.ttf", font_size)
+                except OSError:
+                    font = ImageFont.load_default()
                 import textwrap
                 lines = textwrap.wrap(f"Prompt: {self.prompt}", width=line_width)
                 for idx, line in enumerate(lines):
