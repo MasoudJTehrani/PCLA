@@ -150,7 +150,7 @@ class PCLA():
         self.world = client.get_world()
         self.vehicle = vehicle
         self.routePath = route
-        self._watchdog = Watchdog(160) # TODO: Change watchdog timeout based on your internet speed for loading the agents
+        self._watchdog = Watchdog(260) # TODO: Change watchdog timeout based on your internet speed for loading the agents
         self.setup_agent(agent)
         self.setup_route()
         self.setup_sensors()
@@ -171,7 +171,7 @@ class PCLA():
 
     def setup_route(self):
         
-        scenarios = current_dir + "/leaderboardcodes/no_scenarios.json"
+        scenarios = current_dir + "/leaderboard_codes/no_scenarios.json"
         route_indexer = RouteIndexer(self.routePath, scenarios, 1)
         config = route_indexer.next()
         

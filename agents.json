@@ -38,17 +38,17 @@
     "lmdrive":{
         "llava": {
             "agent": "/agents/lmdrive/lmdriver_agent.py",
-            "config": "/agents/lmdrive_pretrained/llava-v1.5-checkpoint.pth",
+            "config": "/agents/lmdrive/lmdriver_config.py",
             "envs": []
         },
         "vicuna": {
             "agent": "/agents/lmdrive/lmdriver_agent.py",
-            "config": "/agents/lmdrive_pretrained/vicuna-v1.5-checkpoint.pth",
+            "config": "/agents/lmdrive/lmdriver_config.py",
             "envs": []
         },
         "llama": {
             "agent": "/agents/lmdrive/lmdriver_agent.py",
-            "config": "/agents/lmdrive_pretrained/llama-7b-checkpoint.pth",
+            "config": "/agents/lmdrive/lmdriver_config.py",
             "envs": []
         }
     },
