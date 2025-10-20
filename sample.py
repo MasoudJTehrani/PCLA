@@ -51,7 +51,7 @@ def main():
 
         world.tick()
 
-        agent = "lmdrive_llava"
+        agent = "tf_ltf"
         route = "./sample_route.xml"
         pcla = PCLA(agent, vehicle, route, client)
         
