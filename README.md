@@ -5,7 +5,7 @@
   PCLA agents:
   <br>
   <br>
-  <b>--- SimLingo (CarLLava), Transfuser++, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
+  <b>--- SimLingo (CarLLava), LMDrive, Transfuser, Transfuser++, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
 </p>
 
 ---
@@ -18,7 +18,7 @@ PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework that allows 
 * Allows you to have multiple vehicles with different autonomous agents (requires high graphical memory).
 * Provides the next movement action computed by the chosen agent, which can then be used in any desired application.
 * Is fully compatible with the latest version of CARLA and independent of the Leaderboard’s specific CARLA version.
-* Includes **16** different high-performing ADAs trained with 24 distinct training seeds. 
+* Includes **23** different high-performing ADAs trained with 31 distinct training seeds. 
 
 Paper available at <a href="https://dl.acm.org/doi/abs/10.1145/3696630.3728577">Foundations of Software Engineering</a>
 
@@ -71,6 +71,21 @@ python3 -m pip install carla-0.9.16-cp38-cp38-linux_x86_64.whl
 ```
 **Note**: Some agents act _weird_ in CARLA 0.9.16
 
+Additional setups for the LMDrive agent:
+```Shell
+conda activate PCLA
+
+cd agents/lmdrive/vision_encoder
+pip uninstall timm
+python setup.py develop
+
+cd ../LAVIS
+python setup.py develop
+
+pip uninstall ftfy -y
+pip install "ftfy==6.1.1"
+```
+
 ## Pre-Trained Weights
 
 You can either run this code to download and unzip the weights automatically
@@ -90,12 +105,27 @@ Ensure that each folder of pre-trained weights is placed directly next to its re
 
 ## Autonomous Agents
 
-PCLA includes 16 different autonomous agents and 24 distinct training seeds to choose from.
+PCLA includes 23 different autonomous agents and 31 distinct training seeds to choose from.
 - **SimLingo(CarLLava)**
   - Contains 1 agent from the leaderboard 2, previously named CarLLava.
     - **simlingo_simlingo** : The best performing agent, first place at <a href="https://leaderboard.carla.org">CARLA Leaderboard 2</a> SENSORS track.
-  - <a href="https://github.com/RenzKa/simlingo ">Repository</a>
-    
+  - <a href="https://github.com/RenzKa/simlingo">Repository</a>
+
+- **LMDrive**
+  - Contains 3 agent from the leaderboard 1.
+    - **lmdrive_llava** : The best performing LMDrive agent.
+    - **lmdrive_vicuna** : The second best performing LMDrive agent.
+    - **lmdrive_llama** : The third best performing LMDrive agent.
+  - <a href="https://github.com/opendilab/LMDrive">Repository</a>
+
+- **Transfuser**
+  - Contains 4 agent from the leaderboard 1 transfuser.
+    - **tf_tf** : The main Transfuser agent.
+    - **tf_ltf** : The LatentTF agent.
+    - **tf_lf** : The Late_Fusion agent.
+    - **tf_gf** : The Geometric_Fusion agent.
+  - <a href="https://github.com/autonomousvision/transfuser">Repository</a>
+  
 - **Transfuser++**
   - Contains 4 different autonomous agents of Transfuser++ with 3 training seeds for each agent. To use these agents, you need to set some [Environment Variables](#environment-variables).
     - **tfpp_l6_#** : Best performing Transfuser++ agent. Second place at <a href="https://leaderboard.carla.org">CARLA Leaderboard 2</a> SENSORS track(Tuebingen_AI team)
