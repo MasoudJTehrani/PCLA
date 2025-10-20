@@ -29,6 +29,7 @@ def main():
             print("You are currently in asynchronous mode. If this is a traffic simulation, \
                     you could experience some issues. If it's not working correctly, switch to \
                     synchronous mode by using traffic_manager.set_synchronous_mode(True)")
+        #settings.no_rendering_mode = True
         world.apply_settings(settings)
         
         # Finding actors
@@ -50,7 +51,7 @@ def main():
 
         world.tick()
 
-        agent = "lav_lav"
+        agent = "simlingo_simlingo"
         route = "./sample_route.xml"
         pcla = PCLA(agent, vehicle, route, client)
         
@@ -62,6 +63,7 @@ def main():
             world.tick()
     
     finally:
+        #settings.no_rendering_mode = False
         settings.synchronous_mode = False
         world.apply_settings(settings)
 

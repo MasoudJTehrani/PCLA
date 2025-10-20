@@ -326,16 +326,28 @@ class PIDController(object):
     self.window = deque([0 for _ in range(n)], maxlen=n)
 
   def step(self, error):
-    self.window.append(error)
+      # Changes for newer numpy versions
+      # Convert the error to a scalar if it's a single-element sequence
+      if isinstance(error, (list, tuple, np.ndarray)):
+          # Assuming 'error' should always be a scalar error value
+          if np.size(error) == 1:
+              scalar_error = float(error)  # Extract the scalar value
+          else:
+              # Handle unexpected multi-element array
+              raise ValueError("PID controller received multi-element error sequence.")
+      else:
+          scalar_error = error
+      
+      self.window.append(scalar_error)
 
-    if len(self.window) >= 2:
-      integral = np.mean(self.window)
-      derivative = self.window[-1] - self.window[-2]
-    else:
-      integral = 0.0
-      derivative = 0.0
+      if len(self.window) >= 2:
+          integral = np.mean(self.window)
+          derivative = self.window[-1] - self.window[-2]
+      else:
+          integral = 0.0
+          derivative = 0.0
 
-    return self.k_p * error + self.k_i * integral + self.k_d * derivative
+      return self.k_p * scalar_error + self.k_i * integral + self.k_d * derivative
 
 
 def gaussian_focal_loss(pred, gaussian_target, alpha=2.0, gamma=4.0, reduction='mean'):
