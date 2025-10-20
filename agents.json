@@ -1,4 +1,26 @@
 {
+    "tf":{
+        "tf": {
+            "agent": "/agents/transfuser/submission_agent.py",
+            "config": "/agents/transfuser_pretrained/transfuser",
+            "envs": []
+        },
+        "ltf": {
+            "agent": "/agents/transfuser/submission_agent.py",
+            "config": "/agents/transfuser_pretrained/latentTF",
+            "envs": []
+        },
+        "lf": {
+            "agent": "/agents/transfuser/submission_agent.py",
+            "config": "/agents/transfuser_pretrained/late_fusion",
+            "envs": []
+        },
+        "gf": {
+            "agent": "/agents/transfuser/submission_agent.py",
+            "config": "/agents/transfuser_pretrained/geometric_fusion",
+            "envs": []
+        }
+    },
     "lav":{
         "lav": {
             "agent": "/agents/lav/lav/lav_agent.py",
