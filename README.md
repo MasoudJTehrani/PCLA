@@ -61,7 +61,7 @@ cd PCLA
 conda env create -f environment.yml
 conda activate PCLA
 ```
-Please make sure to install torch-scatter according to your own CUDA version. You can check your CUDA version using the `python cuda.py` code.
+Please make sure to install **torch-scatter** according to your own CUDA version. You can check your CUDA version using the `python cuda.py` code.
 
 --If you want to use PCLA for **CARLA 0.9.16**, you need to install the wheel from the `dist` folder.
 
