@@ -68,7 +68,7 @@ def download_and_extract_pretrained_zip(url, target_dir="agents", zip_filename="
         print(f"ERROR: Could not delete file {zip_filename}: {e}")
 
 # URL of the pretrained weights ZIP file
-DOWNLOAD_URL = "https://zenodo.org/records/17313599/files/pretrained.zip?download=1" 
+DOWNLOAD_URL = "https://zenodo.org/records/17399201/files/pretrained.zip?download=1" 
 
 if __name__ == "__main__":
     download_and_extract_pretrained_zip(DOWNLOAD_URL)
