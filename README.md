@@ -92,7 +92,7 @@ You can either run this code to download and unzip the weights automatically
 ```bash
 python download_weights.py
 ``` 
-or manually download the pre-trained weights from <a href="https://zenodo.org/records/17313599">Zenodo</a> or directly from <a href="https://zenodo.org/records/17313599/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
+or manually download the pre-trained weights from <a href="https://zenodo.org/records/17399201">Zenodo</a> or directly from <a href="https://zenodo.org/records/17399201/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
 Ensure that each folder of pre-trained weights is placed directly next to its respective model's folder. The `agents` folder should look like this.
 ```bash
 ├── agents
