@@ -42,10 +42,9 @@ A video tutorial on how to use PCLA is available below (update will come soon).
 3. [Autonomous Agents](#autonomous-agents)
 4. [How to Use](#how-to-use)
 5. [Navigation](#navigation)
-6. [Environment Variables](#environment-variables)
-7. [Sample Code](#sample-code)
-8. [FAQ](#FAQ)
-9. [Citation](#citation)
+6. [Sample Code](#sample-code)
+7. [FAQ](#FAQ)
+8. [Citation](#citation)
 
 ## Setup
 Download and install the <a href="https://carla.readthedocs.io/en/latest/">CARLA simulator</a> from the official website. Based on your preference, you can either use quick installation or build from source.</br>
@@ -127,7 +126,7 @@ PCLA includes 23 different autonomous agents and 31 distinct training seeds to c
   - <a href="https://github.com/autonomousvision/transfuser">Repository</a>
   
 - **Transfuser++**
-  - Contains 4 different autonomous agents of Transfuser++ with 3 training seeds for each agent. To use these agents, you need to set some [Environment Variables](#environment-variables).
+  - Contains 4 different autonomous agents of Transfuser++ with 3 training seeds for each agent.
     - **tfpp_l6_#** : Best performing Transfuser++ agent. Second place at <a href="https://leaderboard.carla.org">CARLA Leaderboard 2</a> SENSORS track(Tuebingen_AI team)
     - **tfpp_lav_#** : Transfuser++ but it's not trained on Town02 and Town05.
     - **tfpp_wp_#** : Transfuser++ WP from their paper's appendix.
@@ -163,7 +162,7 @@ PCLA includes 23 different autonomous agents and 31 distinct training seeds to c
   - <a href="https://github.com/autonomousvision/neat">Repository</a>
     
 - **Interfuser**
-  - Contains 1 autonomous agent. To use this agent, you need to set an [Environment Variables](#environment-variables).
+  - Contains 1 autonomous agent.
      - **if_if** : Second best performing <a href="https://leaderboard.carla.org">CARLA Leaderboard 1</a> SENSORS track agent.
   - <a href="https://github.com/opendilab/InterFuser">Repository</a>
 
@@ -177,7 +176,7 @@ To use PCLA, simply import it and use the PCLA class to define an autonomous veh
 ```python
 from PCLA import PCLA
 
-agent = "neat_neat"
+agent = "tf_tf"
 route = "./sample_route.xml"
 pcla = PCLA(agent, vehicle, route, client)
 
@@ -202,7 +201,7 @@ pcla.cleanup()
 You can use PCLA to generate waypoints between two locations or generate routes usable for PCLA.
 If you want to find locations to navigate your vehicle through the city, you can use the `spawn_points.py` file to see all the spawn points and their associated number.
 ```shell
-python spawn_points.py
+python pcla_functions/spawn_points.py
 ```
 
 <hr />
@@ -241,36 +240,6 @@ startLoc = vehicle_spawn_points[31].location # Start location
 endLoc = vehicle_spawn_points[42].location # End location
 waypoints = location_to_waypoint(client, startLoc, endLoc)  # Returns waypoints between two locations
 route_maker(waypoints, "route.xml")  # Returns waypoints usable for PCLA
-```
-
-## Environment Variables
-Transfuser++ and Interfuser require you to set an environment variable before using their agents.
-Environment variables for each agent are:
-- **tfpp_l6_#**
-  ```Shell
-  export UNCERTAINTY_THRESHOLD=0.33
-  ```
-- **tfpp_lav_#**
-  ```Shell
-  export STOP_CONTROL=1
-  ```
-- **tfpp_aim_#**
-  ```Shell
-  export DIRECT=0
-  ```
-- **tfpp_wp_#**
-  ```Shell
-  export DIRECT=0
-  ```
-- **if_if**
-  ```Shell
-  export ROUTES=path_to_route.xml
-  ```
-  The path to the same XML route file you used in PCLA
-
-Remember to unset a variable before using another agent.
-```Shell
-unset DIRECT
 ```
 
 ## Sample Code
