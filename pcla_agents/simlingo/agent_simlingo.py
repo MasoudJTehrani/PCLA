@@ -871,8 +871,13 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
 
         del self.model
         del self.config
-        if self.cfg.data_module.encoder == 'llavanext':
-            del self.processor
+        if hasattr(self, 'cfg') and hasattr(self.cfg, 'data_module') and hasattr(self.cfg.data_module, 'encoder') and self.cfg.data_module.encoder == 'llavanext':
+            if hasattr(self, 'processor'):
+                del self.processor
+            else:
+                print("No processor to delete")
+        else:
+            print("No cfg or encoder to delete processor")
 
 
 # Filter Functions

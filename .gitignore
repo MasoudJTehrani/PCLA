@@ -1,5 +1,5 @@
 __pycache__/
-agents/*pretrained*/
+pcla_agents/*pretrained*/
 wandb/
 pretrained/
 eval/

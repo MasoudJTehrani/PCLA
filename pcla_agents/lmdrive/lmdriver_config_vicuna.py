@@ -20,10 +20,10 @@ class GlobalConfig:
     brake_ratio = 1.1  # ratio of speed to desired speed at which brake is triggered
     clip_delta = 0.35  # maximum change in speed input to logitudinal controller
 
-    llm_model = 'huggyllama/llama-7b'
+    llm_model = 'lmsys/vicuna-7b-v1.5-16k'
     preception_model = 'memfuser_baseline_e1d3_return_feature'
-    preception_model_ckpt = 'agents/lmdrive_pretrained/vision-encoder-r50.pth.tar'
-    lmdrive_ckpt = 'agents/lmdrive_pretrained/llama-7b-checkpoint.pth'
+    preception_model_ckpt = 'pcla_agents/lmdrive_pretrained/vision-encoder-r50.pth.tar'
+    lmdrive_ckpt = 'pcla_agents/lmdrive_pretrained/vicuna-v1.5-checkpoint.pth'
 
     agent_use_notice = False
     sample_rate = 2

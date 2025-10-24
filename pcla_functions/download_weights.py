@@ -3,7 +3,7 @@ import requests
 import zipfile
 from tqdm import tqdm
 
-def download_and_extract_pretrained_zip(url, target_dir="agents", zip_filename="pretrained.zip"):
+def download_and_extract_pretrained_zip(url, target_dir="../agents", zip_filename="../pretrained.zip"):
     """
     Downloads a ZIP file from a URL, extracts it into a target directory, and deletes the ZIP.
 
@@ -14,9 +14,9 @@ def download_and_extract_pretrained_zip(url, target_dir="agents", zip_filename="
     """
     
     # 1. Define file paths
-    current_dir = os.getcwd()
-    zip_filepath = os.path.join(current_dir, zip_filename)
-    extract_dir = os.path.join(current_dir, target_dir)
+    zip_filepath = os.path.abspath(zip_filename)
+    extract_dir = os.path.abspath(target_dir)  # Use absolute path for target directory
+    print(f"Target directory for extraction: {zip_filepath}")
 
     print(f"Starting download from: {url}")
     
@@ -50,7 +50,7 @@ def download_and_extract_pretrained_zip(url, target_dir="agents", zip_filename="
     try:
         # Extract the files
         with zipfile.ZipFile(zip_filepath, 'r') as zip_ref:
-            print(f"Extracting contents into {target_dir}/...")
+            print(f"Extracting contents into {extract_dir}/")
             zip_ref.extractall(extract_dir)
         print("Extraction complete.")
         
@@ -62,7 +62,7 @@ def download_and_extract_pretrained_zip(url, target_dir="agents", zip_filename="
         
     # --- 4. Delete the ZIP file ---
     try:
-        os.remove(zip_filepath)
+        #os.remove(zip_filepath)
         print(f"Successfully deleted the ZIP file: {zip_filename}")
     except OSError as e:
         print(f"ERROR: Could not delete file {zip_filename}: {e}")

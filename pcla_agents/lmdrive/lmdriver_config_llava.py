@@ -22,8 +22,8 @@ class GlobalConfig:
 
     llm_model = 'liuhaotian/llava-v1.5-7b'
     preception_model = 'memfuser_baseline_e1d3_return_feature'
-    preception_model_ckpt = 'agents/lmdrive_pretrained/vision-encoder-r50.pth.tar'
-    lmdrive_ckpt = 'agents/lmdrive_pretrained/llava-v1.5-checkpoint.pth'
+    preception_model_ckpt = 'pcla_agents/lmdrive_pretrained/vision-encoder-r50.pth.tar'
+    lmdrive_ckpt = 'pcla_agents/lmdrive_pretrained/llava-v1.5-checkpoint.pth'
 
     agent_use_notice = False
     sample_rate = 2
