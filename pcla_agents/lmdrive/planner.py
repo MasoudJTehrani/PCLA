@@ -138,7 +138,7 @@ class InstructionPlanner(object):
         self.curr_instruction_id = 60
         self.prev_mislead_id = -1
         self.curr_mislead_id = -1
-        with open(os.path.join(Path(__file__).parent.parent,'leaderboard/envs/instruction_dict.json')) as f:
+        with open(Path(__file__).parent / 'envs' / 'instruction_dict.json') as f:
             self.instruct_dict = json.load(f)
         self.instruct_dict["-1"] = [""]
         random.seed(int(re.search('\d+',scenario_cofing_name)[0]))
