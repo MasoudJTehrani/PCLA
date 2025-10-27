@@ -5,7 +5,7 @@
   PCLA agents:
   <br>
   <br>
-  <b>--- SimLingo (CarLLava), LMDrive, Transfuser, Transfuser++, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
+  <b>--- SimLingo (CarLLava), LMDrive(Beta), Transfuser, Transfuser++, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
 </p>
 
 ---
@@ -110,7 +110,7 @@ PCLA includes 23 different autonomous agents and 31 distinct training seeds to c
     - **simlingo_simlingo** : The best performing agent, first place at <a href="https://leaderboard.carla.org">CARLA Leaderboard 2</a> SENSORS track.
   - <a href="https://github.com/RenzKa/simlingo">Repository</a>
 
-- **LMDrive**
+- **LMDrive(Beta)**
   - Contains 3 agent from the leaderboard 1.
     - **lmdrive_llava** : The best performing LMDrive agent.
     - **lmdrive_vicuna** : The second best performing LMDrive agent.
