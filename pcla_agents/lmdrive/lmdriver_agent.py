@@ -324,11 +324,11 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
             self.save_path.mkdir(parents=True, exist_ok=False)
             (self.save_path / "meta").mkdir(parents=True, exist_ok=False)
         
-    def _init(self, vehicle, world):
+    def _init(self, vehicle):
         self._route_planner = RoutePlanner(5, 50.0)
         self._route_planner.set_route(self._global_plan, True)
         # self._instruction_planner = InstructionPlanner(self.scenario_cofing_name, True)
-        self._instruction_planner = InstructionPlanner(vehicle, world, '', True)
+        self._instruction_planner = InstructionPlanner(vehicle, '', True)
         self.initialized = True
         random.seed(''.join([str(x[0]) for x in self._global_plan]))
 
@@ -508,9 +508,9 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         return torch.stack(result, 1)
 
     @torch.no_grad()
-    def run_step(self, input_data, timestamp, vehicle = None, world = None):
+    def run_step(self, input_data, timestamp, vehicle = None):
         if not self.initialized:
-            self._init(vehicle, world)
+            self._init(vehicle)
 
         self.step += 1
 
