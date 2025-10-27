@@ -1,4 +1,10 @@
 {
+    "carl":{
+        "carl": {
+            "agent": "pcla_agents/carl/eval_agent.py",
+            "config": "pcla_agents/carl_pretrained/CaRL_PY_00"
+        }
+    },
     "tf":{
         "tf": {
             "agent": "pcla_agents/transfuser/submission_agent.py",
