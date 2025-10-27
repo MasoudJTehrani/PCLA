@@ -358,7 +358,7 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
         return sensors
 
     @torch.inference_mode()  # Turns off gradient computation
-    def tick(self, input_data):
+    def tick(self, input_data): # Vehicle and world are for compatibility with LMDrive
         """Pre-processes sensor data and runs the Unscented Kalman Filter"""
         rgb = []
 
@@ -670,7 +670,7 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
         return result
 
     @torch.no_grad()
-    def run_step(self, input_data, timestamp, sensors=None):  # pylint: disable=locally-disabled, unused-argument
+    def run_step(self, input_data, timestamp, sensors=None, vehicle=None, world=None):  # pylint: disable=locally-disabled, unused-argument
         self.step += 1
 
         if not self.initialized:

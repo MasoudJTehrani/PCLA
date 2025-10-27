@@ -138,7 +138,7 @@ class LBCAgent(AutonomousAgent):
         
         return sensors
         
-    def run_step(self, input_data, timestamp):
+    def run_step(self, input_data, timestamp, vehicle=None, world=None):
         
         _, rgb_0 = input_data.get(f'RGB_0')
         _, rgb_1 = input_data.get(f'RGB_1')

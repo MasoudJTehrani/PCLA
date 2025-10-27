@@ -113,7 +113,7 @@ class ImageAgent(AutonomousAgent):
         ]
         return sensors
 
-    def run_step(self, input_data, timestamp):
+    def run_step(self, input_data, timestamp, vehicle=None, world=None):
         # changed to match the online leaderboard based on https://github.com/dotchen/WorldOnRails/issues/27
         wide_rgbs = []
         for i in range(3):

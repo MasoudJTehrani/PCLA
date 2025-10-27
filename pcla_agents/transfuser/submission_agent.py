@@ -234,7 +234,7 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
         return result
 
     @torch.inference_mode() # Faster version of torch_no_grad
-    def run_step(self, input_data, timestamp):
+    def run_step(self, input_data, timestamp, vehicle=None, world=None):
         self.step += 1
 
         if not self.initialized:

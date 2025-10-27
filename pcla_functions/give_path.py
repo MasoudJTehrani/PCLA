@@ -8,10 +8,7 @@ def give_path(name, PCLA_dir, routePath):
     Set the environment variables if needed
     """
     
-    special_agent = False
     nameArray = name.split("_")
-    if nameArray[0] == "carl" or nameArray[0] == "lmdrive":
-        special_agent = True
 
     if nameArray[0] == "tfpp": 
         if nameArray[1] == 'l6':
@@ -37,4 +34,4 @@ def give_path(name, PCLA_dir, routePath):
             print("Couldn't find your model")
             print_guide()
 
-    return os.path.join(PCLA_dir, agent), os.path.join(PCLA_dir, config), special_agent
+    return os.path.join(PCLA_dir, agent), os.path.join(PCLA_dir, config)

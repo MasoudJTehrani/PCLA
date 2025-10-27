@@ -95,7 +95,7 @@ class AutonomousAgent(object):
         """
         pass
 
-    def __call__(self, sensors=None):
+    def __call__(self, sensors=None, vehicle=None, world=None):
         """
         Execute the agent call, e.g. agent()
         Returns the next vehicle controls
@@ -112,7 +112,7 @@ class AutonomousAgent(object):
 
         # print('======[Agent] Wallclock_time = {} / {} / Sim_time = {} / {}x'.format(wallclock, wallclock_diff, timestamp, timestamp/(wallclock_diff+0.001)))
 
-        control = self.run_step(input_data, timestamp)
+        control = self.run_step(input_data, timestamp, vehicle, world)
         control.manual_gear_shift = False
 
         return control

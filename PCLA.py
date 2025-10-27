@@ -35,7 +35,6 @@ class PCLA():
         self.agent_instance = None
         self.routePath = None
         self._watchdog = None
-        self.special_agent = None
         self.set(agent, vehicle, route, client)
     
     def set(self, agent, vehicle, route, client):
@@ -51,7 +50,7 @@ class PCLA():
     def setup_agent(self, agent):
         GameTime.restart()
         self._watchdog.start()
-        self.agentPath, self.configPath, self.special_agent = give_path(agent, self.current_dir, self.routePath)
+        self.agentPath, self.configPath = give_path(agent, self.current_dir, self.routePath)
 
         module_name = os.path.basename(self.agentPath).split('.')[0]
         sys.path.insert(0, os.path.dirname(self.agentPath))
@@ -110,10 +109,7 @@ class PCLA():
             timestamp = snapshot.timestamp
         if timestamp:
             GameTime.on_carla_tick(timestamp)
-            if self.special_agent:
-                return self.agent_instance(self.vehicle, self.world)
-            else:
-                return self.agent_instance()
+            return self.agent_instance(self.vehicle, self.world)
     
     def cleanup(self):
         """
