@@ -115,7 +115,14 @@ class PCLA():
         """
         Remove and destroy all actors
         """
-        
+        self.vehicle.destroy()
+        self.current_dir = None
+        self.client = None
+        self.vehicle = None
+        self.agentPath = None
+        self.configPath = None
+        self.routePath = None
+
         if self._watchdog:
             self._watchdog.stop()
 
@@ -136,11 +143,4 @@ class PCLA():
             sensor.destroy()
 
         self.world = None
-        self.vehicle.destroy()
-        self.current_dir = None
-        self.client = None
-        self.vehicle = None
-        self.agentPath = None
-        self.configPath = None
-        self.routePath = None
         
