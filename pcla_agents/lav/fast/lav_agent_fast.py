@@ -218,7 +218,7 @@ class LAVAgent(AutonomousAgent):
         torch.cuda.empty_cache()
 
     @torch.no_grad()
-    def run_step(self, input_data, timestamp, vehicle=None, world=None):
+    def run_step(self, input_data, timestamp, vehicle=None):
 
         self.num_frames += 1
 

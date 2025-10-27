@@ -117,9 +117,9 @@ class RoutePlanner(object):
         return res
 
 class InstructionPlanner(object):
-    def __init__(self, vehicle, world, scenario_cofing_name = '', notice_light_switch = False):
+    def __init__(self, vehicle, scenario_cofing_name = '', notice_light_switch = False):
         self._vehicle = vehicle
-        self._world = world
+        self._world = self._vehicle.get_world()
         lights_list = self._world.get_actors().filter("*traffic_light*")
         self._map = self._world.get_map()
         self._list_traffic_lights = []

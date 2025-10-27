@@ -109,7 +109,7 @@ class PCLA():
             timestamp = snapshot.timestamp
         if timestamp:
             GameTime.on_carla_tick(timestamp)
-            return self.agent_instance(self.vehicle, self.world)
+            return self.agent_instance(self.vehicle)
     
     def cleanup(self):
         """

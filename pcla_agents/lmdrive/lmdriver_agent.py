@@ -426,7 +426,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
             {"type": "sensor.speedometer", "reading_frequency": 20, "id": "speed"},
         ]
 
-    def tick(self, input_data, vehicle, world):
+    def tick(self, input_data, vehicle):
 
         rgb_front = cv2.cvtColor(input_data["rgb_front"][1][:, :, :3], cv2.COLOR_BGR2RGB)
         rgb_left = cv2.cvtColor(input_data["rgb_left"][1][:, :, :3], cv2.COLOR_BGR2RGB)
@@ -471,7 +471,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         result['num_points'] = num_points
 
         result["gps"] = pos
-        next_wp, next_cmd = self._route_planner.run_step(pos, vehicle, world)
+        next_wp, next_cmd = self._route_planner.run_step(pos, vehicle)
         result["next_waypoint"] = next_wp
         result["next_command"] = next_cmd.value
         result['measurements'] = [pos[0], pos[1], compass, speed]

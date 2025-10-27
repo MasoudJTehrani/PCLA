@@ -195,7 +195,7 @@ class MultiTaskAgent(autonomous_agent.AutonomousAgent):
 		return result
 
 	@torch.no_grad()
-	def run_step(self, input_data, timestamp, vehicle=None, world=None):
+	def run_step(self, input_data, timestamp, vehicle=None):
 		if not self.initialized:
 			self._init()
 
