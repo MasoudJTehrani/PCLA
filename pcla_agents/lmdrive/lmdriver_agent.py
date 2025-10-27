@@ -324,11 +324,11 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
             self.save_path.mkdir(parents=True, exist_ok=False)
             (self.save_path / "meta").mkdir(parents=True, exist_ok=False)
         
-    def _init(self):
+    def _init(self, vehicle, world):
         self._route_planner = RoutePlanner(5, 50.0)
         self._route_planner.set_route(self._global_plan, True)
         # self._instruction_planner = InstructionPlanner(self.scenario_cofing_name, True)
-        self._instruction_planner = InstructionPlanner('', True)
+        self._instruction_planner = InstructionPlanner(vehicle, world, '', True)
         self.initialized = True
         random.seed(''.join([str(x[0]) for x in self._global_plan]))
 
@@ -426,7 +426,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
             {"type": "sensor.speedometer", "reading_frequency": 20, "id": "speed"},
         ]
 
-    def tick(self, input_data):
+    def tick(self, input_data, vehicle, world):
 
         rgb_front = cv2.cvtColor(input_data["rgb_front"][1][:, :, :3], cv2.COLOR_BGR2RGB)
         rgb_left = cv2.cvtColor(input_data["rgb_left"][1][:, :, :3], cv2.COLOR_BGR2RGB)
@@ -471,7 +471,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         result['num_points'] = num_points
 
         result["gps"] = pos
-        next_wp, next_cmd = self._route_planner.run_step(pos)
+        next_wp, next_cmd = self._route_planner.run_step(pos, vehicle, world)
         result["next_waypoint"] = next_wp
         result["next_command"] = next_cmd.value
         result['measurements'] = [pos[0], pos[1], compass, speed]
@@ -508,9 +508,9 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         return torch.stack(result, 1)
 
     @torch.no_grad()
-    def run_step(self, input_data, timestamp):
+    def run_step(self, input_data, timestamp, vehicle = None, world = None):
         if not self.initialized:
-            self._init()
+            self._init(vehicle, world)
 
         self.step += 1
 

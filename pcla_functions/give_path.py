@@ -8,7 +8,11 @@ def give_path(name, PCLA_dir, routePath):
     Set the environment variables if needed
     """
     
-    nameArray = name.split("_") 
+    special_agent = False
+    nameArray = name.split("_")
+    if nameArray[0] == "carl" or nameArray[0] == "lmdrive":
+        special_agent = True
+
     if nameArray[0] == "tfpp": 
         if nameArray[1] == 'l6':
             os.environ['UNCERTAINTY_THRESHOLD'] = '0.33'
@@ -18,7 +22,7 @@ def give_path(name, PCLA_dir, routePath):
             os.environ['DIRECT'] = '0'
     else:
         nameArray.append("")
-        if nameArray[0] == "if":
+        if nameArray[0] == "if" or nameArray[0] == "lmdrive":
             os.environ['ROUTES'] = routePath
 
     # open json file
@@ -33,4 +37,4 @@ def give_path(name, PCLA_dir, routePath):
             print("Couldn't find your model")
             print_guide()
 
-    return os.path.join(PCLA_dir, agent), os.path.join(PCLA_dir, config)
+    return os.path.join(PCLA_dir, agent), os.path.join(PCLA_dir, config), special_agent
