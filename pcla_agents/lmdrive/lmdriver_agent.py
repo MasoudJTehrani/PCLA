@@ -562,7 +562,8 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         )
 
         last_instruction = self._instruction_planner.command2instruct(tick_data=tick_data, routes=self._route_planner.route)
-        last_notice = self._instruction_planner.pos2notice(self.sampled_scenarios, tick_data)
+        #last_notice = self._instruction_planner.pos2notice(self.sampled_scenarios, tick_data)
+        last_notice = self._instruction_planner.pos2notice([], tick_data)
         last_traffic_light_notice = self._instruction_planner.traffic_notice(tick_data)
         last_misleading_instruction = self._instruction_planner.command2mislead(tick_data=tick_data)
 
