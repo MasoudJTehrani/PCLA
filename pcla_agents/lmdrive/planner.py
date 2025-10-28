@@ -141,7 +141,10 @@ class InstructionPlanner(object):
         with open(Path(__file__).parent / 'envs' / 'instruction_dict.json') as f:
             self.instruct_dict = json.load(f)
         self.instruct_dict["-1"] = [""]
-        random.seed(int(re.search('\d+',scenario_cofing_name)[0]))
+        # Extract seed from scenario config name, default to 42 if no digits found
+        match = re.search('\d+', scenario_cofing_name)
+        seed = int(match[0]) if match else 42
+        random.seed(seed)
         self.prev_instruction = random.choice(self.instruct_dict['60'])
         self.curr_instruction = random.choice(self.instruct_dict['60'])
         self.prev_mislead = ''

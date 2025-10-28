@@ -2,7 +2,19 @@
     "carl":{
         "carl": {
             "agent": "pcla_agents/carl/eval_agent.py",
-            "config": "pcla_agents/carl_pretrained/CaRL_PY_00"
+            "config": "pcla_agents/carl_pretrained/CaRL_PY_0_"
+        },
+        "carlv11": {
+            "agent": "pcla_agents/carl/eval_agent.py",
+            "config": "pcla_agents/carl_pretrained/CaRL_v1_1_PY_01"
+        },
+        "roach": {
+            "agent": "pcla_agents/carl/eval_agent.py",
+            "config": "/home/vortex/PCLA/pcla_agents/carl_pretrained/Roach_0_"
+        },
+        "plant": {
+            "agent": "pcla_agents/plant/PlanT_agent.py",
+            "config": "pcla_agents/plant/config/eval.yaml"
         }
     },
     "tf":{
@@ -98,8 +110,7 @@
         },
         "aimbev": {
             "agent": "pcla_agents/neat/aim_mt_bev_agent.py",
-            "config": "pcla_agents/neat_pretrained/aim_mt_bev",
-            "envs": []
+            "config": "pcla_agents/neat_pretrained/aim_mt_bev"
         },
         "aim2dsem": {
             "agent": "pcla_agents/neat/aim_mt_2d_agent.py",

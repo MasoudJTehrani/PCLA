@@ -59,6 +59,7 @@ class CarlaDataProvider(object):  # pylint: disable=too-many-public-methods
     _spawn_points = None
     _spawn_index = 0
     _blueprint_library = None
+    _all_actors = None
     _ego_vehicle_route = None
     _traffic_manager_port = 8000
     if int(os.environ.get('DATAGEN', 0)):
@@ -118,6 +119,8 @@ class CarlaDataProvider(object):  # pylint: disable=too-many-public-methods
         world = CarlaDataProvider._world
         if world is None:
             print("WARNING: CarlaDataProvider couldn't find the world")
+        
+        CarlaDataProvider._all_actors = None
 
     @staticmethod
     def get_velocity(actor):
@@ -760,6 +763,19 @@ class CarlaDataProvider(object):  # pylint: disable=too-many-public-methods
         CarlaDataProvider._traffic_manager_port = tm_port
 
     @staticmethod
+    def get_all_actors():
+        """
+        @return all the world actors. This is an expensive call, hence why it is part of the CDP,
+        but as this might not be used by everyone, only get the actors the first time someone
+        calls asks for them. 'CarlaDataProvider._all_actors' is reset each tick to None.
+        """
+        if CarlaDataProvider._all_actors:
+            return CarlaDataProvider._all_actors
+
+        CarlaDataProvider._all_actors = CarlaDataProvider._world.get_actors()
+        return CarlaDataProvider._all_actors
+
+    @staticmethod
     def cleanup():
         """
         Cleanup and remove all entries from all dictionaries
@@ -789,6 +805,7 @@ class CarlaDataProvider(object):  # pylint: disable=too-many-public-methods
         CarlaDataProvider._world = None
         CarlaDataProvider._sync_flag = False
         CarlaDataProvider._ego_vehicle_route = None
+        CarlaDataProvider._all_actors = None
         CarlaDataProvider._carla_actor_pool = dict()
         CarlaDataProvider._client = None
         CarlaDataProvider._spawn_points = None

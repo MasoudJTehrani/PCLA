@@ -115,18 +115,10 @@ class PCLA():
         """
         Remove and destroy all actors
         """
-        self.vehicle.destroy()
-        self.current_dir = None
-        self.client = None
-        self.vehicle = None
-        self.agentPath = None
-        self.configPath = None
-        self.routePath = None
-
         if self._watchdog:
             self._watchdog.stop()
 
-        # Cleanup the agent
+        # Cleanup the agent BEFORE destroying the vehicle
         try:
             if self.agent_instance:
                 self.agent_instance.destroy()
@@ -134,6 +126,14 @@ class PCLA():
         except Exception as e:
             print("\n\033[91mFailed to stop the agent:")
             print(f"\n{traceback.format_exc()}\033[0m")
+
+        self.vehicle.destroy()
+        self.current_dir = None
+        self.client = None
+        self.vehicle = None
+        self.agentPath = None
+        self.configPath = None
+        self.routePath = None
 
         # Make sure no sensors are left streaming
         alive_sensors = self.world.get_actors().filter('*sensor*')

@@ -328,7 +328,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         self._route_planner = RoutePlanner(5, 50.0)
         self._route_planner.set_route(self._global_plan, True)
         # self._instruction_planner = InstructionPlanner(self.scenario_cofing_name, True)
-        self._instruction_planner = InstructionPlanner(vehicle, '', True)
+        self._instruction_planner = InstructionPlanner(vehicle = vehicle, scenario_cofing_name = '', notice_light_switch = True)
         self.initialized = True
         random.seed(''.join([str(x[0]) for x in self._global_plan]))
 
