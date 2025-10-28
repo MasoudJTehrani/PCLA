@@ -471,7 +471,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         result['num_points'] = num_points
 
         result["gps"] = pos
-        next_wp, next_cmd = self._route_planner.run_step(pos, vehicle)
+        next_wp, next_cmd = self._route_planner.run_step(pos)
         result["next_waypoint"] = next_wp
         result["next_command"] = next_cmd.value
         result['measurements'] = [pos[0], pos[1], compass, speed]
