@@ -514,7 +514,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
 
         self.step += 1
 
-        tick_data = self.tick(input_data)
+        tick_data = self.tick(input_data, vehicle)
 
         if self.step < 20:
             control = carla.VehicleControl()
