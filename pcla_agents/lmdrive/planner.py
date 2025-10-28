@@ -647,7 +647,11 @@ class InstructionPlanner(object):
         result = min(abs(a - b), np.pi * 2 - abs(a - b))
         return result
 
-    def command2mislead(self, town_id, tick_data):
+    def command2mislead(self, town_id=None, tick_data=None):
+        # Extract town_id from map if not provided or if it's empty
+        if not town_id:
+            town_id = self.get_town_id()
+            
         mislead_id = None
         mislead_id_list = []
         command = tick_data["next_command"]
