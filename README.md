@@ -74,7 +74,7 @@ Additional setups for the LMDrive agent:
 ```Shell
 conda activate PCLA
 
-cd agents/lmdrive/vision_encoder
+cd plca_agents/lmdrive/vision_encoder
 pip uninstall timm
 python setup.py develop
 
