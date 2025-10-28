@@ -467,7 +467,11 @@ class InstructionPlanner(object):
                 self.prev_mislead = random.choice(self.instruct_dict[str(self.prev_mislead_id)])
         self.last_target_point_mislead = tick_data['target_point']
 
-    def command2instruct(self, town_id, tick_data, routes=None, dis_on=True):
+    def command2instruct(self, town_id=None, tick_data=None, routes=None, dis_on=True):
+        # Extract town_id from map if not provided or if it's empty
+        if not town_id:
+            town_id = self.get_town_id()
+        
         self.town_id = town_id
         self.routes = routes
         self.frame_count = self.frame_count + 1
@@ -786,6 +790,14 @@ class InstructionPlanner(object):
             deg = np.pi*2 - deg
 
         return deg
+
+    def get_town_id(self):
+        """Extract town ID from the current world map"""
+        try:
+            map_name = self._map.name.split('/')[-1]
+            return map_name
+        except:
+            return "Town01"  # Default fallback
 
 class MultiInsturctionsPlanner(InstructionPlanner):
     def __init__(self, global_plan, scenario_cofing_name = '', notice_light_switch = False):
