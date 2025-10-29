@@ -133,7 +133,7 @@ PCLA includes 23 different autonomous agents and 31 distinct training seeds to c
     - **tfpp_aim_#** : Reproduction of the <a href="https://openaccess.thecvf.com/content/CVPR2021/html/Prakash_Multi-Modal_Fusion_Transformer_for_End-to-End_Autonomous_Driving_CVPR_2021_paper.html" target="_blank">AIM </a>method, explained in their paper's appendix.
 
   - Replace # with the seed number from 0 to 2.
-  - <a href="https://github.com/autonomousvision/carla_garage">Repository</a>
+  - <a href="https://github.com/autonomousvision/carla_garage/tree/leaderboard_1">Repository</a>
     
 - **Learning from All Vehicles**
   - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
