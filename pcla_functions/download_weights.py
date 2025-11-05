@@ -79,7 +79,7 @@ def download_and_extract_pretrained_zip(url):
 
 # URL of the pretrained weights ZIP file from Hugging Face
 # TODO: Replace with actual Hugging Face URL
-DOWNLOAD_URL = "https://huggingface.co/MasoudJTehrani/PCLA/blob/main/pretrained.zip"
+DOWNLOAD_URL = "https://huggingface.co/datasets/MasoudJTehrani/PCLA/resolve/main/pretrained.zip?download=true"
 
 if __name__ == "__main__":
     download_and_extract_pretrained_zip(DOWNLOAD_URL)
