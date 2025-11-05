@@ -5,7 +5,7 @@
   PCLA agents:
   <br>
   <br>
-  <b>--- SimLingo (CarLLava), LMDrive, Transfuser, Transfuser++, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
+  <b>--- SimLingo (CarLLava), LMDrive, Transfuser, Transfuser++, CaRL, Roach, PlanT, Interfuser, NEAT, World on Rails (WoR), Learning By Cheating (LBC), Learning from All Vehicles (LAV) ---</b>
 </p>
 
 ---
@@ -18,7 +18,7 @@ PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework that allows 
 * Allows you to have multiple vehicles with different autonomous agents (requires high graphical memory).
 * Provides the next movement action computed by the chosen agent, which can then be used in any desired application.
 * Is fully compatible with the latest version of CARLA and independent of the Leaderboard’s specific CARLA version.
-* Includes **23** different high-performing ADAs trained with 31 distinct training seeds. 
+* Includes **27** different high-performing ADAs trained with 24 additional training seeds. 
 
 Paper available at <a href="https://dl.acm.org/doi/abs/10.1145/3696630.3728577">Foundations of Software Engineering</a>
 
@@ -72,6 +72,7 @@ python3 -m pip install carla-0.9.16-cp38-cp38-linux_x86_64.whl
 
 Additional setups for the LMDrive agent:
 ```Shell
+conda env create -f environment.yml
 conda activate PCLA
 
 cd pcla_agents/lmdrive/vision_encoder
@@ -83,6 +84,7 @@ python setup.py develop
 
 pip uninstall ftfy -y
 pip install "ftfy==6.1.1"
+cd ../../../
 ```
 
 ## Pre-Trained Weights
@@ -91,7 +93,7 @@ You can either run this code to download and unzip the weights automatically
 ```bash
 python download_weights.py
 ``` 
-or manually download the pre-trained weights from <a href="https://zenodo.org/records/17399201">Zenodo</a> or directly from <a href="https://zenodo.org/records/17399201/files/pretrained.zip?download=1">here</a> and extract them into the `PCLA/agents/` directory.</br>
+or manually download the pre-trained weights from <a href="https://huggingface.co/MasoudJTehrani/PCLA/blob/main/pretrained.zip">Hugging Face</a> and extract them into the `PCLA/agents/` directory.</br>
 Ensure that each folder of pre-trained weights is placed directly next to its respective model's folder. The `agents` folder should look like this.
 ```bash
 ├── agents
@@ -104,7 +106,7 @@ Ensure that each folder of pre-trained weights is placed directly next to its re
 
 ## Autonomous Agents
 
-PCLA includes 23 different autonomous agents and 31 distinct training seeds to choose from.
+PCLA includes 27 different autonomous agents and 24 additional training seeds to choose from.
 - **SimLingo(CarLLava)**
   - Contains 1 agent from the leaderboard 2, previously named CarLLava.
     - **simlingo_simlingo** : The best performing agent, first place at <a href="https://leaderboard.carla.org">CARLA Leaderboard 2</a> SENSORS track.
@@ -134,7 +136,23 @@ PCLA includes 23 different autonomous agents and 31 distinct training seeds to c
 
   - Replace # with the seed number from 0 to 2.
   - <a href="https://github.com/autonomousvision/carla_garage/tree/leaderboard_1">Repository</a>
-    
+  
+- **CaRL**
+  - Contains 2 autonomous agents for CaRL which is the best open-source RL planner on longest6 v2 and nuPlan
+    - **carl_carl_#** : The CaRL agent with the driving score of 64 and 2 different seeds. Replace # to 0 or 1.
+    - **carl_carlv11** : The best CaRL agent with the driving score of 73.
+  - <a href="https://github.com/autonomousvision/CaRL/tree/main/CARLA">Repository</a>
+
+- **Roach**
+  - The reproductions of the popular CARLA planners [Roach](https://arxiv.org/abs/2108.08265) by the authors of [CaRL](https://github.com/autonomousvision/CaRL/tree/main)
+    - **carl_roach_#** : The Roach agent with 5 seeds. Replace # to numbers from 0 to 4 for different seeds.
+  - <a href="https://github.com/autonomousvision/CaRL/tree/main/CARLA">Repository</a>
+
+- **PlanT**
+  - The reproductions of the popular CARLA planners [PlanT](https://arxiv.org/abs/2210.14222) by the authors of [CaRL](https://github.com/autonomousvision/CaRL/tree/main)
+    - **carl_plant_#** : The PlanT agent with 5 seeds. Replace # to numbers from 0 to 4 for different seeds.
+  - <a href="https://github.com/autonomousvision/CaRL/tree/main/PlanT">Repository</a>
+
 - **Learning from All Vehicles**
   - Contains 2 autonomous agents. Needs the CARLA to be run with -vulkan.
     - **lav_lav** : The original LAV agent.
