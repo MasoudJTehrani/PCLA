@@ -8,3 +8,15 @@ Move - packaging==### to conda dependancies and not pip dependencies
 Add - pip to conda dependancies
 Add - timm to pip dependancies
 
+
+# Trace back code for debugging
+
+def trace_calls(frame, event, arg):
+    if event == 'call':
+        code = frame.f_code
+        # Filter out noise from libraries if needed
+        if '/home/vortex/PCLA/' in code.co_filename:
+            print(f"→ {code.co_filename.split('/PCLA/')[-1]}:{frame.f_lineno} {code.co_name}()")
+    return trace_calls
+
+sys.settrace(trace_calls)

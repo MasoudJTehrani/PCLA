@@ -9,16 +9,6 @@ import importlib
 import os
 import sys
 
-def trace_calls(frame, event, arg):
-    if event == 'call':
-        code = frame.f_code
-        # Filter out noise from libraries if needed
-        if '/home/vortex/PCLA/' in code.co_filename:
-            print(f"→ {code.co_filename.split('/PCLA/')[-1]}:{frame.f_lineno} {code.co_name}()")
-    return trace_calls
-
-#sys.settrace(trace_calls)
-
 # Ensure we can import pcla_functions regardless of where this script is called from
 pcla_dir = os.path.dirname(os.path.abspath(__file__))
 if pcla_dir not in sys.path:
