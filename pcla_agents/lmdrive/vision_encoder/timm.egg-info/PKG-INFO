@@ -5,9 +5,7 @@ Summary: (Unofficial) PyTorch Image Models
 Home-page: https://github.com/rwightman/pytorch-image-models
 Author: Ross Wightman
 Author-email: hello@rwightman.com
-License: UNKNOWN
 Keywords: pytorch pretrained models efficientnet mobilenetv3 mnasnet
-Platform: UNKNOWN
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Education
 Classifier: Intended Audience :: Science/Research
@@ -447,5 +445,3 @@ Several weights included or references here were pretrained with proprietary dat
 ### Latest DOI
 
 [![DOI](https://zenodo.org/badge/168799526.svg)](https://zenodo.org/badge/latestdoi/168799526)
-
-

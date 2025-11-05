@@ -1,4 +1,12 @@
 import os
+import sys
+
+# Add custom timm vision_encoder to sys.path before importing timm
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+_vision_encoder_path = os.path.join(_current_dir, "vision_encoder")
+if _vision_encoder_path not in sys.path:
+    sys.path.insert(0, _vision_encoder_path)
+
 import json
 import random
 import datetime

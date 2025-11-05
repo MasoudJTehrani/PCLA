@@ -1,7 +1,4 @@
 __pycache__/
-pcla_agents/carl
-pcla_agents/plant
-pcla_agents/think2drive
 plant_viz/
 pcla_agents/*pretrained*/
 wandb/

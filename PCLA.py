@@ -9,10 +9,26 @@ import importlib
 import os
 import sys
 
+def trace_calls(frame, event, arg):
+    if event == 'call':
+        code = frame.f_code
+        # Filter out noise from libraries if needed
+        if '/home/vortex/PCLA/' in code.co_filename:
+            print(f"→ {code.co_filename.split('/PCLA/')[-1]}:{frame.f_lineno} {code.co_name}()")
+    return trace_calls
+
+#sys.settrace(trace_calls)
+
 # Ensure we can import pcla_functions regardless of where this script is called from
 pcla_dir = os.path.dirname(os.path.abspath(__file__))
 if pcla_dir not in sys.path:
     sys.path.insert(0, pcla_dir)
+
+# Add custom timm from lmdrive vision_encoder to sys.path
+# This must be done before any imports that might use timm (like lmdrive agents)
+lmdrive_vision_encoder = os.path.join(pcla_dir, 'pcla_agents', 'lmdrive', 'vision_encoder')
+if os.path.exists(lmdrive_vision_encoder) and lmdrive_vision_encoder not in sys.path:
+    sys.path.insert(0, lmdrive_vision_encoder)
 
 import carla
 import traceback
@@ -21,6 +37,7 @@ from pcla_functions import give_path, setup_sensor_attributes, location_to_waypo
 from leaderboard_codes.watchdog import Watchdog
 from leaderboard_codes.timer import GameTime
 from leaderboard_codes.route_indexer import RouteIndexer
+from leaderboard_codes.carla_data_provider import CarlaDataProvider
 from leaderboard_codes.route_manipulation import interpolate_trajectory
 from leaderboard_codes.sensor_interface import CallBack, OpenDriveMapReader, SpeedometerReader
 
@@ -102,6 +119,8 @@ class PCLA():
 
         # Tick once to spawn the sensors
         self.world.tick()
+        # Register actor to CarlaDataProvider
+        CarlaDataProvider.register_actor(self.vehicle)
             
     def get_action(self):
         snapshot = self.world.get_snapshot()
@@ -115,25 +134,18 @@ class PCLA():
         """
         Remove and destroy all actors
         """
+
         if self._watchdog:
             self._watchdog.stop()
 
-        # Cleanup the agent BEFORE destroying the vehicle
+        # Cleanup the agent FIRST - this will clean up agent-specific sensors properly
         try:
-            if self.agent_instance:
+            if self.agent_instance is not None:
                 self.agent_instance.destroy()
                 self.agent_instance = None
         except Exception as e:
             print("\n\033[91mFailed to stop the agent:")
             print(f"\n{traceback.format_exc()}\033[0m")
-
-        self.vehicle.destroy()
-        self.current_dir = None
-        self.client = None
-        self.vehicle = None
-        self.agentPath = None
-        self.configPath = None
-        self.routePath = None
 
         # Make sure no sensors are left streaming
         alive_sensors = self.world.get_actors().filter('*sensor*')
@@ -142,5 +154,20 @@ class PCLA():
                 sensor.stop()
             sensor.destroy()
 
+        # Destroy vehicle after sensors are cleaned up
+        try:
+            if self.vehicle is not None and self.vehicle.is_alive:
+                self.vehicle.destroy()
+        except RuntimeError:
+            pass
+
+        self.current_dir = None
+        self.client = None
+        self.vehicle = None
+        self.agentPath = None
+        self.configPath = None
+        self.routePath = None
         self.world = None
+        
+        CarlaDataProvider.cleanup()
         

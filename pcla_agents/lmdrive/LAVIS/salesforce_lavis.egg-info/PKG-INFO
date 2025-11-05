@@ -2,14 +2,39 @@ Metadata-Version: 2.1
 Name: salesforce-lavis
 Version: 1.0.1
 Summary: LAVIS - A One-stop Library for Language-Vision Intelligence
-Home-page: UNKNOWN
 Author: Dongxu Li, Junnan Li, Hung Le, Guangsen Wang, Silvio Savarese, Steven C.H. Hoi
 License: 3-Clause BSD
 Keywords: Vision-Language,Multimodal,Image Captioning,Generative AI,Deep Learning,Library,PyTorch
-Platform: UNKNOWN
 Requires-Python: >=3.7.0
 Description-Content-Type: text/markdown
 License-File: LICENSE.txt
+Requires-Dist: contexttimer
+Requires-Dist: decord
+Requires-Dist: diffusers<=0.16.0
+Requires-Dist: einops>=0.4.1
+Requires-Dist: fairscale==0.4.4
+Requires-Dist: ftfy
+Requires-Dist: iopath
+Requires-Dist: ipython
+Requires-Dist: omegaconf
+Requires-Dist: opencv-python-headless==4.5.5.64
+Requires-Dist: opendatasets
+Requires-Dist: packaging
+Requires-Dist: pandas
+Requires-Dist: plotly
+Requires-Dist: pre-commit
+Requires-Dist: pycocoevalcap
+Requires-Dist: pycocotools
+Requires-Dist: python-magic
+Requires-Dist: scikit-image
+Requires-Dist: sentencepiece
+Requires-Dist: spacy
+Requires-Dist: streamlit
+Requires-Dist: torch>=1.10.0
+Requires-Dist: tqdm
+Requires-Dist: transformers>=4.28.0
+Requires-Dist: webdataset
+Requires-Dist: peft
 
 <p align="center">
     <br>
@@ -336,5 +361,3 @@ If you have any questions, comments or suggestions, please do not hesitate to co
 
 ## License
 [BSD 3-Clause License](LICENSE.txt)
-
-

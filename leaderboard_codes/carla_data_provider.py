@@ -52,6 +52,7 @@ class CarlaDataProvider(object):  # pylint: disable=too-many-public-methods
     _actor_transform_map = dict()
     _traffic_light_map = dict()
     _carla_actor_pool = dict()
+    _vehicles_with_open_doors = {}
     _client = None
     _world = None
     _map = None
@@ -131,10 +132,7 @@ class CarlaDataProvider(object):  # pylint: disable=too-many-public-methods
             if key.id == actor.id:
                 return CarlaDataProvider._actor_velocity_map[key]
 
-        # We are intentionally not throwing here
-        # This may cause exception loops in py_trees
-        print('{}.get_velocity: {} not found!' .format(__name__, actor))
-        return 0.0
+        raise KeyError('{}.get_velocity: {} not found!'.format(__name__, actor))
 
     @staticmethod
     def get_location(actor):
@@ -283,6 +281,34 @@ class CarlaDataProvider(object):  # pylint: disable=too-many-public-methods
                     dict_annotations['left'].append(target_tl)
 
         return dict_annotations
+
+    @staticmethod
+    def add_vehicle_with_open_door(vehicle, vehicle_door):
+        """
+        The CARLA Api does not log vehicle door information.
+        The official workaround is for the user to log this information themselves.
+        We have therefore added this functionality to the carla data provider:
+        See: https://github.com/carla-simulator/carla/issues/7701
+        Logs which doors are open for a vehicle.
+        :param vehicle: carla.Vehicle
+        :param vehicle_door: carla.VehicleDoor
+        :return: nothing
+        """
+        CarlaDataProvider._vehicles_with_open_doors[vehicle.id] = vehicle_door
+
+    @staticmethod
+    def remove_vehicle_with_open_door(vehicle):
+        """
+        The CARLA Api does not log vehicle door information.
+        The official workaround is for the user to log this information themselves.
+        We have therefore added this functionality to the carla data provider:
+        See: https://github.com/carla-simulator/carla/issues/7701
+        Logs which doors are open for a vehicle.
+        :param vehicle: carla.Vehicle
+        :param vehicle_door: carla.VehicleDoor
+        :return: nothing
+        """
+        CarlaDataProvider._vehicles_with_open_doors.pop(vehicle.id, None)
 
     @staticmethod
     def get_trafficlight_trigger_location(traffic_light):    # pylint: disable=invalid-name

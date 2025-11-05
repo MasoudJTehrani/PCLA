@@ -15,6 +15,18 @@ from peft import LoraConfig, get_peft_model
 
 from lavis.common.registry import registry
 from lavis.models.blip2_models.blip2 import Blip2Base, disabled_train
+# Add custom timm vision_encoder to sys.path and clear cached imports
+import sys
+import os as _os
+_lmdrive_dir = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
+_vision_encoder_path = _os.path.join(_lmdrive_dir, "vision_encoder")
+if _vision_encoder_path not in sys.path:
+    sys.path.insert(0, _vision_encoder_path)
+# Clear any cached timm imports to force use of custom timm
+_timm_modules = [k for k in list(sys.modules.keys()) if k.startswith("timm")]
+for _mod in _timm_modules:
+    del sys.modules[_mod]
+
 from timm import create_model
 
 class LayerNorm(nn.LayerNorm):
