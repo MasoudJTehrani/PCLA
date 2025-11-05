@@ -62,17 +62,8 @@ conda activate PCLA
 ```
 Please make sure to install **torch-scatter** according to your own CUDA version. You can check your CUDA version using the `python cuda.py` code.
 
---If you want to use PCLA for **CARLA 0.9.16**, you need to install the wheel from the `dist` folder.
-
-```Shell
-cd dist
-python3 -m pip install carla-0.9.16-cp38-cp38-linux_x86_64.whl
-```
-**Note**: Some agents act _weird_ in CARLA 0.9.16
-
 Additional setups for the LMDrive agent:
 ```Shell
-conda env create -f environment.yml
 conda activate PCLA
 
 cd pcla_agents/lmdrive/vision_encoder
@@ -86,6 +77,14 @@ pip uninstall ftfy -y
 pip install "ftfy==6.1.1"
 cd ../../../
 ```
+
+--If you want to use PCLA for **CARLA 0.9.16**, you need to install the wheel from the `dist` folder.
+
+```Shell
+cd dist
+python3 -m pip install carla-0.9.16-cp38-cp38-linux_x86_64.whl
+```
+**Note**: Some agents act _weird_ in CARLA 0.9.16
 
 ## Pre-Trained Weights
 
