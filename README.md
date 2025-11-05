@@ -92,7 +92,7 @@ You can either run this code to download and unzip the weights automatically
 ```bash
 python download_weights.py
 ``` 
-or manually download the pre-trained weights from <a href="https://huggingface.co/MasoudJTehrani/PCLA/blob/main/pretrained.zip">Hugging Face</a> and extract them into the `PCLA/agents/` directory.</br>
+or manually download the pre-trained weights file "pretrained.zip" from [Hugging Face](https://huggingface.co/datasets/MasoudJTehrani/PCLA/blob/main/pretrained.zip) and extract them into the `PCLA/agents/` directory.</br>
 Ensure that each folder of pre-trained weights is placed directly next to its respective model's folder. The `agents` folder should look like this.
 ```bash
 ├── agents
