@@ -10,7 +10,7 @@
         },
         "roach": {
             "agent": "pcla_agents/carl/eval_agent.py",
-            "config": "/home/vortex/PCLA/pcla_agents/carl_pretrained/Roach_0_"
+            "config": "pcla_agents/carl_pretrained/Roach_0_"
         },
         "plant": {
             "agent": "pcla_agents/plant/PlanT_agent.py",
