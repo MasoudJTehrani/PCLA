@@ -189,11 +189,11 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         gc.collect()
         
         # Print initial GPU status
-        if torch.cuda.is_available():
-            print(f"Initial GPU Memory:")
-            print(f"  Total: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.2f} GB")
-            print(f"  Allocated: {torch.cuda.memory_allocated() / 1024**3:.2f} GB")
-            print(f"  Cached: {torch.cuda.memory_reserved() / 1024**3:.2f} GB")
+        #if torch.cuda.is_available():
+            #print(f"Initial GPU Memory:")
+            #print(f"  Total: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.2f} GB")
+            #print(f"  Allocated: {torch.cuda.memory_allocated() / 1024**3:.2f} GB")
+            #print(f"  Cached: {torch.cuda.memory_reserved() / 1024**3:.2f} GB")
         
         self._hic = DisplayInterface()
         self.track = autonomous_agent.Track.SENSORS
@@ -608,6 +608,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         input_data['velocity'] = torch.tensor([tick_data['speed']]).cuda().view(1, 1).half()  # Changed to .half()
         input_data['text_input'] = [self.curr_instruction]
 
+
         # Use autocast for mixed precision
         with torch.cuda.amp.autocast(enabled=True, dtype=torch.float16):
             image_embeds = self.net.visual_encoder(input_data)
@@ -705,10 +706,35 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
 
         # flip y is (forward is negative in our waypoints)
         waypoints[:,1] *= -1
+        
+        # PCLA
+        # Scale waypoints if they're too small (LLM output issue)
+        # Check distance between first two waypoints specifically
+        wp_dist_01 = np.linalg.norm(waypoints[0] - waypoints[1])
+        if wp_dist_01 < 0.05:  # If first two waypoints are closer than 5cm
+            # Scale all waypoints to make first two points ~10cm apart
+            scale_factor = 0.1 / wp_dist_01 if wp_dist_01 > 0 else 10.0
+            waypoints = waypoints * scale_factor
+            if self.step % 5 == 0:
+                print(f"    [SCALING] Waypoints scaled by {scale_factor:.2f}x (wp0-wp1 dist was {wp_dist_01:.4f}m)")
+        # PCLA
+
         speed = velocity
 
         desired_speed = np.linalg.norm(waypoints[0] - waypoints[1]) * 2.0
-        brake = desired_speed < self.config.brake_speed or (speed / desired_speed) > self.config.brake_ratio
+        
+        # PCLA
+        # Ensure minimum desired speed to prevent brake from being stuck on
+        min_desired_speed = 0.5  # Minimum 0.5 m/s when starting from rest
+        if speed < 0.1 and desired_speed > 0:  # If car is stationary and waypoints exist
+            desired_speed = np.float64(max(desired_speed, min_desired_speed))
+            if self.step % 5 == 0:
+                print(f"    [MIN SPEED] Enforcing minimum desired_speed: {desired_speed:.4f} m/s")
+        
+        # Lower brake_speed threshold to handle small waypoints from LLM
+        effective_brake_speed = min(self.config.brake_speed, 0.01)  # Allow speeds as low as 0.01 m/s
+        brake = desired_speed < effective_brake_speed or (speed / desired_speed) > self.config.brake_ratio
+        # PCLA
 
         aim = (waypoints[1] + waypoints[0]) / 2.0
         angle = np.degrees(np.pi / 2 - np.arctan2(aim[1], aim[0])) / 90

@@ -6,7 +6,8 @@ from PCLA import PCLA
 
 def main():
 
-    client = carla.Client('localhost', 2000)
+    HOST_IP  = "localhost"
+    client = carla.Client(HOST_IP, 2000)
     client.set_timeout(10.0)
     client.load_world("Town02")
     synchronous_master = False
@@ -51,7 +52,7 @@ def main():
 
         world.tick()
 
-        agent = "carl_plant_0"
+        agent = "lav_lav"
         route = "./sample_route.xml"
         pcla = PCLA(agent, vehicle, route, client)
         
