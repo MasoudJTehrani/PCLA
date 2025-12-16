@@ -137,7 +137,7 @@ python pcla_functions/download_weights.py
 Ensure that the downloaded pre-trained weight folders are placed directly next to their respective model's folder. The final `pcla_agents` directory should look like this:
 
 ```
-├── agents/
+├── pcla_agents/
 │   ├── transfuserpp/
 │   ├── transfuserpp_pretrained/
 │   ├── interfuser/
