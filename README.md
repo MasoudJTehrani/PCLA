@@ -149,8 +149,10 @@ Ensure that the downloaded pre-trained weight folders are placed directly next t
 PCLA includes **35** different autonomous agents and **24** additional training seeds to choose from. 
 > **Find the repository of each agent at the top this page.**
 
-### SimLingo (CarLLava)
-      
+### SimLingo
+
+-   Also known as CarLLava.
+
 -   `simlingo_simlingo`: The best-performing agent, which secured **first place** at [CARLA Leaderboard 2](https://leaderboard.carla.org) SENSORS track (previously named CarLLava).
         
 
