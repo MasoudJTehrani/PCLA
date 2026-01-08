@@ -18,9 +18,9 @@ A versatile framework for deploying and evaluating autonomous driving agents (AD
 
 ## Supported Autonomous Agents
 
-PCLA currently supports **27** agents and 24 additional training seeds from 12 major autonomous driving projects:
+PCLA currently supports **35** agents and 24 additional training seeds from 14 major autonomous driving projects:
 
-[**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**Transfuser**](https://github.com/autonomousvision/transfuser) | [**Transfuser++**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV)
+[**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**TransfuserV3**](https://github.com/autonomousvision/transfuser) | [**TransfuserV4**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**TransfuserV5**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_2) | [**TransfuserV6**](https://github.com/autonomousvision/lead) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV)
 
 ---
 
@@ -29,7 +29,7 @@ PCLA currently supports **27** agents and 24 additional training seeds from 12 m
 PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework designed to decouple the autonomous driving agents (ADAs) from the restrictive CARLA Leaderboard codebase.
 
 * **Decoupled Deployment:** Deploy high-performing ADAs onto a vehicle without relying on the original Leaderboard core codebase.
-* **Easy Switching:** Effortlessly switch between **27 different agents** and their **24 additional training seeds** without requiring changes to CARLA versions or programming environments.
+* **Easy Switching:** Effortlessly switch between **35 different agents** and their **24 additional training seeds** without requiring changes to CARLA versions or programming environments.
 * **Version Independent:** Fully compatible with the latest version of CARLA, independent of the Leaderboard’s specific CARLA version.
 * **Multi-Agent Support:** Run multiple vehicles with different autonomous agents simultaneously (note: requires high graphical memory).
 * **CARLA Action Access:** Retrieve the computed CARLA movement action from the chosen agent for use in any custom application.
@@ -80,8 +80,8 @@ A video tutorial on how to use PCLA is available below (an updated version is co
     conda env create -f environment.yml
     conda activate PCLA
     ```
-2.  **Install `torch-scatter`:**
-    > **Note:** Please make sure to install `torch-scatter` according to your specific CUDA version. You can check your CUDA version using the included `python cuda.py` script.
+2.  **Install `torch-scatter` and CUDA Toolkit:**
+    > **Note:** Please make sure to install `torch-scatter` and `CUDA Toolkit` according to your specific CUDA version. You can check your CUDA version using the included `python cuda.py` script.
 
 3.  **Additional setup for LMDrive agent:**
 
@@ -146,7 +146,7 @@ Ensure that the downloaded pre-trained weight folders are placed directly next t
 ```
 ## 3. Autonomous Agents
 
-PCLA includes **27** different autonomous agents and **24** additional training seeds to choose from. 
+PCLA includes **35** different autonomous agents and **24** additional training seeds to choose from. 
 > **Find the repository of each agent at the top this page.**
 
 ### SimLingo (CarLLava)
@@ -163,29 +163,56 @@ PCLA includes **27** different autonomous agents and **24** additional training 
 -   `lmdrive_llama`: Third best performing LMDrive agent.
         
 
-### Transfuser
+### TransfuserV3
 
--   `tf_tf`: The main Transfuser agent.
+-   Also known as Transfuser. See [the history of Transfuser](https://ln2697.github.io/lead/docs/transfuser_versions.html).
+
+-   `tfv3_tf`: The main Transfuser agent.
         
--   `tf_ltf`: The LatentTF agent.
+-   `tfv3_ltf`: The LatentTF agent.
         
--   `tf_lf`: The Late_Fusion agent.
+-   `tfv3_lf`: The Late_Fusion agent.
         
--   `tf_gf`: The Geometric_Fusion agent.
+-   `tfv3_gf`: The Geometric_Fusion agent.
         
 
-### Transfuser++
+### TransfuserV4
+
+-   Also know as Transfuser++ for Leaderboard 1.
 
 -   **Seeds:** Replace `#` with the seed number from **0 to 2** (e.g., `tfpp_l6_0`).
         
--   `tfpp_l6_#`: Best performing Transfuser++ agent. Second place at CARLA Leaderboard 2 SENSORS track.
+-   `tfv4_l6_#`: Best performing Transfuser++ agent. Second place at CARLA Leaderboard 2 SENSORS track.
         
--   `tfpp_lav_#`: Transfuser++ not trained on Town02 and Town05.
+-   `tfv4_lav_#`: Transfuser++ not trained on Town02 and Town05.
         
--   `tfpp_wp_#`: Transfuser++ WP from their paper's appendix.
+-   `tfv4_wp_#`: Transfuser++ WP from their paper's appendix.
         
--   `tfpp_aim_#`: Reproduction of the [AIM](https://openaccess.thecvf.com/content/CVPR2021/html/Prakash_Multi-Modal_Fusion_Transformer_for_End-to-End_Autonomous_Driving_CVPR_2021_paper.html) method.
+-   `tfv4_aim_#`: Reproduction of the [AIM](https://openaccess.thecvf.com/content/CVPR2021/html/Prakash_Multi-Modal_Fusion_Transformer_for_End-to-End_Autonomous_Driving_CVPR_2021_paper.html) method.
         
+### TransfuserV5
+
+-   Also known as Transfuser++ for Leaderboard 2. This version has a bit of similar performance as TransfuserV4
+
+-   `tfv5_alltowns`: This agent is trained with all towns.
+
+-   `tfv5_notown13`: This agent is trained exculding Town13.
+
+### TransfuserV6
+
+-   The most recent Transfuser agent, also known as Lead.
+
+-   `tfv6_regnet`: Their best-performing agent that uses regnety032.
+
+-   `tfv6_resnet`: Second best-performing agent that uses resnet34.
+
+-   `tfv6_4cameras`: Uses 4cameras and resnet34.
+
+-   `tfv6_noradar`: Uses resnet34 but no radar sensor.
+
+-   `tfv6_visiononly`: Vision-only driving model and resnet34.
+
+-   `tfv6_notown13`: Uses resnet34 but Town13 is excluded.
 
 ### CaRL
 
