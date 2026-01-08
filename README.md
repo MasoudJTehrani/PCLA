@@ -7,7 +7,7 @@
 
 <p align="center">
 <b>A framework for testing autonomous agents in the CARLA simulator</b> </br>
-A versatile framework for deploying and evaluating autonomous driving agents (ADAs) from the CARLA Leaderboard on your own vehicle.
+A versatile framework for deploying, testing and evaluating pretrained autonomous driving agents (ADAs) from the CARLA Leaderboard on your own vehicle.
 </p>
 
 [![FSE 2025 Paper](https://img.shields.io/badge/Paper-FSE%202025-blue.svg)](https://dl.acm.org/doi/abs/10.1145/3696630.3728577)
