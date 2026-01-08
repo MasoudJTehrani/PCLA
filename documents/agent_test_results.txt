@@ -1,0 +1,42 @@
+Agent Test Results - 2026-01-08 11:32:51
+======================================================================
+
+Summary: 26 passed, 0 failed out of 26 agents
+
+Skipped agents: 9
+Skipped list: tfv3_tf, tfv3_ltf, tfv3_lf, tfv3_gf, lmdrive_llava, lmdrive_vicuna, lmdrive_llama, simlingo_simlingo, if_if
+======================================================================
+
+PASSED AGENTS:
+----------------------------------------------------------------------
+tfv5_alltowns
+tfv5_notown13
+tfv6_regnet
+tfv6_resnet
+tfv6_4cameras
+tfv6_noradar
+tfv6_visiononly
+tfv6_notown13
+carl_carl_0
+carl_carlv11
+carl_roach_0
+carl_plant_0
+lav_lav
+lav_fast
+lbc_lb
+lbc_nc
+wor_lb
+wor_nc
+tfv4_lav_0
+tfv4_aim_0
+tfv4_wp_0
+tfv4_l6_0
+neat_neat
+neat_aimbev
+neat_aim2dsem
+neat_aim2ddepth
+
+======================================================================
+
+FAILED AGENTS:
+----------------------------------------------------------------------

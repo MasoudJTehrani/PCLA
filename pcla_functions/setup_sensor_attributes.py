@@ -19,8 +19,11 @@ def setup_sensor_attributes(bp, sensor_spec):
         bp.set_attribute('dropoff_intensity_limit', str(0.8))
         bp.set_attribute('dropoff_zero_intensity', str(0.4))
     elif sensor_spec['type'].startswith('sensor.other.radar'):
-        bp.set_attribute('horizontal_fov', str(sensor_spec['fov']))  # degrees
-        bp.set_attribute('vertical_fov', str(sensor_spec['fov']))  # degrees
+        # Prefer explicit horizontal/vertical FOV keys; fall back to generic fov or sane defaults.
+        hor_fov = sensor_spec.get('horizontal_fov', sensor_spec.get('fov', 90))
+        vert_fov = sensor_spec.get('vertical_fov', sensor_spec.get('fov', 0.1))
+        bp.set_attribute('horizontal_fov', str(hor_fov))  # degrees
+        bp.set_attribute('vertical_fov', str(vert_fov))  # degrees
         bp.set_attribute('points_per_second', '1500')
         bp.set_attribute('range', '100')   # meters
     elif sensor_spec['type'].startswith('sensor.other.gnss'):

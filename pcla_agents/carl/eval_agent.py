@@ -83,7 +83,9 @@ class EvalAgent(autonomous_agent.AutonomousAgent):
     self.config.debug = int(os.environ.get('DEBUG_ENV_AGENT', 0)) == 1
     self.sample_type = os.environ.get('SAMPLE_TYPE', 'mean')  # Options: roach, mean, sample
     self.record_infractions = int(os.environ.get('RECORD', 0)) == 1
-    self.cpp = int(os.environ.get('CPP', 0)) == 1  # Whether to evaluate a model trained with c++
+    # Avoid collision with conda's CPP variable (C preprocessor path)
+    cpp_env = os.environ.get('CPP', '0')
+    self.cpp = int(cpp_env) == 1 if cpp_env.isdigit() else False  # Whether to evaluate a model trained with c++
     self.port = int(os.environ.get('CPP_PORT', 5555))  # Port over which to do communication
     self.upscale_factor = int(os.environ.get('UPSCALE_FACTOR', 1))  # Increases resolution if visualizations
     self.save_png = int(os.environ.get('SAVE_PNG', 0)) == 1  # Save renderings also as individual PNG

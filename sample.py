@@ -52,11 +52,11 @@ def main():
 
         world.tick()
 
-        agent = "lav_lav"
+        agent = "tfv3_ltf"
         route = "./sample_route.xml"
         pcla = PCLA(agent, vehicle, route, client)
         
-        print('Spawned the vehicle with model =', agent,', press Ctrl+C to exit.\n')
+        print('\nSpawned the vehicle with model =', agent,', press Ctrl+C to exit.\n')
         while True:
             ego_action = pcla.get_action()
 

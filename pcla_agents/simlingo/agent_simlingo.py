@@ -3,14 +3,20 @@ partially taken from https://github.com/autonomousvision/carla_garage/blob/leade
 (MIT licence)
 """
 
+import os
+import sys
+
+# Ensure simlingo_training (local package) is importable regardless of caller CWD
+# Must be done BEFORE any imports that might trigger Hydra instantiation
+_simlingo_dir = os.path.dirname(os.path.abspath(__file__))
+if _simlingo_dir not in sys.path:
+    sys.path.insert(0, _simlingo_dir)
 
 import importlib.util
 import json
 import math
-import os
 import pathlib
 import random
-import sys
 import time
 import xml.etree.ElementTree as ET
 from collections import deque
@@ -69,6 +75,12 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
 
     def setup(self, path_to_conf_file, route_index=None):
         """Sets up the agent. route_index is for logging purposes"""
+
+        # Ensure simlingo_training package is importable for Hydra instantiation
+        # PCLA.setup_agent restores sys.path after module load, so we must re-add here
+        _simlingo_dir = os.path.dirname(os.path.abspath(__file__))
+        if _simlingo_dir not in sys.path:
+            sys.path.insert(0, _simlingo_dir)
 
         torch.cuda.empty_cache()
         self.track = autonomous_agent.Track.SENSORS

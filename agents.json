@@ -1,4 +1,40 @@
 {
+    "tfv5":{
+        "alltowns": {
+            "agent": "pcla_agents/transfuserv5/sensor_agent.py",
+            "config": "pcla_agents/transfuserv5_pretrained/all_towns"
+        },
+        "notown13": {
+            "agent": "pcla_agents/transfuserv5/sensor_agent.py",
+            "config": "pcla_agents/transfuserv5_pretrained/town13_withheld"
+        }
+    },
+    "tfv6":{
+        "regnet": {
+            "agent": "pcla_agents/transfuserv6/lead/inference/sensor_agent.py",
+            "config": "pcla_agents/transfuserv6_pretrained/tfv6_regnety032"
+        },
+        "resnet": {
+            "agent": "pcla_agents/transfuserv6/lead/inference/sensor_agent.py",
+            "config": "pcla_agents/transfuserv6_pretrained/tfv6_resnet34"
+        },
+        "4cameras": {
+            "agent": "pcla_agents/transfuserv6/lead/inference/sensor_agent.py",
+            "config": "pcla_agents/transfuserv6_pretrained/4cameras_resnet34"
+        },
+        "noradar": {
+            "agent": "pcla_agents/transfuserv6/lead/inference/sensor_agent.py",
+            "config": "pcla_agents/transfuserv6_pretrained/noradar_resnet34"
+        },
+        "visiononly": {
+            "agent": "pcla_agents/transfuserv6/lead/inference/sensor_agent.py",
+            "config": "pcla_agents/transfuserv6_pretrained/visiononly_resnet34"
+        },
+        "notown13": {
+            "agent": "pcla_agents/transfuserv6/lead/inference/sensor_agent.py",
+            "config": "pcla_agents/transfuserv6_pretrained/town13heldout_resnet34"
+        }
+    },
     "carl":{
         "carl": {
             "agent": "pcla_agents/carl/eval_agent.py",
@@ -17,22 +53,22 @@
             "config": "pcla_agents/plant/config/eval.yaml"
         }
     },
-    "tf":{
+    "tfv3":{
         "tf": {
-            "agent": "pcla_agents/transfuser/submission_agent.py",
-            "config": "pcla_agents/transfuser_pretrained/transfuser"
+            "agent": "pcla_agents/transfuserv3/submission_agent.py",
+            "config": "pcla_agents/transfuserv3_pretrained/transfuser"
         },
         "ltf": {
-            "agent": "pcla_agents/transfuser/submission_agent.py",
-            "config": "pcla_agents/transfuser_pretrained/latentTF"
+            "agent": "pcla_agents/transfuserv3/submission_agent.py",
+            "config": "pcla_agents/transfuserv3_pretrained/latentTF"
         },
         "lf": {
-            "agent": "pcla_agents/transfuser/submission_agent.py",
-            "config": "pcla_agents/transfuser_pretrained/late_fusion"
+            "agent": "pcla_agents/transfuserv3/submission_agent.py",
+            "config": "pcla_agents/transfuserv3_pretrained/late_fusion"
         },
         "gf": {
-            "agent": "pcla_agents/transfuser/submission_agent.py",
-            "config": "pcla_agents/transfuser_pretrained/geometric_fusion"
+            "agent": "pcla_agents/transfuserv3/submission_agent.py",
+            "config": "pcla_agents/transfuserv3_pretrained/geometric_fusion"
         }
     },
     "lav":{
@@ -85,22 +121,22 @@
             "config": "pcla_agents/simlingo_pretrained/checkpoints/epoch=013.ckpt/pytorch_model.pt"
         }
     },
-    "tfpp":{
+    "tfv4":{
         "lav": {
-            "agent": "pcla_agents/transfuserpp/sensor_agent.py",
-            "config": "pcla_agents/transfuserpp_pretrained/lav/tfpp_02_05_withheld_"
+            "agent": "pcla_agents/transfuserv4/sensor_agent.py",
+            "config": "pcla_agents/transfuserv4_pretrained/lav/tfpp_02_05_withheld_"
         },
         "aim": {
-            "agent": "pcla_agents/transfuserpp/sensor_agent.py",
-            "config": "pcla_agents/transfuserpp_pretrained/lav/aim_02_05_withheld_"
+            "agent": "pcla_agents/transfuserv4/sensor_agent.py",
+            "config": "pcla_agents/transfuserv4_pretrained/lav/aim_02_05_withheld_"
         },
         "wp": {
-            "agent": "pcla_agents/transfuserpp/sensor_agent.py",
-            "config": "pcla_agents/transfuserpp_pretrained/leaderboard/tfpp_wp_all_"
+            "agent": "pcla_agents/transfuserv4/sensor_agent.py",
+            "config": "pcla_agents/transfuserv4_pretrained/leaderboard/tfpp_wp_all_"
         },
         "l6": {
-            "agent": "pcla_agents/transfuserpp/sensor_agent.py",
-            "config": "pcla_agents/transfuserpp_pretrained/longest6/tfpp_all_"
+            "agent": "pcla_agents/transfuserv4/sensor_agent.py",
+            "config": "pcla_agents/transfuserv4_pretrained/longest6/tfpp_all_"
         }
     },
     "neat": {

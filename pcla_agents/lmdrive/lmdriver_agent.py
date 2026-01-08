@@ -228,9 +228,37 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         # Build model on CPU first to save GPU memory during initialization
         with torch.cuda.device(0):
             torch.cuda.empty_cache()
-            
+        
+        # Resolve checkpoint paths to absolute so callers from any CWD work
+        def _resolve_path(path_str):
+            if not path_str:
+                return path_str
+            # If already absolute and exists, return
+            if os.path.isabs(path_str) and os.path.exists(path_str):
+                return path_str
+            # Try environment override
+            env_root = os.environ.get('PCLA_ROOT')
+            if env_root:
+                candidate = os.path.join(env_root, path_str)
+                if os.path.exists(candidate):
+                    return candidate
+            # Try repo root (three levels up from this file)
+            repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            candidate = os.path.join(repo_root, path_str)
+            if os.path.exists(candidate):
+                return candidate
+            # Try relative to current module directory
+            candidate = os.path.join(os.path.dirname(os.path.abspath(__file__)), path_str)
+            if os.path.exists(candidate):
+                return candidate
+            # Fall back to original string
+            return path_str
+
+        resolved_preception_ckpt = _resolve_path(self.config.preception_model_ckpt)
+        resolved_lmdrive_ckpt = _resolve_path(getattr(self.config, 'lmdrive_ckpt', ''))
+
         model = model_cls(preception_model=self.config.preception_model,
-                        preception_model_ckpt=self.config.preception_model_ckpt,
+                        preception_model_ckpt=resolved_preception_ckpt,
                         llm_model=self.config.llm_model,
                         max_txt_len=64,
                         use_notice_prompt=self.config.agent_use_notice,
@@ -238,7 +266,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         
         print('Loading checkpoint...')
         # Load checkpoint on CPU first
-        checkpoint = torch.load(self.config.lmdrive_ckpt, map_location='cpu')
+        checkpoint = torch.load(resolved_lmdrive_ckpt or self.config.lmdrive_ckpt, map_location='cpu')
         model.load_state_dict(checkpoint["model"], strict=False)
         del checkpoint
         torch.cuda.empty_cache()
