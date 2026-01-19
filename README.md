@@ -138,8 +138,8 @@ Ensure that the downloaded pre-trained weight folders are placed directly next t
 
 ```
 ├── pcla_agents/
-│   ├── transfuserpp/
-│   ├── transfuserpp_pretrained/
+│   ├── transfuserv4/
+│   ├── transfuserv4_pretrained/
 │   ├── interfuser/
 │   ├── interfuser_pretrained/
 │   ├── ...
