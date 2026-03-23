@@ -6,12 +6,12 @@
 """ This module contains a local planner to perform low-level waypoint following based on PID controllers. """
 
 from enum import Enum
-#from collections import deque
-#import random
+from collections import deque
+import random
 
 #import carla
-#from agents.navigation.controller import VehiclePIDController
-#from agents.tools.misc import draw_waypoints
+from .controller import VehiclePIDController
+from .misc import draw_waypoints
 
 
 class RoadOption(Enum):
@@ -26,7 +26,7 @@ class RoadOption(Enum):
     CHANGELANELEFT = 5
     CHANGELANERIGHT = 6
 
-'''
+
 class LocalPlanner(object):
     """
     LocalPlanner implements the basic behavior of following a trajectory of waypoints that is generated on-the-fly.
@@ -326,4 +326,3 @@ def _compute_connection(current_waypoint, next_waypoint, threshold=35):
         return RoadOption.LEFT
     else:
         return RoadOption.RIGHT
-'''

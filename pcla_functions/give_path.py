@@ -60,5 +60,10 @@ def give_path(name, PCLA_dir, routePath):
         # Split the config path to handle file extension and optional seeds
         config_base, config_ext = os.path.splitext(config_path)
         config = config_base + seed_suffix + config_ext
+        
+        if agent_name == "plant2":
+            # For visualization purposes, PLANT_VIZ=/path/to/viz_outputs  # set to empty string to disable
+            os.environ['PLANT_VIZ'] = ""
+            os.environ['PLANT_CHECKPOINT'] = os.path.join(PCLA_dir, config)
 
     return os.path.join(PCLA_dir, agent), os.path.join(PCLA_dir, config)

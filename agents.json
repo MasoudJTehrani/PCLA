@@ -1,4 +1,10 @@
 {
+    "plant2":{
+        "plant2": {
+            "agent": "pcla_agents/plant2/PlanT_agent.py",
+            "config": "pcla_agents/plant2_pretrained/epoch=029_final_.ckpt"
+        }
+    },
     "tfv5":{
         "alltowns": {
             "agent": "pcla_agents/transfuserv5/sensor_agent.py",

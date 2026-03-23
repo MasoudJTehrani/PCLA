@@ -1,7 +1,7 @@
-Agent Test Results - 2026-01-08 11:32:51
+Agent Test Results - 2026-03-23 16:39:06
 ======================================================================
 
-Summary: 26 passed, 0 failed out of 26 agents
+Summary: 27 passed, 0 failed out of 27 agents
 
 Skipped agents: 9
 Skipped list: tfv3_tf, tfv3_ltf, tfv3_lf, tfv3_gf, lmdrive_llava, lmdrive_vicuna, lmdrive_llama, simlingo_simlingo, if_if
@@ -9,6 +9,7 @@ Skipped list: tfv3_tf, tfv3_ltf, tfv3_lf, tfv3_gf, lmdrive_llava, lmdrive_vicuna
 
 PASSED AGENTS:
 ----------------------------------------------------------------------
+plant2_plant2_0
 tfv5_alltowns
 tfv5_notown13
 tfv6_regnet

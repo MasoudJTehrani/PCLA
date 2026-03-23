@@ -14,8 +14,10 @@ from __future__ import print_function
 
 import math
 import re
+import threading
 import numpy.random as random
 from six import iteritems
+from leaderboard_codes.global_route_planner_plant2 import GlobalRoutePlanner
 
 import carla
 import os
@@ -46,7 +48,12 @@ class CarlaDataProvider(object):  # pylint: disable=too-many-public-methods
 
     In addition it provides access to the map and the transform of all traffic lights
     """
+    # the key saves the scenario type and the value all relevant data
+    active_scenarios = []
 
+    # Used for scenario logging, active scenarios is only for pdm lite and only adds route changing scenarios
+    last_scenario = None
+    
     _actor_velocity_map = dict()
     _actor_location_map = dict()
     _actor_transform_map = dict()
@@ -67,6 +74,11 @@ class CarlaDataProvider(object):  # pylint: disable=too-many-public-methods
         _rng = random.RandomState(seed=None)
     else:
         _rng = random.RandomState(seed=2000)
+
+    # For plant 2
+    _grp = None
+    _runtime_init_flag = False
+    _lock = threading.Lock()
 
     @staticmethod
     def register_actor(actor):
@@ -185,6 +197,7 @@ class CarlaDataProvider(object):  # pylint: disable=too-many-public-methods
         CarlaDataProvider._sync_flag = world.get_settings().synchronous_mode
         CarlaDataProvider._map = world.get_map()
         CarlaDataProvider._blueprint_library = world.get_blueprint_library()
+        CarlaDataProvider._grp = GlobalRoutePlanner(CarlaDataProvider._map, 2.0) # Only for Plant2
         CarlaDataProvider.generate_spawn_points()
         CarlaDataProvider.prepare_map()
 

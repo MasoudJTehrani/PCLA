@@ -42,6 +42,7 @@ def load_agents_config(pcla_dir):
     seeded_families = {
         'carl': ('plant', 'roach', 'carl'),
         'tfv4': ('l6', 'lav', 'wp', 'aim'),
+        'plant2': ('plant2')
     }
     
     for agent_family, variants in agents_config.items():

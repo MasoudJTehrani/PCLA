@@ -11,6 +11,8 @@ def main():
     client.set_timeout(10.0)
     client.load_world("Town02")
     synchronous_master = False
+    pcla = None
+    settings = None
 
     try:
         world = client.get_world()
@@ -52,25 +54,35 @@ def main():
 
         world.tick()
 
-        agent = "tfv3_ltf"
+        agent = "plant2_plant2_3"
         route = "./sample_route.xml"
         pcla = PCLA(agent, vehicle, route, client)
         
         print('\nSpawned the vehicle with model =', agent,', press Ctrl+C to exit.\n')
+        step = 0
         while True:
-            ego_action = pcla.get_action()
-
-            vehicle.apply_control(ego_action)
-            world.tick()
+            try:
+                ego_action = pcla.get_action()
+                vehicle.apply_control(ego_action)
+                world.tick()
+                step += 1
+            except Exception as e:
+                print(f'\nError at step {step}:')
+                print(f'{type(e).__name__}: {e}\n')
+                import traceback
+                traceback.print_exc()
+                break
     
     finally:
         #settings.no_rendering_mode = False
-        settings.synchronous_mode = False
-        world.apply_settings(settings)
+        if settings is not None:
+            settings.synchronous_mode = False
+            world.apply_settings(settings)
 
         # Destroy vehicle
         print('\nCleaning up the vehicle')
-        pcla.cleanup()
+        if pcla is not None:
+            pcla.cleanup()
         time.sleep(0.5)
 
 if __name__ == '__main__':
