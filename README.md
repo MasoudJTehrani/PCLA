@@ -18,9 +18,9 @@ A versatile framework for deploying, testing and evaluating pretrained autonomou
 
 ## Supported Autonomous Agents
 
-PCLA currently supports **35** agents and 24 additional training seeds from 14 major autonomous driving projects:
+PCLA currently supports **36** agents and 27 additional training seeds from 15 major autonomous driving projects:
 
-[**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**TransfuserV3**](https://github.com/autonomousvision/transfuser) | [**TransfuserV4**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**TransfuserV5**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_2) | [**TransfuserV6**](https://github.com/autonomousvision/lead) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV)
+[**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**TransfuserV3**](https://github.com/autonomousvision/transfuser) | [**TransfuserV4**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**TransfuserV5**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_2) | [**TransfuserV6**](https://github.com/autonomousvision/lead) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT2**](https://github.com/autonomousvision/plant2) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV)
 
 ---
 
@@ -29,7 +29,7 @@ PCLA currently supports **35** agents and 24 additional training seeds from 14 m
 PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework designed to decouple the autonomous driving agents (ADAs) from the restrictive CARLA Leaderboard codebase.
 
 * **Decoupled Deployment:** Deploy high-performing ADAs onto a vehicle without relying on the original Leaderboard core codebase.
-* **Easy Switching:** Effortlessly switch between **35 different agents** and their **24 additional training seeds** without requiring changes to CARLA versions or programming environments.
+* **Easy Switching:** Effortlessly switch between **36 different agents** and their **27 additional training seeds** without requiring changes to CARLA versions or programming environments.
 * **Version Independent:** Fully compatible with the latest version of CARLA, independent of the Leaderboard’s specific CARLA version.
 * **Multi-Agent Support:** Run multiple vehicles with different autonomous agents simultaneously (note: requires high graphical memory).
 * **CARLA Action Access:** Retrieve the computed CARLA movement action from the chosen agent for use in any custom application.
@@ -232,6 +232,9 @@ PCLA includes **35** different autonomous agents and **24** additional training 
 
 -   `carl_plant_#`: The PlanT planner agent ([paper](https://arxiv.org/abs/2210.14222)) reproduced by the authors of [CaRL](https://github.com/autonomousvision/CaRL/tree/main). Replace `#` with a number from **0 to 4** for the 5 available seeds.
 
+### PlanT 2
+
+-   `plant2_plant2_#`: The PlanT 2.0 agent. Replace `#` with a number from **0 to 2** for the 3 available seeds.
 
 #### NEAT
   
