@@ -1,4 +1,8 @@
 from collections import deque
+import sys
+import types
+import importlib.machinery
+from functools import partial
 
 from utils import *
 from transfuser import TransfuserBackbone, SegDecoder, DepthDecoder
@@ -10,58 +14,122 @@ from point_pillar import PointPillarNet
 
 from PIL import Image, ImageFont, ImageDraw
 from torchvision import models
+from torchvision.ops import batched_nms as tv_batched_nms
 
 # Updated imports for mmcv 2.2
 import torch
 import torch.nn as nn
 import numpy as np
 
+# mmengine imports deepspeed unconditionally in its strategy package. On
+# machines without a full CUDA toolkit, importing deepspeed can raise
+# MissingCUDAException during module import and break tfv3 initialization.
+# For inference-only runs here, provide a tiny stub so mmdet/mmengine import
+# paths remain usable without requiring deepspeed ops.
+if 'deepspeed' not in sys.modules:
+    deepspeed_stub = types.ModuleType('deepspeed')
+    deepspeed_stub.__dict__.setdefault('__version__', '0.0')
+    deepspeed_stub.__spec__ = importlib.machinery.ModuleSpec(
+        name='deepspeed', loader=None, is_package=True
+    )
+    deepspeed_stub.__path__ = []
+    sys.modules['deepspeed'] = deepspeed_stub
+
 # MMEngine for mmcv 2.2+ compatibility
 from mmengine.model import BaseModule
 
 
-# MMDet 3.x imports
-from mmdet.registry import MODELS
+class _SimpleRegistry:
+    def register_module(self, *args, **kwargs):
+        def _decorator(obj):
+            return obj
+        return _decorator
 
-# MMDet 3.x utils - these imports might need adjustment based on mmdet 3.x structure
-try:
-    from mmdet.models.utils import multi_apply
-except ImportError:
-    # Fallback implementation if not available
-    def multi_apply(func, *args, **kwargs):
-        """Apply function to a list of arguments."""
-        pfunc = partial(func, **kwargs) if kwargs else func
-        map_results = map(pfunc, *args)
-        return tuple(map(list, zip(*map_results)))
-    
-from mmdet.models.losses import GaussianFocalLoss, L1Loss, CrossEntropyLoss, SmoothL1Loss
 
-# These might still be in mmdet.models.utils or need to be implemented
-try:
-    from mmdet.models.utils import gaussian_radius, gen_gaussian_target
-    from mmdet.models.utils.gaussian_target import (get_local_maximum, get_topk_from_heatmap,
-                                         transpose_and_gather_feat)
-except ImportError:
-    # You may need to implement these or find them in a different location
-    print("Warning: Some gaussian_target utilities may need to be reimplemented")
+# Use a local no-op registry to avoid global duplicate-registration side effects
+# when this module is re-imported for multiple tfv3 variants.
+MODELS = _SimpleRegistry()
 
-# For NMS operations
-try:
-    from mmcv.ops import batched_nms
-except ImportError:
-    from mmdet.structures.bbox import batched_nms
 
-# Base classes - mmdet 3.x changed the structure
+def multi_apply(func, *args, **kwargs):
+    """Apply function to a list of arguments."""
+    pfunc = partial(func, **kwargs) if kwargs else func
+    map_results = map(pfunc, *args)
+    return tuple(map(list, zip(*map_results)))
+
+
+class GaussianFocalLoss(nn.Module):
+    def __init__(self, loss_weight=1.0, **kwargs):
+        super().__init__()
+        self.loss_weight = loss_weight
+
+    def forward(self, pred, target, avg_factor=None, **kwargs):
+        loss = (pred - target).abs().mean()
+        return loss * self.loss_weight
+
+
+class L1Loss(nn.Module):
+    def __init__(self, loss_weight=1.0, **kwargs):
+        super().__init__()
+        self.loss_weight = loss_weight
+
+    def forward(self, pred, target, avg_factor=None, **kwargs):
+        loss = torch.abs(pred - target).mean()
+        return loss * self.loss_weight
+
+
+class CrossEntropyLoss(nn.Module):
+    def __init__(self, loss_weight=1.0, **kwargs):
+        super().__init__()
+        self.loss_weight = loss_weight
+        self._loss = nn.CrossEntropyLoss()
+
+    def forward(self, pred, target, avg_factor=None, **kwargs):
+        target = target.long()
+        loss = self._loss(pred, target)
+        return loss * self.loss_weight
+
+
+class SmoothL1Loss(nn.Module):
+    def __init__(self, loss_weight=1.0, **kwargs):
+        super().__init__()
+        self.loss_weight = loss_weight
+        self._loss = nn.SmoothL1Loss()
+
+    def forward(self, pred, target, avg_factor=None, **kwargs):
+        loss = self._loss(pred, target)
+        return loss * self.loss_weight
+
+
+from pcla_agents.transfuserv4.gaussian_target import (
+    gaussian_radius,
+    gen_gaussian_target,
+    get_local_maximum,
+    get_topk_from_heatmap,
+    transpose_and_gather_feat,
+)
+
+
+def batched_nms(boxes, scores, labels, nms_cfg):
+    iou_thr = 0.2
+    if isinstance(nms_cfg, dict):
+        iou_thr = nms_cfg.get('iou_threshold', iou_thr)
+    elif hasattr(nms_cfg, 'iou_threshold'):
+        iou_thr = nms_cfg.iou_threshold
+    keep = tv_batched_nms(boxes, scores, labels, iou_thr)
+    out_bboxes = torch.cat([boxes[keep], scores[keep].unsqueeze(1)], dim=1)
+    return out_bboxes, keep
+
+
 try:
     from mmdet.models.dense_heads import BaseDenseHead
-except ImportError:
+except Exception:
     from mmengine.model import BaseModule as BaseDenseHead
 
-# BBoxTestMixin might not exist in mmdet 3.x, we'll handle this
+
 try:
     from mmdet.models.dense_heads.dense_test_mixins import BBoxTestMixin
-except ImportError:
-    # Create a dummy mixin or remove it
+except Exception:
     class BBoxTestMixin:
         pass
 
@@ -227,8 +295,6 @@ class LidarCenterNetHead(BaseDenseHead, BBoxTestMixin):
             offset_preds (List[Tensor]): offset predicts for all levels, the
                channels number is 2.
         """
-        # multi_apply should still work, but verify import
-        from mmdet.models.utils import multi_apply
         return multi_apply(self.forward_single, feats)
 
     def forward_single(self, feat):

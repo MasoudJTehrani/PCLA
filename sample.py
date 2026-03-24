@@ -54,7 +54,7 @@ def main():
 
         world.tick()
 
-        agent = "plant2_plant2_3"
+        agent = "simlingo_simlingo"
         route = "./sample_route.xml"
         pcla = PCLA(agent, vehicle, route, client)
         

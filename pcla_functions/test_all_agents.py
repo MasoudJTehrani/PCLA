@@ -30,9 +30,10 @@ def load_agents_config(pcla_dir):
         agents_config = json.load(f)
     
     # Agents to skip (missing deps or heavy models you don't want to load now)
-    skip_agents = {'if_if', 'simlingo_simlingo'}
-    # tfv3 currently excluded due to mmcv-full build issues on this environment
-    skip_families = {'lmdrive', 'tfv3'}
+    # skip_agents = {'if_if', 'simlingo_simlingo'}
+    skip_agents = {}
+    # Keep lmdrive excluded for now; tfv3 is enabled again.
+    skip_families = {}
     
     agent_list = []
     total_agents = 0

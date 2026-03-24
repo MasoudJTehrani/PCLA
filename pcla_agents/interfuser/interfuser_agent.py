@@ -16,7 +16,7 @@ from easydict import EasyDict
 
 from torchvision import transforms
 from leaderboard_codes import autonomous_agent1 as autonomous_agent
-from timm.models import create_model
+from pcla_agents.interfuser.timm.models import create_model
 from utils import lidar_to_histogram_features, transform_2d_points
 from planner import RoutePlanner
 from interfuser_controller import InterfuserController

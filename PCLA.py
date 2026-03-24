@@ -8,6 +8,7 @@
 import importlib
 import os
 import sys
+import gc
 
 # Ensure imports work regardless of caller's working directory
 pcla_dir = os.path.dirname(os.path.abspath(__file__))
@@ -21,6 +22,7 @@ if os.path.exists(lmdrive_vision_encoder) and lmdrive_vision_encoder not in sys.
 
 import carla
 import traceback
+import torch
 from pcla_functions import give_path, setup_sensor_attributes, location_to_waypoint, route_maker
 from leaderboard_codes.watchdog import Watchdog
 from leaderboard_codes.timer import GameTime
@@ -77,7 +79,8 @@ class PCLA():
             module_key,
             'model', 'models', 'dataset', 'lit_module', 'plant_variables',
             'nav_planner', 'config', 'transfuser', 'transfuser_utils',
-            'utils', 'util', 'planner', 'controller', 'map_agent', 'base_agent',
+            'utils', 'util', 'data', 'gaussian_target',
+            'planner', 'controller', 'map_agent', 'base_agent',
             'bev_planner', 'waypointer', 'lateral_controller',
             'longitudinal_controller', 'kinematic_bicycle_model'
         }
@@ -190,5 +193,14 @@ class PCLA():
         self.routePath = None
         self.world = None
         
+        # Release cached CUDA memory between agents to avoid cross-agent OOMs.
+        try:
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
+        except Exception:
+            pass
+
         CarlaDataProvider.cleanup()
         

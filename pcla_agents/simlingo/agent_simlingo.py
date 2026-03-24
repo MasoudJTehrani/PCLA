@@ -672,10 +672,10 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
 
         self.DrivingInput["camera_images"] = processed_image.to(self.device).bfloat16()
         self.DrivingInput["image_sizes"] = image_sizes
-        self.DrivingInput["camera_intrinsics"] = torch.repeat_interleave(get_camera_intrinsics(W, H, 110).unsqueeze(0), 1, dim=0).view(1, 3, 3).float().to(self.device),
-        self.DrivingInput["camera_extrinsics"] = torch.repeat_interleave(get_camera_extrinsics().unsqueeze(0), 1, dim=0).view(1, 4, 4).float().to(self.device),
-        self.DrivingInput["vehicle_speed"] = result['speed']
-        self.DrivingInput["target_point"] = result['target_point'].to(self.device)
+        self.DrivingInput["camera_intrinsics"] = torch.repeat_interleave(get_camera_intrinsics(W, H, 110).unsqueeze(0), 1, dim=0).view(1, 3, 3).to(self.device, dtype=torch.float32)
+        self.DrivingInput["camera_extrinsics"] = torch.repeat_interleave(get_camera_extrinsics().unsqueeze(0), 1, dim=0).view(1, 4, 4).to(self.device, dtype=torch.float32)
+        self.DrivingInput["vehicle_speed"] = result['speed'].to(self.device, dtype=torch.float32)
+        self.DrivingInput["target_point"] = result['target_point'].to(self.device, dtype=torch.float32)
         self.DrivingInput["prompt"] = ll
         self.DrivingInput["prompt_inference"] = ll
 

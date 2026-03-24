@@ -224,10 +224,25 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         self.sample_rate = self.config.sample_rate * 2 # The frequency of CARLA simulation is 20Hz
 
         print('Building model...')
-        
-        # Build model on CPU first to save GPU memory during initialization
-        with torch.cuda.device(0):
-            torch.cuda.empty_cache()
+
+        # Select target CUDA device: prefer explicit env, else highest-VRAM GPU.
+        target_device = None
+        if torch.cuda.is_available() and torch.cuda.device_count() > 0:
+            env_idx = os.environ.get('LMDRIVE_CUDA_DEVICE') or os.environ.get('PCLA_CUDA_DEVICE')
+            if env_idx is not None:
+                try:
+                    idx = int(env_idx)
+                    if 0 <= idx < torch.cuda.device_count():
+                        target_device = idx
+                except ValueError:
+                    target_device = None
+            if target_device is None:
+                target_device = max(
+                    range(torch.cuda.device_count()),
+                    key=lambda i: torch.cuda.get_device_properties(i).total_memory,
+                )
+            with torch.cuda.device(target_device):
+                torch.cuda.empty_cache()
         
         # Resolve checkpoint paths to absolute so callers from any CWD work
         def _resolve_path(path_str):
@@ -269,7 +284,8 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         checkpoint = torch.load(resolved_lmdrive_ckpt or self.config.lmdrive_ckpt, map_location='cpu')
         model.load_state_dict(checkpoint["model"], strict=False)
         del checkpoint
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         gc.collect()
         
         print('Converting model to half precision...')
@@ -277,14 +293,20 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         model = model.half()
         
         print('Moving model to CUDA with 8-bit quantization...')
-    
+
         # Try using device_map for automatic offloading
         try:
             # Use accelerate's device_map for better memory management
             from accelerate import infer_auto_device_map, dispatch_model
-            
-            # Calculate available memory (leave 2GB for other operations)
-            max_memory = {0: "17GB", "cpu": "32GB"}
+
+            if target_device is None:
+                raise RuntimeError("CUDA is not available for accelerate device_map")
+
+            total_gb = torch.cuda.get_device_properties(target_device).total_memory / (1024 ** 3)
+            gpu_budget_gb = max(2, int(total_gb * 0.8))
+            cpu_budget = os.environ.get('LMDRIVE_CPU_OFFLOAD_GB', '64GB')
+            max_memory = {target_device: f"{gpu_budget_gb}GB", "cpu": cpu_budget}
+            print(f"Selected CUDA device: {target_device} ({total_gb:.2f} GB total), budget={gpu_budget_gb}GB")
             
             device_map = infer_auto_device_map(
                 model,
@@ -293,17 +315,29 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
             )
             
             print(f"Device map: {device_map}")
+
+            # Guardrail: if accelerate still maps the whole model to a small GPU,
+            # force a safer manual split instead of OOMing during .to(device).
+            if isinstance(device_map, dict) and device_map.get('') == target_device and total_gb < 12:
+                raise RuntimeError(
+                    f"Unsafe full-model placement on {total_gb:.2f}GB GPU; using manual split"
+                )
+
             model = dispatch_model(model, device_map=device_map)
-            
-        except ImportError:
-            print("Accelerate not available, trying manual device placement...")
+
+        except (ImportError, RuntimeError) as e:
+            print(f"Accelerate auto-placement unavailable/unsafe: {e}")
+            print("Trying manual device placement...")
             
             # Manual approach: keep LLM on CPU, only vision encoder on GPU
             try:
+                if target_device is None:
+                    raise RuntimeError("No CUDA device available for manual split")
+
                 # Move only the vision encoder to GPU
                 if hasattr(model, 'visual_encoder'):
-                    model.visual_encoder = model.visual_encoder.cuda()
-                    print("✓ Visual encoder on GPU")
+                    model.visual_encoder = model.visual_encoder.to(f'cuda:{target_device}')
+                    print(f"✓ Visual encoder on cuda:{target_device}")
                 
                 # Keep LLM on CPU or use CPU offloading
                 if hasattr(model, 'llm_model'):
@@ -312,8 +346,8 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
                 
                 # Move other small components to GPU
                 if hasattr(model, 'llm_proj'):
-                    model.llm_proj = model.llm_proj.cuda()
-                    print("✓ LLM projection on GPU")
+                    model.llm_proj = model.llm_proj.to(f'cuda:{target_device}')
+                    print(f"✓ LLM projection on cuda:{target_device}")
                     
             except RuntimeError as e:
                 print(f"Error during manual device placement: {e}")
@@ -330,11 +364,14 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         self.net = model
         
         # Print GPU status after loading
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() and target_device is not None:
             print(f"After loading model:")
-            print(f"  Allocated: {torch.cuda.memory_allocated() / 1024**3:.2f} GB")
-            print(f"  Cached: {torch.cuda.memory_reserved() / 1024**3:.2f} GB")
-            print(f"  Free: {(torch.cuda.get_device_properties(0).total_memory - torch.cuda.memory_allocated()) / 1024**3:.2f} GB")
+            print(f"  Device: cuda:{target_device}")
+            print(f"  Allocated: {torch.cuda.memory_allocated(target_device) / 1024**3:.2f} GB")
+            print(f"  Cached: {torch.cuda.memory_reserved(target_device) / 1024**3:.2f} GB")
+            print(
+                f"  Free: {(torch.cuda.get_device_properties(target_device).total_memory - torch.cuda.memory_allocated(target_device)) / 1024**3:.2f} GB"
+            )
         
         self.softmax = torch.nn.Softmax(dim=1)
         self.prev_lidar = None
