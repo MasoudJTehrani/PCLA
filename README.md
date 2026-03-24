@@ -12,7 +12,7 @@ A versatile framework for deploying, testing and evaluating pretrained autonomou
 
 [![FSE 2025 Paper](https://img.shields.io/badge/Paper-FSE%202025-blue.svg)](https://dl.acm.org/doi/abs/10.1145/3696630.3728577)
 [![CARLA Leaderboard](https://img.shields.io/badge/CARLA-Leaderboard-success.svg)](https://leaderboard.carla.org)
-[![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blueviolet.svg)](https://www.python.org/)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blueviolet.svg)](https://www.python.org/)
 [![GitHub stars](https://img.shields.io/github/stars/MasoudJTehrani/PCLA?style=social)](https://github.com/MasoudJTehrani/PCLA)
 ---
 
@@ -40,7 +40,7 @@ The corresponding paper is available at [Foundations of Software Engineering (FS
 
 ### Compatibility & Video
 
-PCLA was tested on **Linux Ubuntu 22** and **CARLA 0.9.16 (Unreal Engine 4)**.
+PCLA was tested on **Linux Ubuntu 22** and **[CARLA 0.9.16](https://github.com/carla-simulator/carla/releases/tag/0.9.16/) (Unreal Engine 4)**.
 
 A video tutorial on how to use PCLA is available below (an updated version is coming soon).
 
@@ -102,15 +102,6 @@ A video tutorial on how to use PCLA is available below (an updated version is co
     pip install "ftfy==6.1.1"
     cd ../../../
     ```
-
-4.  **CARLA 0.9.16 Specific Installation:**
-    If you intend to use PCLA with **CARLA 0.9.16**, you need to install the wheel from the `dist` folder:
-
-    ```bash
-    cd dist
-    python3 -m pip install carla-0.9.16-cp39-cp39-linux_x86_64.whl
-    ```
-    > **Warning:** Some agents may act *weird* when used with CARLA 0.9.16.
 
 ---
 
