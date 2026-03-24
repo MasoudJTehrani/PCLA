@@ -1,4 +1,4 @@
-name: PCLA39
+name: PCLA
 channels:
   - conda-forge
   - defaults
