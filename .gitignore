@@ -10,3 +10,4 @@ env/
 .pytest_cache/
 .ipynb_checkpoints/
 pcla_agents/pretrained.zip
+.vscode
