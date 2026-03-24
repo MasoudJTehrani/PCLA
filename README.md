@@ -146,8 +146,8 @@ Ensure that the downloaded pre-trained weight folders are placed directly next t
 ```
 ## 3. Autonomous Agents
 
-PCLA includes **35** different autonomous agents and **24** additional training seeds to choose from. 
-> **Find the repository of each agent at the top this page.**
+PCLA includes **36** different autonomous agents and **27** additional training seeds to choose from. 
+> **Find the repository of each agent at the top of this page.**
 
 ### SimLingo
 
@@ -198,7 +198,7 @@ PCLA includes **35** different autonomous agents and **24** additional training 
 
 -   `tfv5_alltowns`: This agent is trained with all towns.
 
--   `tfv5_notown13`: This agent is trained exculding Town13.
+-   `tfv5_notown13`: This agent is trained excluding Town13.
 
 ### TransfuserV6
 
@@ -206,7 +206,7 @@ PCLA includes **35** different autonomous agents and **24** additional training 
 
 -   `tfv6_regnet`: Their best-performing agent that uses regnety032.
 
--   `tfv6_resnet`: Second best-performing agent that uses resnet34.
+-   `tfv6_resnet`: The second-best-performing agent that uses resnet34.
 
 -   `tfv6_4cameras`: Uses 4cameras and resnet34.
 
