@@ -108,7 +108,7 @@ A video tutorial on how to use PCLA is available below (an updated version is co
 
     ```bash
     cd dist
-    python3 -m pip install carla-0.9.16-cp38-cp38-linux_x86_64.whl
+    python3 -m pip install carla-0.9.16-cp39-cp39-linux_x86_64.whl
     ```
     > **Warning:** Some agents may act *weird* when used with CARLA 0.9.16.
 
