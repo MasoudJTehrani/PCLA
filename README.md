@@ -302,7 +302,7 @@ pcla.cleanup()
 
 ### Explaining the Arguments:
 
--   **`agent`**: Your chosen autonomous agent string (e.g., `"tf_tf"`). See [Autonomous Agents](https://www.google.com/search?q=%233-autonomous-agents).
+-   **`agent`**: Your chosen autonomous agent string (e.g., `"tf_tf"`). See [Autonomous Agents](#3-autonomous-agents).
     
 -   **`route`**: The path to an XML file defining the vehicle's route, formatted according to the Leaderboard waypoints.
     
