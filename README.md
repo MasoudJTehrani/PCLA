@@ -195,17 +195,17 @@ PCLA includes **36** different autonomous agents and **27** additional training 
 
 -   The most recent Transfuser agent, also known as Lead.
 
--   `tfv6_regnet`: Their best-performing agent that uses regnety032.
+-   `tfv6_regnet`: Their best-performing agent that uses regnety032. Also known as the "Full TransFuser V6" variant.
 
 -   `tfv6_resnet`: The second-best-performing agent that uses resnet34.
 
--   `tfv6_4cameras`: Uses 4cameras and resnet34.
+-   `tfv6_4cameras`: Uses 4cameras and resnet34. Also known as the "+ Rear camera" variant.
 
--   `tfv6_noradar`: Uses resnet34 but no radar sensor.
+-   `tfv6_noradar`: Uses resnet34 but no radar sensor. Also known as the "− Radar" variant.
 
 -   `tfv6_visiononly`: Vision-only driving model and resnet34.
 
--   `tfv6_notown13`: Uses resnet34 but Town13 is excluded.
+-   `tfv6_notown13`: Uses resnet34 but Town13 is excluded. Also known as the "Town13 held out" variant.
 
 ### CaRL
 
