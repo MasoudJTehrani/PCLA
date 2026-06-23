@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union
-
 import math
+import numbers
 from dataclasses import dataclass
 from functools import cached_property
 from math import sqrt
-import numbers
 
+import jaxtyping as jt
 import numpy as np
+import numpy.typing as npt
 import torch
 import torch.nn.functional as F
 from beartype import beartype
@@ -21,13 +21,19 @@ from lead.common.constants import (
     TransfuserBoundingBoxIndex,
 )
 from lead.data_loader import carla_dataset_utils
-from lead.tfv6 import fn
+from lead.tfv6 import transfuser_utils as fn
 from lead.training.config_training import TrainingConfig
 
 
 class CenterNetDecoder(nn.Module):
     @beartype
-    def __init__(self, num_classes: int, config: TrainingConfig, device: torch.device, source_data: int):
+    def __init__(
+        self,
+        num_classes: int,
+        config: TrainingConfig,
+        device: torch.device,
+        source_data: int,
+    ):
         """Center Net Head implementation adapted from MM Detection
         Args:
             num_classes: Number of classes to predict.
@@ -41,13 +47,22 @@ class CenterNetDecoder(nn.Module):
         self.num_classes = num_classes
         self.source_data = source_data
 
-        self.heatmap_head: nn.Sequential = self._build_head(config.bb_input_channel, num_classes)
+        self.heatmap_head: nn.Sequential = self._build_head(
+            config.bb_input_channel,
+            num_classes,
+        )
         self.wh_head: nn.Sequential = self._build_head(config.bb_input_channel, 2)
         self.offset_head: nn.Sequential = self._build_head(config.bb_input_channel, 2)
-        self.yaw_class_head: nn.Sequential = self._build_head(config.bb_input_channel, config.num_dir_bins)
+        self.yaw_class_head: nn.Sequential = self._build_head(
+            config.bb_input_channel,
+            config.num_dir_bins,
+        )
         self.yaw_res_head: nn.Sequential = self._build_head(config.bb_input_channel, 1)
         if config.training_used_lidar_steps > 1:
-            self.velocity_head: nn.Sequential = self._build_head(config.bb_input_channel, 1)
+            self.velocity_head: nn.Sequential = self._build_head(
+                config.bb_input_channel,
+                1,
+            )
 
     @beartype
     def _build_head(self, in_channel: int, out_channel: int) -> nn.Sequential:
@@ -66,7 +81,12 @@ class CenterNetDecoder(nn.Module):
         return layer
 
     @beartype
-    def forward(self, data: dict, bev_feature_grid: torch.Tensor, log: dict) -> CenterNetBoundingBoxPrediction:
+    def forward(
+        self,
+        data: dict,
+        bev_feature_grid: torch.Tensor,
+        log: dict,
+    ) -> CenterNetBoundingBoxPrediction:
         """
         Forward feature of a single level.
 
@@ -100,7 +120,13 @@ class CenterNetDecoder(nn.Module):
         )
 
     @beartype
-    def compute_loss(self, data: dict, bounding_box_features: CenterNetBoundingBoxPrediction, losses: dict, log: dict):
+    def compute_loss(
+        self,
+        data: dict,
+        bounding_box_features: CenterNetBoundingBoxPrediction,
+        losses: dict,
+        log: dict,
+    ):
         """
         Compute bounding box prediction losses and metrics.
         Args:
@@ -116,37 +142,55 @@ class CenterNetDecoder(nn.Module):
         if self.source_data == SourceDataset.CARLA:
             prefix = ""
         # Mask for samples from the correct source dataset
-        source_dataset = data["source_dataset"].to(self.device, dtype=torch.long, non_blocking=True)  # (B,)
+        source_dataset = data["source_dataset"].to(
+            self.device,
+            dtype=torch.long,
+            non_blocking=True,
+        )  # (B,)
         source_mask = (source_dataset == self.source_data).float()  # (B,)
         if source_mask.sum() == 0:
             return  # No samples from this source dataset in the batch
 
         center_heatmap_target: torch.Tensor = data[f"{prefix}center_net_heatmap"].to(
-            self.device, dtype=self.config.torch_float_type, non_blocking=True
+            self.device,
+            dtype=self.config.torch_float_type,
+            non_blocking=True,
         )
 
         wh_target: torch.Tensor = data[f"{prefix}center_net_wh"].to(
-            self.device, dtype=self.config.torch_float_type, non_blocking=True
+            self.device,
+            dtype=self.config.torch_float_type,
+            non_blocking=True,
         )
 
         yaw_class_target: torch.Tensor = data[f"{prefix}center_net_yaw_class"].to(
-            self.device, dtype=torch.long, non_blocking=True
+            self.device,
+            dtype=torch.long,
+            non_blocking=True,
         )
 
         yaw_res_target: torch.Tensor = data[f"{prefix}center_net_yaw_res"].to(
-            self.device, dtype=self.config.torch_float_type, non_blocking=True
+            self.device,
+            dtype=self.config.torch_float_type,
+            non_blocking=True,
         )
 
         offset_target: torch.Tensor = data[f"{prefix}center_net_offset"].to(
-            self.device, dtype=self.config.torch_float_type, non_blocking=True
+            self.device,
+            dtype=self.config.torch_float_type,
+            non_blocking=True,
         )
 
         velocity_target: torch.Tensor = data[f"{prefix}center_net_velocity"].to(
-            self.device, dtype=self.config.torch_float_type, non_blocking=True
+            self.device,
+            dtype=self.config.torch_float_type,
+            non_blocking=True,
         )
 
         pixel_weight: torch.Tensor = data[f"{prefix}center_net_pixel_weight"].to(
-            self.device, dtype=self.config.torch_float_type, non_blocking=True
+            self.device,
+            dtype=self.config.torch_float_type,
+            non_blocking=True,
         )  # [bs, 2, h, w]
 
         # The number of valid bounding boxes can vary.
@@ -156,7 +200,9 @@ class CenterNetDecoder(nn.Module):
         # The weight sets all pixels without a bounding box to 0.
         # Add small epsilon to have numerical stability in the case where there are no boxes in the batch.
         avg_factor = data[f"{prefix}center_net_avg_factor"].to(
-            self.device, dtype=self.config.torch_float_type, non_blocking=True
+            self.device,
+            dtype=self.config.torch_float_type,
+            non_blocking=True,
         )  # (B,)
 
         with torch.amp.autocast(device_type="cuda", enabled=False):
@@ -166,50 +212,95 @@ class CenterNetDecoder(nn.Module):
                 gaussian_target=center_heatmap_target,
                 reduction="none",
             )  # (B, C, H, W)
-            loss_center_heatmap_per_sample = loss_center_heatmap_per_sample.sum(dim=(1, 2, 3))  # (B,)
+            loss_center_heatmap_per_sample = loss_center_heatmap_per_sample.sum(
+                dim=(1, 2, 3),
+            )  # (B,)
             # Mask out samples from other sources and normalize
-            avg_factor_clamped = avg_factor + torch.finfo(self.config.torch_float_type).eps
-            loss_center_heatmap_per_sample = loss_center_heatmap_per_sample / avg_factor_clamped  # (B,)
-            loss_center_heatmap = (loss_center_heatmap_per_sample * source_mask).sum() / source_mask.sum().clamp(min=1)
+            avg_factor_clamped = (
+                avg_factor + torch.finfo(self.config.torch_float_type).eps
+            )
+            loss_center_heatmap_per_sample = (
+                loss_center_heatmap_per_sample / avg_factor_clamped
+            )  # (B,)
+            loss_center_heatmap = (
+                loss_center_heatmap_per_sample * source_mask
+            ).sum() / source_mask.sum().clamp(min=1)
 
             # Compute per-sample losses for wh
             loss_wh_per_sample = (
-                F.l1_loss(bounding_box_features.wh_pred.float(), wh_target.float(), reduction="none") * pixel_weight.float()
+                F.l1_loss(
+                    bounding_box_features.wh_pred.float(),
+                    wh_target.float(),
+                    reduction="none",
+                )
+                * pixel_weight.float()
             )  # (B, 2, H, W)
             loss_wh_per_sample = loss_wh_per_sample.sum(dim=(1, 2, 3))  # (B,)
-            loss_wh_per_sample = loss_wh_per_sample / (avg_factor_clamped * bounding_box_features.wh_pred.shape[1])  # (B,)
-            loss_wh = (loss_wh_per_sample * source_mask).sum() / source_mask.sum().clamp(min=1)
+            loss_wh_per_sample = loss_wh_per_sample / (
+                avg_factor_clamped * bounding_box_features.wh_pred.shape[1]
+            )  # (B,)
+            loss_wh = (
+                loss_wh_per_sample * source_mask
+            ).sum() / source_mask.sum().clamp(min=1)
 
             # Compute per-sample losses for offset
             loss_offset_per_sample = (
-                F.l1_loss(bounding_box_features.offset_pred.float(), offset_target.float(), reduction="none")
+                F.l1_loss(
+                    bounding_box_features.offset_pred.float(),
+                    offset_target.float(),
+                    reduction="none",
+                )
                 * pixel_weight.float()
             )  # (B, 2, H, W)
             loss_offset_per_sample = loss_offset_per_sample.sum(dim=(1, 2, 3))  # (B,)
             loss_offset_per_sample = loss_offset_per_sample / (
                 avg_factor_clamped * bounding_box_features.wh_pred.shape[1]
             )  # (B,)
-            loss_offset = (loss_offset_per_sample * source_mask).sum() / source_mask.sum().clamp(min=1)
+            loss_offset = (
+                loss_offset_per_sample * source_mask
+            ).sum() / source_mask.sum().clamp(min=1)
 
             # Compute per-sample losses for yaw class
             loss_yaw_class_per_sample = (
-                F.cross_entropy(bounding_box_features.yaw_class_pred.float(), yaw_class_target, reduction="none")
+                F.cross_entropy(
+                    bounding_box_features.yaw_class_pred.float(),
+                    yaw_class_target,
+                    reduction="none",
+                )
                 * pixel_weight[:, 0].float()
             )  # (B, H, W)
-            loss_yaw_class_per_sample = loss_yaw_class_per_sample.sum(dim=(1, 2))  # (B,)
-            loss_yaw_class_per_sample = loss_yaw_class_per_sample / avg_factor_clamped  # (B,)
-            loss_yaw_class = (loss_yaw_class_per_sample * source_mask).sum() / source_mask.sum().clamp(min=1)
+            loss_yaw_class_per_sample = loss_yaw_class_per_sample.sum(
+                dim=(1, 2),
+            )  # (B,)
+            loss_yaw_class_per_sample = (
+                loss_yaw_class_per_sample / avg_factor_clamped
+            )  # (B,)
+            loss_yaw_class = (
+                loss_yaw_class_per_sample * source_mask
+            ).sum() / source_mask.sum().clamp(min=1)
 
             # Compute per-sample losses for yaw res
             loss_yaw_res_per_sample = (
-                F.smooth_l1_loss(bounding_box_features.yaw_res_pred.float(), yaw_res_target.float(), reduction="none")
+                F.smooth_l1_loss(
+                    bounding_box_features.yaw_res_pred.float(),
+                    yaw_res_target.float(),
+                    reduction="none",
+                )
                 * pixel_weight[:, 0:1].float()
             )  # (B, 1, H, W)
             loss_yaw_res_per_sample = loss_yaw_res_per_sample.sum(dim=(1, 2, 3))  # (B,)
-            loss_yaw_res_per_sample = loss_yaw_res_per_sample / avg_factor_clamped  # (B,)
-            loss_yaw_res = (loss_yaw_res_per_sample * source_mask).sum() / source_mask.sum().clamp(min=1)
+            loss_yaw_res_per_sample = (
+                loss_yaw_res_per_sample / avg_factor_clamped
+            )  # (B,)
+            loss_yaw_res = (
+                loss_yaw_res_per_sample * source_mask
+            ).sum() / source_mask.sum().clamp(min=1)
 
-        loss_velocity = torch.zeros(1, dtype=self.config.torch_float_type, device=self.device)
+        loss_velocity = torch.zeros(
+            1,
+            dtype=self.config.torch_float_type,
+            device=self.device,
+        )
         if self.config.training_used_lidar_steps > 1:
             loss_velocity_per_sample = (
                 F.l1_loss(
@@ -219,9 +310,15 @@ class CenterNetDecoder(nn.Module):
                 )
                 * pixel_weight[:, 0:1]
             )  # (B, 1, H, W)
-            loss_velocity_per_sample = loss_velocity_per_sample.sum(dim=(1, 2, 3))  # (B,)
-            loss_velocity_per_sample = loss_velocity_per_sample / avg_factor_clamped  # (B,)
-            loss_velocity = (loss_velocity_per_sample * source_mask).sum() / source_mask.sum().clamp(min=1)
+            loss_velocity_per_sample = loss_velocity_per_sample.sum(
+                dim=(1, 2, 3),
+            )  # (B,)
+            loss_velocity_per_sample = (
+                loss_velocity_per_sample / avg_factor_clamped
+            )  # (B,)
+            loss_velocity = (
+                loss_velocity_per_sample * source_mask
+            ).sum() / source_mask.sum().clamp(min=1)
 
         # Add dataset name prefix
         losses.update(
@@ -232,8 +329,49 @@ class CenterNetDecoder(nn.Module):
                 f"{prefix}loss_center_net_yaw_class": loss_yaw_class,
                 f"{prefix}loss_center_net_yaw_res": loss_yaw_res,
                 f"{prefix}loss_center_net_velocity": loss_velocity,
-            }
+            },
         )
+
+        if (
+            "iteration" in data
+            and ((data["iteration"] + 1) % self.config.log_scalars_frequency) == 0
+        ):
+            subset = source_mask.bool()
+            heatmap_pred = bounding_box_features.center_heatmap_pred[subset]
+            wh_pred = bounding_box_features.wh_pred[subset]
+            offset_pred = bounding_box_features.offset_pred[subset]
+            yaw_class_pred = bounding_box_features.yaw_class_pred[subset]
+            yaw_res_pred = bounding_box_features.yaw_res_pred[subset]
+            log[f"{prefix}center_net_output/heatmap_pred_min"] = (
+                heatmap_pred.min().item()
+            )
+            log[f"{prefix}center_net_output/heatmap_pred_max"] = (
+                heatmap_pred.max().item()
+            )
+            log[f"{prefix}center_net_output/wh_pred_min"] = wh_pred.min().item()
+            log[f"{prefix}center_net_output/wh_pred_max"] = wh_pred.max().item()
+            log[f"{prefix}center_net_output/offset_pred_min"] = offset_pred.min().item()
+            log[f"{prefix}center_net_output/offset_pred_max"] = offset_pred.max().item()
+            log[f"{prefix}center_net_output/yaw_class_pred_min"] = (
+                yaw_class_pred.min().item()
+            )
+            log[f"{prefix}center_net_output/yaw_class_pred_max"] = (
+                yaw_class_pred.max().item()
+            )
+            log[f"{prefix}center_net_output/yaw_res_pred_min"] = (
+                yaw_res_pred.min().item()
+            )
+            log[f"{prefix}center_net_output/yaw_res_pred_max"] = (
+                yaw_res_pred.max().item()
+            )
+            if self.config.training_used_lidar_steps > 1:
+                velocity_pred = bounding_box_features.velocity_pred[subset]
+                log[f"{prefix}center_net_output/velocity_pred_min"] = (
+                    velocity_pred.min().item()
+                )
+                log[f"{prefix}center_net_output/velocity_pred_max"] = (
+                    velocity_pred.max().item()
+                )
 
 
 @dataclass
@@ -251,14 +389,17 @@ class CenterNetBoundingBoxPrediction:
     config: TrainingConfig
 
     @cached_property
-    def pred_bounding_box_image_system(self):
+    @beartype
+    def pred_bounding_box_image_system(self) -> jt.Float[npt.NDArray, "B K 9"]:
         """Numpy array of shape (bs, k, 9) with features (x, y, w, h, yaw, velocity, brake, class, score) in image system"""
         k = self.config.top_k_center_keypoints
         kernel = self.config.center_net_max_pooling_kernel
 
         center_heatmap_pred = get_local_maximum(self.center_heatmap_pred, kernel=kernel)
 
-        batch_scores, batch_index, batch_topk_classes, topk_ys, topk_xs = get_topk_from_heatmap(center_heatmap_pred, k=k)
+        batch_scores, batch_index, batch_topk_classes, topk_ys, topk_xs = (
+            get_topk_from_heatmap(center_heatmap_pred, k=k)
+        )
 
         wh = transpose_and_gather_feat(self.wh_pred, batch_index)
         offset = transpose_and_gather_feat(self.offset_pred, batch_index)
@@ -267,9 +408,11 @@ class CenterNetBoundingBoxPrediction:
 
         # convert class + res to yaw
         yaw_class = torch.argmax(yaw_class, -1)
-        yaw = common_utils.class2angle(yaw_class, yaw_res.squeeze(2), self.config)
+        yaw = fn.class2angle(yaw_class, yaw_res.squeeze(2), self.config)
 
-        brake = torch.zeros_like(yaw)  # We don't predict brake but keep it for now to avoid refactoring
+        brake = torch.zeros_like(
+            yaw,
+        )  # We don't predict brake but keep it for now to avoid refactoring
 
         if self.config.training_used_lidar_steps <= 1:
             velocity = torch.zeros_like(yaw)
@@ -280,7 +423,10 @@ class CenterNetBoundingBoxPrediction:
         topk_xs = topk_xs + offset[..., 0]
         topk_ys = topk_ys + offset[..., 1]
 
-        batch_bboxes = torch.stack([topk_xs, topk_ys, wh[..., 0], wh[..., 1], yaw, velocity, brake], dim=2)
+        batch_bboxes = torch.stack(
+            [topk_xs, topk_ys, wh[..., 0], wh[..., 1], yaw, velocity, brake],
+            dim=2,
+        )
         batch_bboxes = torch.cat(
             (
                 batch_bboxes,
@@ -289,17 +435,21 @@ class CenterNetBoundingBoxPrediction:
             ),
             dim=-1,
         )
-        batch_bboxes[:, :, : TransfuserBoundingBoxIndex.YAW] *= self.config.pixels_per_meter
+        batch_bboxes[:, :, : TransfuserBoundingBoxIndex.YAW] *= (
+            self.config.pixels_per_meter
+        )
 
         return batch_bboxes.detach().cpu().float().numpy()
 
     @cached_property
-    def pred_bounding_box_vehicle_system(self):
+    @beartype
+    def pred_bounding_box_vehicle_system(self) -> jt.Float[npt.NDArray, "B K 9"]:
         """Numpy array of shape (bs, k, 9) with features (x, y, w, h, yaw, velocity, brake, class, score) in vehicle system"""
         bboxes_image_system = self.pred_bounding_box_image_system
         # filter bbox based on the confidence of the prediction
         bboxes_image_system = bboxes_image_system[
-            bboxes_image_system[:, :, TransfuserBoundingBoxIndex.SCORE] > self.config.bb_confidence_threshold
+            bboxes_image_system[:, :, TransfuserBoundingBoxIndex.SCORE]
+            > self.config.bb_confidence_threshold
         ]
         # convert to vehicle system
         bounding_box_vehicle_system = []
@@ -312,9 +462,13 @@ class CenterNetBoundingBoxPrediction:
                     self.config.pixels_per_meter,
                     self.config.min_x_meter,
                     self.config.min_y_meter,
-                ).reshape(original_shape)
+                ).reshape(original_shape),
             )
-        return np.array(bounding_box_vehicle_system)
+        return np.array(bounding_box_vehicle_system).reshape(
+            -1,
+            len(bboxes_image_system),
+            9,
+        )
 
 
 @dataclass(frozen=True)
@@ -336,7 +490,16 @@ class PredictedBoundingBox:
     def norm(self):
         return math.sqrt(self.x**2 + self.y**2)
 
-    def update(self, x, y, orientation, x_target, y_target, orientation_target):
+    @beartype
+    def update(
+        self,
+        x: numbers.Real,
+        y: numbers.Real,
+        orientation: numbers.Real,
+        x_target: numbers.Real,
+        y_target: numbers.Real,
+        orientation_target: numbers.Real,
+    ) -> PredictedBoundingBox:
         pos_diff = np.array([x_target, y_target]) - np.array([x, y])
         rot_diff = common_utils.normalize_angle(orientation_target - orientation)
 
@@ -345,7 +508,7 @@ class PredictedBoundingBox:
             [
                 [np.cos(orientation_target), -np.sin(orientation_target)],
                 [np.sin(orientation_target), np.cos(orientation_target)],
-            ]
+            ],
         )
         pos_diff = rotation_matrix.T @ pos_diff
 
@@ -354,7 +517,7 @@ class PredictedBoundingBox:
             [
                 [np.cos(rot_diff), -np.sin(rot_diff)],
                 [np.sin(rot_diff), np.cos(rot_diff)],
-            ]
+            ],
         )
 
         # Calculate new coordinates
@@ -375,7 +538,8 @@ class PredictedBoundingBox:
             score=self.score,
         )
 
-    def scale(self, factor) -> PredictedBoundingBox:
+    @beartype
+    def scale(self, factor: numbers.Real) -> PredictedBoundingBox:
         factor = float(factor)
         return PredictedBoundingBox(
             x=self.x * factor,
@@ -405,7 +569,11 @@ class PredictedBoundingBox:
 
 @fn.force_fp32(apply_to=("pred", "gaussian_target"))
 def gaussian_focal_loss(
-    pred: torch.Tensor, gaussian_target: torch.Tensor, alpha: float = 2.0, gamma: float = 4.0, reduction: str = "mean"
+    pred: torch.Tensor,
+    gaussian_target: torch.Tensor,
+    alpha: float = 2.0,
+    gamma: float = 4.0,
+    reduction: str = "mean",
 ) -> torch.Tensor:
     """Adapted from mmdetection
     Args:
@@ -433,7 +601,11 @@ def gaussian_focal_loss(
 
 
 @beartype
-def gaussian2d(radius: numbers.Real, sigma: numbers.Real = 1, dtype: np.dtype = np.float32) -> np.ndarray:
+def gaussian2d(
+    radius: numbers.Real,
+    sigma: numbers.Real = 1,
+    dtype: np.dtype = np.float32,
+) -> np.ndarray:
     """Generate 2D gaussian kernel.
 
     Args:
@@ -454,7 +626,12 @@ def gaussian2d(radius: numbers.Real, sigma: numbers.Real = 1, dtype: np.dtype = 
     return h
 
 
-def gen_gaussian_target(heatmap: np.ndarray, center: List[int], radius: int, k: int = 1) -> np.ndarray:
+def gen_gaussian_target(
+    heatmap: np.ndarray,
+    center: list[int],
+    radius: int,
+    k: int = 1,
+) -> np.ndarray:
     """Generate 2D gaussian heatmap.
 
     Args:
@@ -478,14 +655,21 @@ def gen_gaussian_target(heatmap: np.ndarray, center: List[int], radius: int, k: 
     top, bottom = min(y, radius), min(height - y, radius + 1)
 
     masked_heatmap = heatmap[y - top : y + bottom, x - left : x + right]
-    masked_gaussian = gaussian_kernel[radius - top : radius + bottom, radius - left : radius + right]
+    masked_gaussian = gaussian_kernel[
+        radius - top : radius + bottom,
+        radius - left : radius + right,
+    ]
     out_heatmap = heatmap
-    np.maximum(masked_heatmap, masked_gaussian * k, out=out_heatmap[y - top : y + bottom, x - left : x + right])
+    np.maximum(
+        masked_heatmap,
+        masked_gaussian * k,
+        out=out_heatmap[y - top : y + bottom, x - left : x + right],
+    )
 
     return out_heatmap
 
 
-def gaussian_radius(det_size: List[float], min_overlap: float) -> int:
+def gaussian_radius(det_size: list[float], min_overlap: float) -> int:
     r"""Generate 2D gaussian radius.
 
     Args:
@@ -627,8 +811,9 @@ def get_local_maximum(heat: torch.Tensor, kernel: int = 3) -> torch.Tensor:
 
 @beartype
 def get_topk_from_heatmap(
-    scores: torch.Tensor, k: int = 20
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    scores: torch.Tensor,
+    k: int = 20,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """Get top k positions from heatmap.
 
     Args:
@@ -653,7 +838,11 @@ def get_topk_from_heatmap(
 
 
 @beartype
-def gather_feat(feat: torch.Tensor, ind: torch.Tensor, mask: torch.Union[Tensor, None] = None) -> torch.Tensor:
+def gather_feat(
+    feat: torch.Tensor,
+    ind: torch.Tensor,
+    mask: torch.Tensor | None = None,
+) -> torch.Tensor:
     """Gather feature according to index.
 
     Args:
@@ -687,4 +876,5 @@ def transpose_and_gather_feat(feat: torch.Tensor, ind: torch.Tensor) -> torch.Te
     feat = feat.permute(0, 2, 3, 1).contiguous()
     feat = feat.view(feat.size(0), -1, feat.size(3))
     feat = gather_feat(feat, ind)
+    return feat
     return feat

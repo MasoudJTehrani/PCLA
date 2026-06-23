@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List
-
 import abc
 import logging
 
@@ -21,13 +19,13 @@ class AbstractMixedDatasetSampleScheduler(abc.ABC):
     """
 
     @beartype
-    def __init__(self, datasets: List[torch.utils.data.Dataset]):
+    def __init__(self, datasets: list[torch.utils.data.Dataset]):
         self.datasets = datasets
         self.num_datasets = len(datasets)
 
     @beartype
     @abc.abstractmethod
-    def get_batches_schedule(self, epoch: int) -> List[float]:
+    def get_batches_schedule(self, epoch: int) -> list[float]:
         """Get batch ratio for each dataset for the given epoch. Should sum to to batch size per GPU."""
         pass
 
@@ -36,14 +34,25 @@ class UniformSampleScheduler(AbstractMixedDatasetSampleScheduler):
     """Scheduler that returns equal ratios for all datasets in mixed dataset training."""
 
     @beartype
-    def __init__(self, config: TrainingConfig, datasets: List[torch.utils.data.Dataset]):
+    def __init__(
+        self,
+        config: TrainingConfig,
+        datasets: list[torch.utils.data.Dataset],
+    ):
         self.config = config
         self.datasets = datasets
         self.num_datasets = len(datasets)
 
-    def get_batches_schedule(self, _: int) -> List[float]:
+    def get_batches_schedule(self, _: int) -> list[float]:
         """Return equal ratios for all datasets."""
-        return [int(1.0 / self.num_datasets * self.config.batch_size / torch.cuda.device_count())] * self.num_datasets
+        return [
+            int(
+                1.0
+                / self.num_datasets
+                * self.config.batch_size
+                / torch.cuda.device_count(),
+            ),
+        ] * self.num_datasets
 
 
 class Sim2RealSampleScheduler(AbstractMixedDatasetSampleScheduler):
@@ -51,16 +60,22 @@ class Sim2RealSampleScheduler(AbstractMixedDatasetSampleScheduler):
     Used in mixed dataset training."""
 
     @beartype
-    def __init__(self, config: TrainingConfig, datasets: List[torch.utils.data.Dataset]):
+    def __init__(
+        self,
+        config: TrainingConfig,
+        datasets: list[torch.utils.data.Dataset],
+    ):
         from data_loader.carla_dataset import CARLAData
 
         self.config = config
         self.datasets = datasets
         self.num_datasets = len(datasets)
-        assert self.num_datasets == 2, "Sim2RealSampleScheduler only supports 2 datasets."
+        assert self.num_datasets == 2, (
+            "Sim2RealSampleScheduler only supports 2 datasets."
+        )
         assert isinstance(datasets[0], CARLAData), "First dataset must be CARLAData."
 
-    def get_batches_schedule(self, epoch: int) -> List[float]:
+    def get_batches_schedule(self, epoch: int) -> list[float]:
         """Return batch ratios for sim and real datasets based on epoch."""
         # TODO: make this work with any BS number
         anchors = {
@@ -73,7 +88,10 @@ class Sim2RealSampleScheduler(AbstractMixedDatasetSampleScheduler):
         }
         for anchor_epoch in sorted(anchors.keys(), reverse=True):
             if epoch >= anchor_epoch:
-                return [anchors[anchor_epoch][i] // torch.cuda.device_count() for i in range(self.num_datasets)]
+                return [
+                    anchors[anchor_epoch][i] // torch.cuda.device_count()
+                    for i in range(self.num_datasets)
+                ]
 
 
 class MixedDataset(torch.utils.data.Dataset):
@@ -81,7 +99,7 @@ class MixedDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         config: TrainingConfig,
-        datasets: List[torch.utils.data.Dataset],
+        datasets: list[torch.utils.data.Dataset],
     ):
         self.datasets = datasets
         self.config = config
@@ -126,7 +144,7 @@ class MixedSampler(torch.utils.data.BatchSampler):
     def __init__(
         self,
         config: TrainingConfig,
-        samplers: List[torch.utils.data.Sampler],
+        samplers: list[torch.utils.data.Sampler],
         sample_scheduler: AbstractMixedDatasetSampleScheduler,
     ):
         """
@@ -138,8 +156,12 @@ class MixedSampler(torch.utils.data.BatchSampler):
             sample_scheduler: Scheduler that determines the ratio of samples from each dataset
         """
         self.samplers = samplers
-        LOG.info(f"MixedSampler using {len(samplers)} samplers. Each sampler size: {[len(s) for s in samplers]}")
-        assert all(len(samplers[0]) == len(s) for s in samplers), "All samplers must have the same length."
+        LOG.info(
+            f"MixedSampler using {len(samplers)} samplers. Each sampler size: {[len(s) for s in samplers]}",
+        )
+        assert all(len(samplers[0]) == len(s) for s in samplers), (
+            "All samplers must have the same length."
+        )
         self.sample_scheduler = sample_scheduler
         self.drop_last = True
         self.num_datasets = len(samplers)
@@ -151,9 +173,9 @@ class MixedSampler(torch.utils.data.BatchSampler):
     def update_batch_sizes(self, epoch):
         """Calculate how many samples to take from each dataset per batch."""
         self.batch_sizes = self.sample_scheduler.get_batches_schedule(epoch)
-        assert sum(self.batch_sizes) * torch.cuda.device_count() == self.config.batch_size, (
-            "Batch sizes must sum to total batch size"
-        )
+        assert (
+            sum(self.batch_sizes) * torch.cuda.device_count() == self.config.batch_size
+        ), "Batch sizes must sum to total batch size"
 
     def __iter__(self):
         """
@@ -192,7 +214,9 @@ class MixedSampler(torch.utils.data.BatchSampler):
 
     def __len__(self):
         """Return the number of batches per epoch."""
-        return (len(self.samplers[0]) // self.config.batch_size) * torch.cuda.device_count()
+        return (
+            len(self.samplers[0]) // self.config.batch_size
+        ) * torch.cuda.device_count()
 
 
 def mixed_data_collate_fn(batch):

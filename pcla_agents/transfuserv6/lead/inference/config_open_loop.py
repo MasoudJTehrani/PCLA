@@ -2,10 +2,17 @@ from lead.common.config_base import BaseConfig
 
 
 class OpenLoopConfig(BaseConfig):
+    """Configuration class for open-loop inference settings.
+
+    See more details at https://ln2697.github.io/lead/docs/config_system.html
+    """
+
     def __init__(self, raise_error_on_missing_key: bool = True):
         super().__init__()
         self.load_from_environment(
-            loaded_config=None, env_key="OPEN_LOOP_CONFIG", raise_error_on_missing_key=raise_error_on_missing_key
+            loaded_config=None,
+            env_key="LEAD_OPEN_LOOP_CONFIG",
+            raise_error_on_missing_key=raise_error_on_missing_key,
         )
 
     # --- Speed and Control Settings ---
@@ -16,4 +23,4 @@ class OpenLoopConfig(BaseConfig):
     # Confidence threshold for brake action (full brake applied if confidence exceeds this)
     brake_threshold = 0.9
     # If true be strict when load weight
-    strict_weight_load = False
+    strict_weight_load = True

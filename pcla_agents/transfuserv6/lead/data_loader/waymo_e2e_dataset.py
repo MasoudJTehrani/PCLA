@@ -4,6 +4,7 @@ import os
 import time
 
 import cv2
+import jaxtyping as jt
 import numpy as np
 import numpy.typing as npt
 import torch
@@ -40,13 +41,18 @@ class WODE2EData(Dataset):
         self.val = val
         self.test = test
         self.random = random
-        assert (int(training) + int(val) + int(test)) == 1, "One of training, val or test must be true"
+        assert (int(training) + int(val) + int(test)) == 1, (
+            "One of training, val or test must be true"
+        )
 
         self.rank = config.rank
         self.data_sampling_generator = default_rng(seed=self.config.seed)
 
         self._rgb = glob.glob(os.path.join(self.root, "**/*.jpg"), recursive=True)
-        self._measurements = glob.glob(os.path.join(self.root, "**/*.json.gz"), recursive=True)
+        self._measurements = glob.glob(
+            os.path.join(self.root, "**/*.json.gz"),
+            recursive=True,
+        )
         self._rgb.sort()
         self._measurements.sort()
 
@@ -58,13 +64,18 @@ class WODE2EData(Dataset):
         self.size = len(self.rgb)
 
         if self.rank == 0:
-            print(f"[Waymo E2E] Found {len(self.rgb)} images, {len(self.measurements)} metas in {self.root}. Size {self.size}")
+            print(
+                f"[Waymo E2E] Found {len(self.rgb)} images, {len(self.measurements)} metas in {self.root}. Size {self.size}",
+            )
 
     def shuffle(self, epoch):
         # Use epoch as seed for reproducible sampling across epochs
         rng = default_rng(seed=self.config.seed + epoch)
 
-        if not (self.val or self.test) and self.config.waymo_e2e_num_training_samples > 0:
+        if (
+            not (self.val or self.test)
+            and self.config.waymo_e2e_num_training_samples > 0
+        ):
             target_size: int = self.config.waymo_e2e_num_training_samples
             original_size = len(self._rgb)
 
@@ -78,7 +89,11 @@ class WODE2EData(Dataset):
 
                 # Add random samples for the remainder
                 if remainder > 0:
-                    extra_indices = rng.choice(original_size, size=remainder, replace=False)
+                    extra_indices = rng.choice(
+                        original_size,
+                        size=remainder,
+                        replace=False,
+                    )
                     indices.extend(extra_indices)
 
                 # Shuffle the indices to mix repeated and original samples
@@ -129,18 +144,29 @@ class WODE2EData(Dataset):
             traj[:, 1] *= -1  # Different coordinate system
             preference_trajectories[i] = traj
         data["preferences"] = preference_trajectories
-        data["preference_scores"] = np.array([preferences[i]["preference_score"] for i in range(3)])
+        data["preference_scores"] = np.array(
+            [preferences[i]["preference_score"] for i in range(3)],
+        )
         return data
 
     def _test(self, index):
         data = self._load(index)
-        data.update({"sequence_id": self.rgb[index].split("/")[-3], "frame_id": self.rgb[index].split("/")[-1].split(".")[0]})
+        data.update(
+            {
+                "sequence_id": self.rgb[index].split("/")[-3],
+                "frame_id": self.rgb[index].split("/")[-1].split(".")[0],
+            },
+        )
         return data
 
     def _load(self, index):
         before = time.time()
         # Initialize cache or cache dummy
-        cache = self.training_session_cache if self.training_session_cache is not None else {}
+        cache = (
+            self.training_session_cache
+            if self.training_session_cache is not None
+            else {}
+        )
         # Load data
         measurement_path = self.measurements[index]
         if measurement_path not in cache:
@@ -161,43 +187,69 @@ class WODE2EData(Dataset):
         # Construct
         data = {
             "source_dataset": SourceDataset.WAYMO_E2E_2025,
-            "speed": np.linalg.norm(np.array([measurement["past"]["vx"][-1], measurement["past"]["vy"][-1]])),
-            "past_speeds": np.linalg.norm(np.array([measurement["past"]["vx"], measurement["past"]["vy"]]).T, axis=-1),
-            "past_positions": np.array([measurement["past"]["x"], measurement["past"]["y"]]),
+            "speed": np.linalg.norm(
+                np.array(
+                    [measurement["past"]["vx"][-1], measurement["past"]["vy"][-1]],
+                ),
+            ),
+            "past_speeds": np.linalg.norm(
+                np.array([measurement["past"]["vx"], measurement["past"]["vy"]]).T,
+                axis=-1,
+            ),
+            "past_positions": np.array(
+                [measurement["past"]["x"], measurement["past"]["y"]],
+            ),
             "command": np.array(
                 {
                     0: [1, 0, 0, 0],
                     1: [0, 1, 0, 0],
                     2: [0, 0, 1, 0],
                     3: [0, 0, 0, 1],
-                }[int(measurement["command"])]
+                }[int(measurement["command"])],
             ),
         }
         if rgb is not None:
             data["rgb"] = rgb
 
         # Truncate past data
-        data["past_speeds"] = data["past_speeds"][-self.config.num_past_samples_used - 1 : -1]
-        data["past_positions"] = data["past_positions"][:, -self.config.num_past_samples_used - 1 : -1]
-        data["past_positions"][1, :] = -data["past_positions"][1, :]  # Different coordinate system
+        data["past_speeds"] = data["past_speeds"][
+            -self.config.num_past_samples_used - 1 : -1
+        ]
+        data["past_positions"] = data["past_positions"][
+            :,
+            -self.config.num_past_samples_used - 1 : -1,
+        ]
+        data["past_positions"][1, :] = -data["past_positions"][
+            1,
+            :,
+        ]  # Different coordinate system
         data["past_positions"] = data["past_positions"].T  # Shape (T, 2)
         data["past_speeds"] = data["past_speeds"].reshape(-1, 1)  # Shape (T, 1)
         # Subsample future waypoints
         if "prediction" in measurement:
-            data["future_waypoints"] = np.array([measurement["prediction"]["x"], measurement["prediction"]["y"]]).T
-            data["future_waypoints"] = data["future_waypoints"][::2]  # Downsample from 4Hz to 2Hz (take indices 0, 2, 4, ...)
-            data["future_waypoints"][:, 1] = -data["future_waypoints"][:, 1]  # Different coordinate system
+            data["future_waypoints"] = np.array(
+                [measurement["prediction"]["x"], measurement["prediction"]["y"]],
+            ).T
+            data["future_waypoints"] = data["future_waypoints"][
+                ::2
+            ]  # Downsample from 4Hz to 2Hz (take indices 0, 2, 4, ...)
+            data["future_waypoints"][:, 1] = -data["future_waypoints"][
+                :,
+                1,
+            ]  # Different coordinate system
 
-        data["loading_time"] = data["loading_meta_time"] = data["loading_sensor_time"] = time.time() - before
+        data["loading_time"] = data["loading_meta_time"] = data[
+            "loading_sensor_time"
+        ] = time.time() - before
         return data
 
 
 @beartype
 def upsample_trajectory(
-    trajectory: np.ndarray,
+    trajectory: jt.Float[npt.NDArray, "T 2"],
     target_frequency: int = 4,
     source_frequency: int = 2,
-) -> np.ndarray:
+) -> jt.Float[npt.NDArray, "T_upsampled 2"]:
     """Upsample trajectory from 2Hz to 4Hz using linear interpolation.
 
     For 10 points at 2Hz, produces 20 points at 4Hz by inserting interpolated points.
@@ -216,7 +268,9 @@ def upsample_trajectory(
 
         for j in range(1, upsample_factor):
             alpha = j / upsample_factor
-            upsampled[start_idx + j] = (1 - alpha) * trajectory[i] + alpha * trajectory[i + 1]
+            upsampled[start_idx + j] = (1 - alpha) * trajectory[i] + alpha * trajectory[
+                i + 1
+            ]
 
     # Handle the last point(s)
     upsampled[-upsample_factor:] = trajectory[-1]
@@ -242,9 +296,17 @@ def evaluate_waymo_e2e(model: TFv6, config: TrainingConfig) -> float:
         tensor_data = torch.utils.data._utils.collate.default_collate([data])
         prediction: Prediction = model(tensor_data)
 
-        pred = np.array([upsample_trajectory(prediction.pred_future_waypoints[0].detach().cpu().numpy())[None]])
+        pred = np.array(
+            [
+                upsample_trajectory(
+                    prediction.pred_future_waypoints[0].detach().cpu().numpy(),
+                )[None],
+            ],
+        )
         preferences = [[data["preferences"][i] for i in range(3)]]
-        preferences_scores = np.array([[data["preference_scores"][i]] for i in range(3)]).reshape(1, 3)
+        preferences_scores = np.array(
+            [[data["preference_scores"][i]] for i in range(3)],
+        ).reshape(1, 3)
         speed = np.array([data["speed"]]).reshape(-1)
 
         rfm_score = compute_rfs(

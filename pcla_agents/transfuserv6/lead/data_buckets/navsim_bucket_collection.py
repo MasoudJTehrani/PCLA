@@ -1,6 +1,5 @@
-from typing import List, Union
 import os
-from enum import IntEnum
+from enum import IntEnum, auto
 
 import numpy as np
 from tqdm import tqdm
@@ -15,68 +14,67 @@ class NavsimPretrainSim2RealBuckets(IntEnum):
     BAD_WEATHER = 0
 
     # --- Scenario specific mining ---
-    ACCIDENT_SCENARIO = 1
-    ACCIDENT_TWO_WAYS_SCENARIO = 2
-    BLOCKED_INTERSECTION_SCENARIO = 3
-    CONSTRUCTION_OBSTACLE_SCENARIO = 4
-    CONSTRUCTION_OBSTACLE_TWO_WAYS_SCENARIO = 5
-    CROSSING_BICYCLE_FLOW_SCENARIO = 6
-    CROSS_JUNCTION_DEFECT_TRAFFIC_LIGHT_SCENARIO = 7
-    DYNAMIC_OBJECT_CROSSING_SCENARIO = 8
-    ENTER_ACTOR_FLOW_SCENARIO = 9
-    ENTER_ACTOR_FLOW_V2_SCENARIO = 10
-    HARD_BREAK_ROUTE_SCENARIO = 11
-    HAZARD_AT_SIDE_LANE_SCENARIO = 12
-    HAZARD_AT_SIDE_LANE_TWO_WAYS_SCENARIO = 13
-    HIGHWAY_CUT_IN_SCENARIO = 14
-    HIGHWAY_EXIT_SCENARIO = 15
-    INTERURBAN_ACTOR_FLOW_SCENARIO = 16
-    INTERURBAN_ADVANCED_ACTOR_FLOW_SCENARIO = 17
-    INVADING_TURN_SCENARIO = 18
-    MERGER_INTO_SLOW_TRAFFIC_SCENARIO = 19
-    MERGER_INTO_SLOW_TRAFFIC_V2_SCENARIO = 20
-    NON_SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO = 21
-    NON_SIGNALIZED_JUNCTION_LEFT_TURN_ENTER_FLOW_SCENARIO = 22
-    NON_SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO = 23
-    OPPOSITE_VEHICLE_RUNNING_RED_LIGHT_SCENARIO = 24
-    OPPOSITE_VEHICLE_TAKING_PRIORITY_SCENARIO = 25
-    PARKED_OBSTACLE_SCENARIO = 26
-    PARKED_OBSTACLE_TWO_WAYS_SCENARIO = 27
-    PARKING_CROSSING_PEDESTRIAN_SCENARIO = 28
-    PARKING_CUT_IN_SCENARIO = 29
-    PARKING_EXIT_SCENARIO = 30
-    PEDESTRIAN_CROSSING_SCENARIO = 31
-    PRIORITY_AT_JUNCTION_SCENARIO = 32
-    RED_LIGHT_WITHOUT_LEAD_VEHICLE_SCENARIO = 33
-    SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO = 34
-    SIGNALIZED_JUNCTION_LEFT_TURN_ENTER_FLOW_SCENARIO = 35
-    SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO = 36
-    STATIC_CUT_IN_SCENARIO = 37
-    VEHICLE_OPENS_DOOR_TWO_WAYS_SCENARIO = 38
-    VEHICLE_TURNING_ROUTE_SCENARIO = 39
-    VEHICLE_TURNING_ROUTE_PEDESTRIAN_SCENARIO = 40
-    FAR_TARGET_POINT = 41
+    ACCIDENT_SCENARIO = auto()
+    ACCIDENT_TWO_WAYS_SCENARIO = auto()
+    BLOCKED_INTERSECTION_SCENARIO = auto()
+    CONSTRUCTION_OBSTACLE_SCENARIO = auto()
+    CONSTRUCTION_OBSTACLE_TWO_WAYS_SCENARIO = auto()
+    CROSSING_BICYCLE_FLOW_SCENARIO = auto()
+    CROSS_JUNCTION_DEFECT_TRAFFIC_LIGHT_SCENARIO = auto()
+    DYNAMIC_OBJECT_CROSSING_SCENARIO = auto()
+    ENTER_ACTOR_FLOW_SCENARIO = auto()
+    ENTER_ACTOR_FLOW_V2_SCENARIO = auto()
+    HARD_BREAK_ROUTE_SCENARIO = auto()
+    HAZARD_AT_SIDE_LANE_SCENARIO = auto()
+    HAZARD_AT_SIDE_LANE_TWO_WAYS_SCENARIO = auto()
+    HIGHWAY_CUT_IN_SCENARIO = auto()
+    HIGHWAY_EXIT_SCENARIO = auto()
+    INTERURBAN_ACTOR_FLOW_SCENARIO = auto()
+    INTERURBAN_ADVANCED_ACTOR_FLOW_SCENARIO = auto()
+    INVADING_TURN_SCENARIO = auto()
+    MERGER_INTO_SLOW_TRAFFIC_SCENARIO = auto()
+    MERGER_INTO_SLOW_TRAFFIC_V2_SCENARIO = auto()
+    NON_SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO = auto()
+    NON_SIGNALIZED_JUNCTION_LEFT_TURN_ENTER_FLOW_SCENARIO = auto()
+    NON_SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO = auto()
+    OPPOSITE_VEHICLE_RUNNING_RED_LIGHT_SCENARIO = auto()
+    OPPOSITE_VEHICLE_TAKING_PRIORITY_SCENARIO = auto()
+    PARKED_OBSTACLE_SCENARIO = auto()
+    PARKED_OBSTACLE_TWO_WAYS_SCENARIO = auto()
+    PARKING_CROSSING_PEDESTRIAN_SCENARIO = auto()
+    PARKING_CUT_IN_SCENARIO = auto()
+    PARKING_EXIT_SCENARIO = auto()
+    PEDESTRIAN_CROSSING_SCENARIO = auto()
+    PRIORITY_AT_JUNCTION_SCENARIO = auto()
+    RED_LIGHT_WITHOUT_LEAD_VEHICLE_SCENARIO = auto()
+    SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO = auto()
+    SIGNALIZED_JUNCTION_LEFT_TURN_ENTER_FLOW_SCENARIO = auto()
+    SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO = auto()
+    STATIC_CUT_IN_SCENARIO = auto()
+    VEHICLE_OPENS_DOOR_TWO_WAYS_SCENARIO = auto()
+    VEHICLE_TURNING_ROUTE_SCENARIO = auto()
+    VEHICLE_TURNING_ROUTE_PEDESTRIAN_SCENARIO = auto()
+    FAR_TARGET_POINT = auto()
 
     # --- General mining ---
-    TOWN15 = 42
-    CURRENT_TARGET_POINT_BEHIND_EGO = 43
-    OCCLUDED_JUNCTION = 44
-    ENTERING_JUNCTION = 45
-    CLOSE_TO_JUNCTION = 46
-    RED_OVERHEAD_TRAFFIC_LIGHT = 47
-    NEAR_URGENT_LANE_CHANGE = 48
-    STOP_SIGN_HAZARD = 49
-    LARGE_LATERAL_DEVIATION = 50
-    VEHICLE_HAZARD = 51
-    RED_EUROPE_TRAFFIC_LIGHT = 52
-    RED_TRAFFIC_LIGHT = 53
-    HIGH_ACCELERATION = 54
-    MEDIUM_ACCELERATION = 55
-    LOW_ACCELERATION = 56
-    HIGH_ROUTE_CURVATURE = 57
-    MEDIUM_ROUTE_CURVATURE = 58
+    TOWN15 = auto()
+    CURRENT_TARGET_POINT_BEHIND_EGO = auto()
+    OCCLUDED_JUNCTION = auto()
+    ENTERING_JUNCTION = auto()
+    CLOSE_TO_JUNCTION = auto()
+    RED_OVERHEAD_TRAFFIC_LIGHT = auto()
+    STOP_SIGN_HAZARD = auto()
+    LARGE_LATERAL_DEVIATION = auto()
+    VEHICLE_HAZARD = auto()
+    RED_EUROPE_TRAFFIC_LIGHT = auto()
+    RED_TRAFFIC_LIGHT = auto()
+    HIGH_ACCELERATION = auto()
+    MEDIUM_ACCELERATION = auto()
+    LOW_ACCELERATION = auto()
+    HIGH_ROUTE_CURVATURE = auto()
+    MEDIUM_ROUTE_CURVATURE = auto()
 
-    OTHERS = 59
+    OTHERS = auto()
 
     @classmethod
     def __len__(cls):
@@ -92,8 +90,10 @@ class NavsimPretrainSim2RealBuckets(IntEnum):
 
 
 class NavSimBucketCollection(AbstractBucketCollection):
-    def __init__(self, root: Union[str, List[str]], config: TrainingConfig):
-        self.buckets = [Bucket(config) for _ in range(len(NavsimPretrainSim2RealBuckets))]
+    def __init__(self, root: str | list[str], config: TrainingConfig):
+        self.buckets = [
+            Bucket(config) for _ in range(len(NavsimPretrainSim2RealBuckets))
+        ]
         super().__init__(root, config)
         print(f"Using NavSim buckets with {len(NavsimPretrainSim2RealBuckets)} buckets")
 
@@ -101,7 +101,11 @@ class NavSimBucketCollection(AbstractBucketCollection):
         from lead.data_loader.carla_dataset import CARLAData
 
         carla_data = CARLAData(
-            root=self.root, config=self.config, training_session_cache=None, random=False, build_buckets=True
+            root=self.root,
+            config=self.config,
+            training_session_cache=None,
+            random=False,
+            build_buckets=True,
         )
         self.trainable_routes = carla_data.bucket_collection.trainable_routes
         self.trainable_frames = carla_data.bucket_collection.trainable_frames
@@ -113,209 +117,387 @@ class NavSimBucketCollection(AbstractBucketCollection):
             frame_number = int(sample["frame_number"])
 
             if sample["visual_visibility"] > WeatherVisibility.CLEAR:
-                self.buckets[NavsimPretrainSim2RealBuckets.BAD_WEATHER].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.BAD_WEATHER].add(
+                    route_dir,
+                    frame_number,
+                )
             # Scenario-specific mining
-            elif sample["scenario_type"] == "Accident" and self._check_accident_scenario(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.ACCIDENT_SCENARIO].add(route_dir, frame_number)
-            elif sample["scenario_type"] == "AccidentTwoWays" and self._check_accident_scenario(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.ACCIDENT_TWO_WAYS_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "BlockedIntersection" and self._check_blocked_intersection(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.BLOCKED_INTERSECTION_SCENARIO].add(route_dir, frame_number)
-            elif sample["scenario_type"] == "ConstructionObstacle" and self._check_construction_obstacle_scenario(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.CONSTRUCTION_OBSTACLE_SCENARIO].add(route_dir, frame_number)
-            elif sample["scenario_type"] == "ConstructionObstacleTwoWays" and self._check_construction_obstacle_scenario(
-                sample
-            ):
-                self.buckets[NavsimPretrainSim2RealBuckets.CONSTRUCTION_OBSTACLE_TWO_WAYS_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "CrossingBicycleFlow" and self._check_scenario_actor_close(
-                sample, max_distance=10.0
-            ):
-                self.buckets[NavsimPretrainSim2RealBuckets.CROSSING_BICYCLE_FLOW_SCENARIO].add(route_dir, frame_number)
+            elif sample[
+                "scenario_type"
+            ] == "Accident" and self._check_accident_scenario(sample):
+                self.buckets[NavsimPretrainSim2RealBuckets.ACCIDENT_SCENARIO].add(
+                    route_dir,
+                    frame_number,
+                )
+            elif sample[
+                "scenario_type"
+            ] == "AccidentTwoWays" and self._check_accident_scenario(sample):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.ACCIDENT_TWO_WAYS_SCENARIO
+                ].add(route_dir, frame_number)
             elif sample[
                 "current_active_scenario_type"
-            ] == "CrossJunctionDefectTrafficLight" and self._check_scenario_actor_close(sample, max_distance=10.0):
-                self.buckets[NavsimPretrainSim2RealBuckets.CROSS_JUNCTION_DEFECT_TRAFFIC_LIGHT_SCENARIO].add(
-                    route_dir, frame_number
-                )
-            elif sample["current_active_scenario_type"] == "DynamicObjectCrossing" and self._check_scenario_actor_close(
-                sample, max_distance=20.0
+            ] == "BlockedIntersection" and self._check_blocked_intersection(sample):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.BLOCKED_INTERSECTION_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "scenario_type"
+            ] == "ConstructionObstacle" and self._check_construction_obstacle_scenario(
+                sample,
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.DYNAMIC_OBJECT_CROSSING_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "EnterActorFlow" and bool(sample["near_urgent_lane_change"]):
-                self.buckets[NavsimPretrainSim2RealBuckets.ENTER_ACTOR_FLOW_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "EnterActorFlowV2" and bool(sample["near_urgent_lane_change"]):
-                self.buckets[NavsimPretrainSim2RealBuckets.ENTER_ACTOR_FLOW_V2_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "HardBreakRoute" and self._check_is_hard_break_route(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.HARD_BREAK_ROUTE_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "HazardAtSideLane" and self._check_scenario_actor_close(
-                sample, max_distance=20.0
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.CONSTRUCTION_OBSTACLE_SCENARIO
+                ].add(route_dir, frame_number)
+            elif (
+                sample["scenario_type"] == "ConstructionObstacleTwoWays"
+                and self._check_construction_obstacle_scenario(sample)
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.HAZARD_AT_SIDE_LANE_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "HazardAtSideLaneTwoWays" and self._check_scenario_actor_close(
-                sample, max_distance=20.0
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.CONSTRUCTION_OBSTACLE_TWO_WAYS_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "current_active_scenario_type"
+            ] == "CrossingBicycleFlow" and self._check_scenario_actor_close(
+                sample,
+                max_distance=10.0,
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.HAZARD_AT_SIDE_LANE_TWO_WAYS_SCENARIO].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.CROSSING_BICYCLE_FLOW_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "current_active_scenario_type"
+            ] == "CrossJunctionDefectTrafficLight" and self._check_scenario_actor_close(
+                sample,
+                max_distance=10.0,
+            ):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.CROSS_JUNCTION_DEFECT_TRAFFIC_LIGHT_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "current_active_scenario_type"
+            ] == "DynamicObjectCrossing" and self._check_scenario_actor_close(
+                sample,
+                max_distance=20.0,
+            ):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.DYNAMIC_OBJECT_CROSSING_SCENARIO
+                ].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.ENTER_ACTOR_FLOW_V2_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "current_active_scenario_type"
+            ] == "HardBreakRoute" and self._check_is_hard_break_route(sample):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.HARD_BREAK_ROUTE_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "current_active_scenario_type"
+            ] == "HazardAtSideLane" and self._check_scenario_actor_close(
+                sample,
+                max_distance=20.0,
+            ):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.HAZARD_AT_SIDE_LANE_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "current_active_scenario_type"
+            ] == "HazardAtSideLaneTwoWays" and self._check_scenario_actor_close(
+                sample,
+                max_distance=20.0,
+            ):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.HAZARD_AT_SIDE_LANE_TWO_WAYS_SCENARIO
+                ].add(route_dir, frame_number)
             elif self._check_highway_cutin_scenario(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.HIGHWAY_CUT_IN_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "HighwayExit" and bool(sample["near_urgent_lane_change"]):
-                self.buckets[NavsimPretrainSim2RealBuckets.HIGHWAY_EXIT_SCENARIO].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.HIGHWAY_CUT_IN_SCENARIO].add(
+                    route_dir,
+                    frame_number,
+                )
             elif (
                 sample["current_active_scenario_type"] == "InterurbanActorFlow"
                 and len(sample["scenario_actors_ids"]) > 0
                 and float(sample["distance_to_next_junction"]) < 5.0
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.INTERURBAN_ACTOR_FLOW_SCENARIO].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.INTERURBAN_ACTOR_FLOW_SCENARIO
+                ].add(route_dir, frame_number)
             elif (
                 sample["current_active_scenario_type"] == "InterurbanAdvancedActorFlow"
                 and len(sample["scenario_actors_ids"]) > 0
                 and float(sample["distance_to_next_junction"]) < 5.0
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.INTERURBAN_ADVANCED_ACTOR_FLOW_SCENARIO].add(route_dir, frame_number)
-            elif sample["scenario_type"] == "InvadingTurn" and self._check_invading_turn_scenario(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.INVADING_TURN_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "MergerIntoSlowTraffic" and bool(sample["near_urgent_lane_change"]):
-                self.buckets[NavsimPretrainSim2RealBuckets.MERGER_INTO_SLOW_TRAFFIC_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "MergerIntoSlowTrafficV2" and bool(
-                sample["near_urgent_lane_change"]
-            ):
-                self.buckets[NavsimPretrainSim2RealBuckets.MERGER_INTO_SLOW_TRAFFIC_V2_SCENARIO].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.INTERURBAN_ADVANCED_ACTOR_FLOW_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "scenario_type"
+            ] == "InvadingTurn" and self._check_invading_turn_scenario(sample):
+                self.buckets[NavsimPretrainSim2RealBuckets.INVADING_TURN_SCENARIO].add(
+                    route_dir,
+                    frame_number,
+                )
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.MERGER_INTO_SLOW_TRAFFIC_V2_SCENARIO
+                ].add(route_dir, frame_number)
             elif (
-                sample["current_active_scenario_type"] == "NonSignalizedJunctionLeftTurn"
+                sample["current_active_scenario_type"]
+                == "NonSignalizedJunctionLeftTurn"
                 and float(sample["distance_to_next_junction"]) < 5.0
                 and len(sample["scenario_actors_ids"]) > 0
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.NON_SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO].add(
-                    route_dir, frame_number
-                )
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.NON_SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO
+                ].add(route_dir, frame_number)
             elif (
-                sample["current_active_scenario_type"] == "NonSignalizedJunctionLeftTurnEnterFlow"
+                sample["current_active_scenario_type"]
+                == "NonSignalizedJunctionLeftTurnEnterFlow"
                 and float(sample["distance_to_next_junction"]) < 5.0
                 and len(sample["scenario_actors_ids"]) > 0
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.NON_SIGNALIZED_JUNCTION_LEFT_TURN_ENTER_FLOW_SCENARIO].add(
-                    route_dir, frame_number
-                )
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.NON_SIGNALIZED_JUNCTION_LEFT_TURN_ENTER_FLOW_SCENARIO
+                ].add(route_dir, frame_number)
             elif (
-                sample["current_active_scenario_type"] == "NonSignalizedJunctionRightTurn"
+                sample["current_active_scenario_type"]
+                == "NonSignalizedJunctionRightTurn"
                 and float(sample["distance_to_next_junction"]) < 5.0
                 and len(sample["scenario_actors_ids"]) > 0
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.NON_SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO].add(
-                    route_dir, frame_number
-                )
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.NON_SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO
+                ].add(route_dir, frame_number)
             elif self._check_opposite_vehicle_running_red_light_scenario(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.OPPOSITE_VEHICLE_RUNNING_RED_LIGHT_SCENARIO].add(
-                    route_dir, frame_number
-                )
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.OPPOSITE_VEHICLE_RUNNING_RED_LIGHT_SCENARIO
+                ].add(route_dir, frame_number)
             elif self._check_opposite_vehicle_taking_priority_scenario(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.OPPOSITE_VEHICLE_TAKING_PRIORITY_SCENARIO].add(
-                    route_dir, frame_number
-                )
-            elif sample["scenario_type"] == "ParkedObstacle" and self._check_parked_obstacle_scenario(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.PARKED_OBSTACLE_SCENARIO].add(route_dir, frame_number)
-            elif sample["scenario_type"] == "ParkedObstacleTwoWays" and self._check_parked_obstacle_scenario(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.PARKED_OBSTACLE_TWO_WAYS_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "ParkingCrossingPedestrian" and self._check_scenario_actor_close(
-                sample, max_distance=20.0
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.OPPOSITE_VEHICLE_TAKING_PRIORITY_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "scenario_type"
+            ] == "ParkedObstacle" and self._check_parked_obstacle_scenario(sample):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.PARKED_OBSTACLE_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "scenario_type"
+            ] == "ParkedObstacleTwoWays" and self._check_parked_obstacle_scenario(
+                sample,
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.PARKING_CROSSING_PEDESTRIAN_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "ParkingCutIn" and float(sample["dist_to_cutin_vehicle"]) < 20:
-                self.buckets[NavsimPretrainSim2RealBuckets.PARKING_CUT_IN_SCENARIO].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.PARKED_OBSTACLE_TWO_WAYS_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "current_active_scenario_type"
+            ] == "ParkingCrossingPedestrian" and self._check_scenario_actor_close(
+                sample,
+                max_distance=20.0,
+            ):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.PARKING_CROSSING_PEDESTRIAN_SCENARIO
+                ].add(route_dir, frame_number)
+            elif (
+                sample["current_active_scenario_type"] == "ParkingCutIn"
+                and float(sample["dist_to_cutin_vehicle"]) < 20
+            ):
+                self.buckets[NavsimPretrainSim2RealBuckets.PARKING_CUT_IN_SCENARIO].add(
+                    route_dir,
+                    frame_number,
+                )
             elif sample["current_active_scenario_type"] == "ParkingExit":
-                self.buckets[NavsimPretrainSim2RealBuckets.PARKING_EXIT_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "PedestrianCrossing" and len(sample["scenario_actors_ids"]) > 0:
-                self.buckets[NavsimPretrainSim2RealBuckets.PEDESTRIAN_CROSSING_SCENARIO].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.PARKING_EXIT_SCENARIO].add(
+                    route_dir,
+                    frame_number,
+                )
+            elif (
+                sample["current_active_scenario_type"] == "PedestrianCrossing"
+                and len(sample["scenario_actors_ids"]) > 0
+            ):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.PEDESTRIAN_CROSSING_SCENARIO
+                ].add(route_dir, frame_number)
             elif (
                 sample["current_active_scenario_type"] == "PriorityAtJunction"
                 and float(sample["distance_to_next_junction"]) < 5.0
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.PRIORITY_AT_JUNCTION_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "RedLightWithoutLeadVehicle" and self._check_red_traffic_light(
-                sample
-            ):
-                self.buckets[NavsimPretrainSim2RealBuckets.RED_LIGHT_WITHOUT_LEAD_VEHICLE_SCENARIO].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.PRIORITY_AT_JUNCTION_SCENARIO
+                ].add(route_dir, frame_number)
+            elif sample[
+                "current_active_scenario_type"
+            ] == "RedLightWithoutLeadVehicle" and self._check_red_traffic_light(sample):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.RED_LIGHT_WITHOUT_LEAD_VEHICLE_SCENARIO
+                ].add(route_dir, frame_number)
             elif (
                 sample["current_active_scenario_type"] == "SignalizedJunctionLeftTurn"
                 and float(sample["distance_to_next_junction"]) < 5.0
                 and len(sample["scenario_actors_ids"]) > 0
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO
+                ].add(route_dir, frame_number)
             elif (
-                sample["current_active_scenario_type"] == "SignalizedJunctionLeftTurnEnterFlow"
+                sample["current_active_scenario_type"]
+                == "SignalizedJunctionLeftTurnEnterFlow"
                 and float(sample["distance_to_next_junction"]) < 5.0
                 and len(sample["scenario_actors_ids"]) > 0
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_LEFT_TURN_ENTER_FLOW_SCENARIO].add(
-                    route_dir, frame_number
-                )
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_LEFT_TURN_ENTER_FLOW_SCENARIO
+                ].add(route_dir, frame_number)
             elif (
                 sample["current_active_scenario_type"] == "SignalizedJunctionRightTurn"
                 and float(sample["distance_to_next_junction"]) < 5.0
                 and len(sample["scenario_actors_ids"]) > 0
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO].add(route_dir, frame_number)
-            elif sample["current_active_scenario_type"] == "StaticCutIn" and float(sample["dist_to_cutin_vehicle"]) < 20:
-                self.buckets[NavsimPretrainSim2RealBuckets.STATIC_CUT_IN_SCENARIO].add(route_dir, frame_number)
-            elif sample["scenario_type"] == "VehicleOpensDoorTwoWays" and self._check_vehicle_opens_door_scenario(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.VEHICLE_OPENS_DOOR_TWO_WAYS_SCENARIO].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO
+                ].add(route_dir, frame_number)
+            elif (
+                sample["current_active_scenario_type"] == "StaticCutIn"
+                and float(sample["dist_to_cutin_vehicle"]) < 20
+            ):
+                self.buckets[NavsimPretrainSim2RealBuckets.STATIC_CUT_IN_SCENARIO].add(
+                    route_dir,
+                    frame_number,
+                )
+            elif sample[
+                "scenario_type"
+            ] == "VehicleOpensDoorTwoWays" and self._check_vehicle_opens_door_scenario(
+                sample,
+            ):
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.VEHICLE_OPENS_DOOR_TWO_WAYS_SCENARIO
+                ].add(route_dir, frame_number)
             elif (
                 sample["current_active_scenario_type"] == "VehicleTurningRoute"
                 and len(sample["scenario_actors_ids"]) > 0
                 and self._check_vehicle_turning_route(sample)
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.VEHICLE_TURNING_ROUTE_SCENARIO].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.VEHICLE_TURNING_ROUTE_SCENARIO
+                ].add(route_dir, frame_number)
             elif (
-                sample["current_active_scenario_type"] == "VehicleTurningRoutePedestrian"
+                sample["current_active_scenario_type"]
+                == "VehicleTurningRoutePedestrian"
                 and len(sample["scenario_actors_ids"]) > 0
                 and self._check_vehicle_turning_route_pedestrian(sample)
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.VEHICLE_TURNING_ROUTE_PEDESTRIAN_SCENARIO].add(
-                    route_dir, frame_number
-                )
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.VEHICLE_TURNING_ROUTE_PEDESTRIAN_SCENARIO
+                ].add(route_dir, frame_number)
 
             # Non-scenario-specific mining
             elif self._check_red_overhead_traffic_light(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.RED_OVERHEAD_TRAFFIC_LIGHT].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.RED_OVERHEAD_TRAFFIC_LIGHT
+                ].add(route_dir, frame_number)
             elif self._check_red_europe_traffic_light(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.RED_EUROPE_TRAFFIC_LIGHT].add(route_dir, frame_number)
-            elif bool(sample["slower_occluded_junction"]) and float(sample["distance_to_next_junction"]) < 5.0:
-                self.buckets[NavsimPretrainSim2RealBuckets.OCCLUDED_JUNCTION].add(route_dir, frame_number)
-            elif bool(sample["near_urgent_lane_change"]):
-                self.buckets[NavsimPretrainSim2RealBuckets.NEAR_URGENT_LANE_CHANGE].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.RED_EUROPE_TRAFFIC_LIGHT
+                ].add(route_dir, frame_number)
+            elif (
+                bool(sample["slower_occluded_junction"])
+                and float(sample["distance_to_next_junction"]) < 5.0
+            ):
+                self.buckets[NavsimPretrainSim2RealBuckets.OCCLUDED_JUNCTION].add(
+                    route_dir,
+                    frame_number,
+                )
             elif abs(float(sample["privileged_acceleration"])) > 17.5:
-                self.buckets[NavsimPretrainSim2RealBuckets.HIGH_ACCELERATION].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.HIGH_ACCELERATION].add(
+                    route_dir,
+                    frame_number,
+                )
             elif self._check_large_lateral_deviation(sample):
-                self.buckets[NavsimPretrainSim2RealBuckets.LARGE_LATERAL_DEVIATION].add(route_dir, frame_number)
-            elif bool(sample["stop_sign_hazard"]) and float(sample["distance_to_next_junction"]) < 10.0:
-                self.buckets[NavsimPretrainSim2RealBuckets.STOP_SIGN_HAZARD].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.LARGE_LATERAL_DEVIATION].add(
+                    route_dir,
+                    frame_number,
+                )
+            elif (
+                bool(sample["stop_sign_hazard"])
+                and float(sample["distance_to_next_junction"]) < 10.0
+            ):
+                self.buckets[NavsimPretrainSim2RealBuckets.STOP_SIGN_HAZARD].add(
+                    route_dir,
+                    frame_number,
+                )
             elif (
                 0.0 < float(sample["distance_to_next_junction"]) < 3.5
                 and float(sample["speed"]) > 2.0
                 and float(sample["privileged_acceleration"]) > 2.0
             ):
-                self.buckets[NavsimPretrainSim2RealBuckets.ENTERING_JUNCTION].add(route_dir, frame_number)
-            elif float(sample["distance_to_next_junction"]) < 1.0 and float(sample["speed_limit"]) < 50.0 / 3.6:
-                self.buckets[NavsimPretrainSim2RealBuckets.CLOSE_TO_JUNCTION].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.ENTERING_JUNCTION].add(
+                    route_dir,
+                    frame_number,
+                )
+            elif (
+                float(sample["distance_to_next_junction"]) < 1.0
+                and float(sample["speed_limit"]) < 50.0 / 3.6
+            ):
+                self.buckets[NavsimPretrainSim2RealBuckets.CLOSE_TO_JUNCTION].add(
+                    route_dir,
+                    frame_number,
+                )
             elif sample["target_point"][0] < 0:
-                self.buckets[NavsimPretrainSim2RealBuckets.CURRENT_TARGET_POINT_BEHIND_EGO].add(route_dir, frame_number)
+                self.buckets[
+                    NavsimPretrainSim2RealBuckets.CURRENT_TARGET_POINT_BEHIND_EGO
+                ].add(route_dir, frame_number)
             elif bool(sample["vehicle_hazard"]):
-                self.buckets[NavsimPretrainSim2RealBuckets.VEHICLE_HAZARD].add(route_dir, frame_number)
-            elif self._check_red_traffic_light(sample) and float(sample["distance_to_next_junction"]) < 5.0:
-                self.buckets[NavsimPretrainSim2RealBuckets.RED_TRAFFIC_LIGHT].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.VEHICLE_HAZARD].add(
+                    route_dir,
+                    frame_number,
+                )
+            elif (
+                self._check_red_traffic_light(sample)
+                and float(sample["distance_to_next_junction"]) < 5.0
+            ):
+                self.buckets[NavsimPretrainSim2RealBuckets.RED_TRAFFIC_LIGHT].add(
+                    route_dir,
+                    frame_number,
+                )
             elif sample["town"] == "Town15":
-                self.buckets[NavsimPretrainSim2RealBuckets.TOWN15].add(route_dir, frame_number)
-            elif np.linalg.norm(sample["target_point"]) > 175.0 and abs(sample["target_point"][0]) > 10:
-                self.buckets[NavsimPretrainSim2RealBuckets.FAR_TARGET_POINT].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.TOWN15].add(
+                    route_dir,
+                    frame_number,
+                )
+            elif (
+                np.linalg.norm(sample["target_point"]) > 175.0
+                and abs(sample["target_point"][0]) > 10
+            ):
+                self.buckets[NavsimPretrainSim2RealBuckets.FAR_TARGET_POINT].add(
+                    route_dir,
+                    frame_number,
+                )
             elif abs(float(sample["privileged_acceleration"])) > 15.0:
-                self.buckets[NavsimPretrainSim2RealBuckets.MEDIUM_ACCELERATION].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.MEDIUM_ACCELERATION].add(
+                    route_dir,
+                    frame_number,
+                )
             elif abs(float(sample["privileged_acceleration"])) > 12.5:
-                self.buckets[NavsimPretrainSim2RealBuckets.LOW_ACCELERATION].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.LOW_ACCELERATION].add(
+                    route_dir,
+                    frame_number,
+                )
             elif sample["route_labels_curvature"] > 0.15 and sample["speed"] > 0.1:
-                self.buckets[NavsimPretrainSim2RealBuckets.HIGH_ROUTE_CURVATURE].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.HIGH_ROUTE_CURVATURE].add(
+                    route_dir,
+                    frame_number,
+                )
             elif sample["route_labels_curvature"] > 0.075 and sample["speed"] > 0.1:
-                self.buckets[NavsimPretrainSim2RealBuckets.MEDIUM_ROUTE_CURVATURE].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.MEDIUM_ROUTE_CURVATURE].add(
+                    route_dir,
+                    frame_number,
+                )
             else:
-                self.buckets[NavsimPretrainSim2RealBuckets.OTHERS].add(route_dir, frame_number)
+                self.buckets[NavsimPretrainSim2RealBuckets.OTHERS].add(
+                    route_dir,
+                    frame_number,
+                )
 
         self.print_statistic()
 
@@ -353,7 +535,10 @@ class NavSimBucketCollection(AbstractBucketCollection):
         if float(sample["dist_to_construction_site"]) >= 42:
             return False
         for box in sample["boxes"]:
-            if box.get("type_id") == "static.prop.constructioncone" and box["position"][0] > -10.0:
+            if (
+                box.get("type_id") == "static.prop.constructioncone"
+                and box["position"][0] > -10.0
+            ):
                 return True
         return False
 
@@ -363,7 +548,10 @@ class NavSimBucketCollection(AbstractBucketCollection):
             return False
         scenario_actor_ids = set(sample["scenario_actors_ids"])
         for box in sample["boxes"]:
-            if box["id"] in scenario_actor_ids and float(box["distance"]) < max_distance:
+            if (
+                box["id"] in scenario_actor_ids
+                and float(box["distance"]) < max_distance
+            ):
                 return True
         return False
 
@@ -385,7 +573,11 @@ class NavSimBucketCollection(AbstractBucketCollection):
             return False
         scenario_actor_id = sample["scenario_actors_ids"][0]
         for box in sample["boxes"]:
-            if box["class"] == "car" and box["id"] == scenario_actor_id and float(box["distance"]) < 32:
+            if (
+                box["class"] == "car"
+                and box["id"] == scenario_actor_id
+                and float(box["distance"]) < 32
+            ):
                 return True
         return False
 
@@ -394,7 +586,10 @@ class NavSimBucketCollection(AbstractBucketCollection):
         if sample["scenario_type"] != "InvadingTurn":
             return False
         for box in sample["boxes"]:
-            if box.get("type_id") == "static.prop.constructioncone" and 0 < box["position"][0] < 16:
+            if (
+                box.get("type_id") == "static.prop.constructioncone"
+                and 0 < box["position"][0] < 16
+            ):
                 return True
         return False
 
@@ -406,7 +601,11 @@ class NavSimBucketCollection(AbstractBucketCollection):
             return False
         scenario_actor_id = sample["scenario_actors_ids"][0]
         for box in sample["boxes"]:
-            if box["class"] == "car" and box["id"] == scenario_actor_id and float(box["speed"]) > 0.1:
+            if (
+                box["class"] == "car"
+                and box["id"] == scenario_actor_id
+                and float(box["speed"]) > 0.1
+            ):
                 return True
         return False
 
@@ -418,7 +617,11 @@ class NavSimBucketCollection(AbstractBucketCollection):
             return False
         scenario_actor_id = sample["scenario_actors_ids"][0]
         for box in sample["boxes"]:
-            if box["class"] == "car" and box["id"] == scenario_actor_id and float(box["speed"]) > 0.1:
+            if (
+                box["class"] == "car"
+                and box["id"] == scenario_actor_id
+                and float(box["speed"]) > 0.1
+            ):
                 return True
         return False
 
@@ -427,7 +630,11 @@ class NavSimBucketCollection(AbstractBucketCollection):
         if float(sample["dist_to_parked_obstacle"]) >= 35:
             return False
         for box in sample["boxes"]:
-            if box["class"] == "car" and float(box["speed"]) < 0.1 and box["position"][0] > -8.0:
+            if (
+                box["class"] == "car"
+                and float(box["speed"]) < 0.1
+                and box["position"][0] > -8.0
+            ):
                 return True
         return False
 
@@ -452,7 +659,11 @@ class NavSimBucketCollection(AbstractBucketCollection):
 
         boxes = sample["boxes"]
         for box in boxes:
-            if box["class"] == "traffic_light" and box["state"] == "Red" and box["affects_ego"]:
+            if (
+                box["class"] == "traffic_light"
+                and box["state"] == "Red"
+                and box["affects_ego"]
+            ):
                 return True
         return False
 
@@ -537,55 +748,98 @@ class NavSimBucketCollection(AbstractBucketCollection):
         """
         mixture = {bucket: 1.0 for bucket in range(len(self.buckets))}
 
-        mixture[NavsimPretrainSim2RealBuckets.BAD_WEATHER] = 0.0  # NavSim does not have bad weather samples
+        mixture[NavsimPretrainSim2RealBuckets.BAD_WEATHER] = (
+            0.0  # NavSim does not have bad weather samples
+        )
 
-        mixture[NavsimPretrainSim2RealBuckets.ENTER_ACTOR_FLOW_SCENARIO] = 0.0  # Useless
-        mixture[NavsimPretrainSim2RealBuckets.ENTER_ACTOR_FLOW_V2_SCENARIO] = 0.0  # Useless
-        mixture[NavsimPretrainSim2RealBuckets.HAZARD_AT_SIDE_LANE_TWO_WAYS_SCENARIO] = 0.0  # Useless
-        mixture[NavsimPretrainSim2RealBuckets.INTERURBAN_ACTOR_FLOW_SCENARIO] = 0.0  # Useless
-        mixture[NavsimPretrainSim2RealBuckets.MERGER_INTO_SLOW_TRAFFIC_SCENARIO] = 0.0  # Useless
-        mixture[NavsimPretrainSim2RealBuckets.MERGER_INTO_SLOW_TRAFFIC_V2_SCENARIO] = 0.0  # Useless
+        mixture[NavsimPretrainSim2RealBuckets.ENTER_ACTOR_FLOW_SCENARIO] = (
+            0.0  # Useless
+        )
+        mixture[NavsimPretrainSim2RealBuckets.ENTER_ACTOR_FLOW_V2_SCENARIO] = (
+            0.0  # Useless
+        )
+        mixture[NavsimPretrainSim2RealBuckets.HAZARD_AT_SIDE_LANE_TWO_WAYS_SCENARIO] = (
+            0.0  # Useless
+        )
+        mixture[NavsimPretrainSim2RealBuckets.INTERURBAN_ACTOR_FLOW_SCENARIO] = (
+            0.0  # Useless
+        )
+        mixture[NavsimPretrainSim2RealBuckets.MERGER_INTO_SLOW_TRAFFIC_SCENARIO] = (
+            0.0  # Useless
+        )
+        mixture[NavsimPretrainSim2RealBuckets.MERGER_INTO_SLOW_TRAFFIC_V2_SCENARIO] = (
+            0.0  # Useless
+        )
         mixture[NavsimPretrainSim2RealBuckets.HAZARD_AT_SIDE_LANE_SCENARIO] = 0.0
-        mixture[NavsimPretrainSim2RealBuckets.NEAR_URGENT_LANE_CHANGE] = 0.0  # Useless
         mixture[NavsimPretrainSim2RealBuckets.CROSSING_BICYCLE_FLOW_SCENARIO] = 0.0
         mixture[NavsimPretrainSim2RealBuckets.HIGHWAY_CUT_IN_SCENARIO] = 0.0
         mixture[NavsimPretrainSim2RealBuckets.PARKING_EXIT_SCENARIO] = 0.0
         mixture[NavsimPretrainSim2RealBuckets.VEHICLE_TURNING_ROUTE_SCENARIO] = 0.0
         mixture[NavsimPretrainSim2RealBuckets.FAR_TARGET_POINT] = 0.0
 
-        mixture[NavsimPretrainSim2RealBuckets.NON_SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO] = 3.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.NON_SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO
+        ] = 3.0
         mixture[NavsimPretrainSim2RealBuckets.PARKED_OBSTACLE_SCENARIO] = 3.0
         mixture[NavsimPretrainSim2RealBuckets.INVADING_TURN_SCENARIO] = 3.0
         mixture[NavsimPretrainSim2RealBuckets.ACCIDENT_SCENARIO] = 1.0
         mixture[NavsimPretrainSim2RealBuckets.CONSTRUCTION_OBSTACLE_SCENARIO] = 1.5
         mixture[NavsimPretrainSim2RealBuckets.RED_OVERHEAD_TRAFFIC_LIGHT] = 3.0
-        mixture[NavsimPretrainSim2RealBuckets.CROSS_JUNCTION_DEFECT_TRAFFIC_LIGHT_SCENARIO] = 3.0
-        mixture[NavsimPretrainSim2RealBuckets.NON_SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO] = 3.0
-        mixture[NavsimPretrainSim2RealBuckets.VEHICLE_TURNING_ROUTE_PEDESTRIAN_SCENARIO] = 3.0
-        mixture[NavsimPretrainSim2RealBuckets.VEHICLE_OPENS_DOOR_TWO_WAYS_SCENARIO] = 5.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.CROSS_JUNCTION_DEFECT_TRAFFIC_LIGHT_SCENARIO
+        ] = 3.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.NON_SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO
+        ] = 3.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.VEHICLE_TURNING_ROUTE_PEDESTRIAN_SCENARIO
+        ] = 3.0
+        mixture[NavsimPretrainSim2RealBuckets.VEHICLE_OPENS_DOOR_TWO_WAYS_SCENARIO] = (
+            5.0
+        )
         mixture[NavsimPretrainSim2RealBuckets.ENTERING_JUNCTION] = 4.0
         mixture[NavsimPretrainSim2RealBuckets.MEDIUM_ROUTE_CURVATURE] = 1.0
         mixture[NavsimPretrainSim2RealBuckets.STOP_SIGN_HAZARD] = 3.0
         mixture[NavsimPretrainSim2RealBuckets.PARKING_CUT_IN_SCENARIO] = 5.0
         mixture[NavsimPretrainSim2RealBuckets.STATIC_CUT_IN_SCENARIO] = 5.0
         mixture[NavsimPretrainSim2RealBuckets.CURRENT_TARGET_POINT_BEHIND_EGO] = 5.0
-        mixture[NavsimPretrainSim2RealBuckets.RED_LIGHT_WITHOUT_LEAD_VEHICLE_SCENARIO] = 5.0
-        mixture[NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO] = 3.0
-        mixture[NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_LEFT_TURN_ENTER_FLOW_SCENARIO] = 3.0
-        mixture[NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO] = 5.0
-        mixture[NavsimPretrainSim2RealBuckets.VEHICLE_TURNING_ROUTE_PEDESTRIAN_SCENARIO] = 2.5
-        mixture[NavsimPretrainSim2RealBuckets.RED_LIGHT_WITHOUT_LEAD_VEHICLE_SCENARIO] = 2.0
-        mixture[NavsimPretrainSim2RealBuckets.OPPOSITE_VEHICLE_RUNNING_RED_LIGHT_SCENARIO] = 5.0
-        mixture[NavsimPretrainSim2RealBuckets.OPPOSITE_VEHICLE_TAKING_PRIORITY_SCENARIO] = 5.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.RED_LIGHT_WITHOUT_LEAD_VEHICLE_SCENARIO
+        ] = 5.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_LEFT_TURN_SCENARIO
+        ] = 3.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_LEFT_TURN_ENTER_FLOW_SCENARIO
+        ] = 3.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.SIGNALIZED_JUNCTION_RIGHT_TURN_SCENARIO
+        ] = 5.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.VEHICLE_TURNING_ROUTE_PEDESTRIAN_SCENARIO
+        ] = 2.5
+        mixture[
+            NavsimPretrainSim2RealBuckets.RED_LIGHT_WITHOUT_LEAD_VEHICLE_SCENARIO
+        ] = 2.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.OPPOSITE_VEHICLE_RUNNING_RED_LIGHT_SCENARIO
+        ] = 5.0
+        mixture[
+            NavsimPretrainSim2RealBuckets.OPPOSITE_VEHICLE_TAKING_PRIORITY_SCENARIO
+        ] = 5.0
         mixture[NavsimPretrainSim2RealBuckets.PEDESTRIAN_CROSSING_SCENARIO] = 5.0
         mixture[NavsimPretrainSim2RealBuckets.PRIORITY_AT_JUNCTION_SCENARIO] = 5.0
         mixture[NavsimPretrainSim2RealBuckets.OCCLUDED_JUNCTION] = 3.0
-        mixture[NavsimPretrainSim2RealBuckets.RED_OVERHEAD_TRAFFIC_LIGHT] = 0.5  # A bit awkward with NavSim calibration
+        mixture[NavsimPretrainSim2RealBuckets.RED_OVERHEAD_TRAFFIC_LIGHT] = (
+            0.5  # A bit awkward with NavSim calibration
+        )
 
         mixture[NavsimPretrainSim2RealBuckets.TOWN15] = 0.6
         mixture[NavsimPretrainSim2RealBuckets.VEHICLE_HAZARD] = 0.2
         mixture[NavsimPretrainSim2RealBuckets.ACCIDENT_TWO_WAYS_SCENARIO] = 0.2
-        mixture[NavsimPretrainSim2RealBuckets.CONSTRUCTION_OBSTACLE_TWO_WAYS_SCENARIO] = 0.1
+        mixture[
+            NavsimPretrainSim2RealBuckets.CONSTRUCTION_OBSTACLE_TWO_WAYS_SCENARIO
+        ] = 0.1
         mixture[NavsimPretrainSim2RealBuckets.CLOSE_TO_JUNCTION] = 1.0
 
         # Downsample uninteresting samples significantly
@@ -605,12 +859,16 @@ class NavSimBucketCollection(AbstractBucketCollection):
         print("=" * 80)
         for i, ratio in self.buckets_mixture_per_epoch(0).items():
             bucket_name = NavsimPretrainSim2RealBuckets.member_at(i).name
-            print(f"Bucket {i:2d} - {bucket_name:60s}: {ratio:.2f} {int(ratio * len(self.buckets[i]))}")
+            print(
+                f"Bucket {i:2d} - {bucket_name:60s}: {ratio:.2f} {int(ratio * len(self.buckets[i]))}",
+            )
 
 
 if __name__ == "__main__":
     config = TrainingConfig()
-    config.force_rebuild_bucket = True  # To avoid recursion error, set to True for the first time
+    config.force_rebuild_bucket = (
+        True  # To avoid recursion error, set to True for the first time
+    )
     config.use_carla_data = True
     config.use_navsim_data = True
     config.LTF = True

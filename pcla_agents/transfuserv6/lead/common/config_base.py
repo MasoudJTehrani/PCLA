@@ -9,9 +9,25 @@ from lead.common.constants import WAYMO_E2E_INTRINSIC, TargetDataset
 
 
 class BaseConfig:
+    """Base configuration class that provides default settings for both data collection and model training.
+
+    See more details at https://ln2697.github.io/lead/docs/config_system.html
+    """
+
+    # If true, run code in debug mode with settings that allow for
+    # faster iteration and easier debugging (e.g., lower resolution, fewer data points saved, etc.)
+    debug_mode = False
+
     @property
     def target_dataset(self):
-        raise NotImplementedError("Subclasses must implement the target_dataset property.")
+        raise NotImplementedError(
+            "Subclasses must implement the target_dataset property.",
+        )
+
+    @property
+    def lead_project_root(self):
+        """Get the LEAD project root directory from environment variable or default to current working directory."""
+        return os.getenv("LEAD_PROJECT_ROOT")
 
     # --- Autopilot ---
     # Frame rate used for the bicycle models in the autopilot
@@ -110,6 +126,8 @@ class BaseConfig:
         return {
             TargetDataset.CARLA_LEADERBOARD2_6CAMERAS: 6,
             TargetDataset.CARLA_LEADERBOARD2_3CAMERAS: 3,
+            TargetDataset.CARLA_LEADERBOARD2_1CAMERA: 1,
+            TargetDataset.CARLA_PY123D_6CAMERAS: 6,
             TargetDataset.NAVSIM_4CAMERAS: 4,
             TargetDataset.WAYMO_E2E_2025_3CAMERAS: 3,
         }[self.target_dataset]
@@ -195,6 +213,76 @@ class BaseConfig:
                     "fov": 60,
                 },
             }
+        elif self.target_dataset == TargetDataset.CARLA_LEADERBOARD2_1CAMERA:
+            return {
+                1: {
+                    "pos": [-1.5, 0.0, 2.0],
+                    "rot": [0.0, 0.0, 0.0],
+                    "width": 1024,
+                    "height": 512,
+                    "cropped_height": 384,
+                    "fov": 110,
+                },
+            }
+        elif self.target_dataset == TargetDataset.CARLA_PY123D_6CAMERAS:
+            # NOTE: Use six cameras inspired by nuScenes rig. In contract
+            # to the nuScenes resolution 1600x900, we use a downsampled 800x450 resolution
+            return {
+                # CAM_FRONT
+                1: {
+                    "pos": [0.32, 0.0, 1.6],
+                    "rot": [0.0, 0.0, 0.0],
+                    "width": 800,
+                    "height": 450,
+                    "cropped_height": 450,
+                    "fov": 65,
+                },
+                # CAM_FRONT_LEFT
+                2: {
+                    "pos": [0.15, -0.49, 1.6],
+                    "rot": [0.0, 0.0, -55.0],
+                    "width": 800,
+                    "height": 450,
+                    "cropped_height": 450,
+                    "fov": 65,
+                },
+                # CAM_BACK_LEFT
+                3: {
+                    "pos": [-0.35, -0.48, 1.6],
+                    "rot": [0.0, 0.0, -110.0],
+                    "width": 800,
+                    "height": 450,
+                    "cropped_height": 450,
+                    "fov": 65,
+                },
+                # CAM_FRONT_RIGHT
+                4: {
+                    "pos": [0.15, 0.49, 1.6],
+                    "rot": [0.0, 0.0, 55.0],
+                    "width": 800,
+                    "height": 450,
+                    "cropped_height": 450,
+                    "fov": 65,
+                },
+                # CAM_BACK_RIGHT
+                5: {
+                    "pos": [-0.35, 0.48, 1.6],
+                    "rot": [0.0, 0.0, 110.0],
+                    "width": 800,
+                    "height": 450,
+                    "cropped_height": 450,
+                    "fov": 65,
+                },
+                # CAM_BACK
+                6: {
+                    "pos": [-1.36, 0.0, 1.6],
+                    "rot": [0.0, 0.0, -180.0],
+                    "width": 800,
+                    "height": 450,
+                    "cropped_height": 450,
+                    "fov": 90,
+                },
+            }
         elif self.target_dataset == TargetDataset.NAVSIM_4CAMERAS:
             return {
                 1: constants.NUPLAN_CAMERA_CALIBRATION["CAM_L0"],
@@ -211,7 +299,9 @@ class BaseConfig:
                     constants.WAYMO_E2E_2025_CAMERA_SETTING["FRONT_RIGHT"]["extrinsic"],
                     constants.WAYMO_E2E_2025_CAMERA_SETTING["FRONT_RIGHT"]["width"],
                     constants.WAYMO_E2E_2025_CAMERA_SETTING["FRONT_RIGHT"]["height"],
-                    constants.WAYMO_E2E_2025_CAMERA_SETTING["FRONT_RIGHT"]["cropped_height"],
+                    constants.WAYMO_E2E_2025_CAMERA_SETTING["FRONT_RIGHT"][
+                        "cropped_height"
+                    ],
                 ),
                 2: waymo_e2e_camera_setting_to_carla(
                     WAYMO_E2E_INTRINSIC,
@@ -225,7 +315,9 @@ class BaseConfig:
                     constants.WAYMO_E2E_2025_CAMERA_SETTING["FRONT_LEFT"]["extrinsic"],
                     constants.WAYMO_E2E_2025_CAMERA_SETTING["FRONT_LEFT"]["width"],
                     constants.WAYMO_E2E_2025_CAMERA_SETTING["FRONT_LEFT"]["height"],
-                    constants.WAYMO_E2E_2025_CAMERA_SETTING["FRONT_LEFT"]["cropped_height"],
+                    constants.WAYMO_E2E_2025_CAMERA_SETTING["FRONT_LEFT"][
+                        "cropped_height"
+                    ],
                 ),
             }
         raise ValueError(f"Unsupported target dataset: {self.target_dataset}")
@@ -286,7 +378,7 @@ class BaseConfig:
     @property
     def save_depth_resolution_ratio(self):
         """Resolution reduction ratio for depth image storage."""
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return 4
         return 4
 
@@ -299,7 +391,7 @@ class BaseConfig:
 
     # --- Temporal Data ---
     # Number of temporal data points saved for ego vehicle
-    ego_num_temporal_data_points_saved = 200
+    ego_num_temporal_data_points_saved = 60
     # Number of temporal data points saved for other vehicles
     other_vehicles_num_temporal_data_points_saved = 40
 
@@ -309,7 +401,7 @@ class BaseConfig:
     # CARLA frame rate in seconds
     carla_frame_rate = 1.0 / carla_fps
     # IoU threshold used for non-maximum suppression on bounding box predictions
-    iou_treshold_nms = 0.2
+    iou_threshold_nms = 0.2
     # Minimum distance to route planner waypoints
     route_planner_min_distance = 7.5
     # Maximum distance to route planner waypoints
@@ -355,17 +447,11 @@ class BaseConfig:
         return self.ego_extent_x + 2.5
 
     @property
-    def is_on_slurm(self):
-        """Check if running on SLURM cluster environment."""
-        return os.getenv("SLURM_JOB_ID") is not None
-
-    @property
     def is_on_tcml(self):
         """Check if running on Training Center for Machine Learning of Tübingen."""
-        return os.getenv("TCML") is not None
+        return "TCML" in os.environ and os.environ["TCML"] is not None
 
     # --- Configuration Parsing Methods ---
-
     def load_from_args(self, loaded_config: Any, raise_error_on_missing_key: bool):
         """Load configuration from command-line arguments.
 
@@ -401,7 +487,12 @@ class BaseConfig:
 
         self._loaded_config = loaded_config
 
-    def load_from_environment(self, loaded_config, env_key: str, raise_error_on_missing_key: bool):
+    def load_from_environment(
+        self,
+        loaded_config,
+        env_key: str,
+        raise_error_on_missing_key: bool,
+    ):
         # --- Parameters coming from environment variables, highest priority
         env_params = os.getenv(env_key, "").strip()
         if not env_params:
@@ -441,22 +532,9 @@ class BaseConfig:
 
         if name not in allowed and not name.startswith("_"):
             raise AttributeError(
-                f"Can't set unknown attribute '{name}'. Please check if this variable might have been renamed."
+                f"Can't set unknown attribute '{name}'. Please check if this variable might have been renamed.",
             )
         super().__setattr__(name, value)
-
-    def base_dict(self):
-        out = {}
-        for k in dir(self):
-            if k.startswith("_"):
-                continue
-            try:
-                v = getattr(self, k)
-                if not callable(v):
-                    out[k] = v
-            except Exception:
-                pass
-        return out
 
 
 def overridable_property(fn):

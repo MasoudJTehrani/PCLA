@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torchmetrics
 from beartype import beartype
 from torch.nn import functional as F
 
@@ -10,7 +11,13 @@ from lead.training.config_training import TrainingConfig
 
 class BEVDecoder(nn.Module):
     @beartype
-    def __init__(self, config: TrainingConfig, num_classes: int, device: torch.device, source_data: int):
+    def __init__(
+        self,
+        config: TrainingConfig,
+        num_classes: int,
+        device: torch.device,
+        source_data: int,
+    ):
         """Dense BEV decoder for BEV semantic segmentation.
 
         Args:
@@ -64,11 +71,14 @@ class BEVDecoder(nn.Module):
                         config=self.config,
                         center_x=center_x,
                         center_y=center_y,
-                    )
+                    ),
                 )
 
         # Register as parameter so that it will automatically be moved to the correct GPU with the rest of the network
-        self.valid_bev_pixels = valid_bev_pixels.unsqueeze(0).to(dtype=self.config.torch_float_type, device=device)  # (1, H, W)
+        self.valid_bev_pixels = valid_bev_pixels.unsqueeze(0).to(
+            dtype=self.config.torch_float_type,
+            device=device,
+        )  # (1, H, W)
 
     @beartype
     def compute_loss(self, pred: torch.Tensor, data: dict, loss: dict, log: dict):
@@ -87,7 +97,11 @@ class BEVDecoder(nn.Module):
             return
 
         # Mask for samples from the correct source dataset
-        source_dataset = data["source_dataset"].to(pred.device, dtype=torch.long, non_blocking=True)  # (B,)
+        source_dataset = data["source_dataset"].to(
+            pred.device,
+            dtype=torch.long,
+            non_blocking=True,
+        )  # (B,)
         source_mask = (source_dataset == self.source_data).float()  # (B,)
         if source_mask.sum() == 0:
             return  # No samples from this source dataset in the batch
@@ -96,7 +110,11 @@ class BEVDecoder(nn.Module):
         if self.source_data == SourceDataset.CARLA:
             prefix = ""
 
-        label = data[f"{prefix}bev_semantic"].to(pred.device, dtype=torch.long, non_blocking=True)
+        label = data[f"{prefix}bev_semantic"].to(
+            pred.device,
+            dtype=torch.long,
+            non_blocking=True,
+        )
         visible_label = self.mask_label(label).long()  # Mark invisible pixels to -1
 
         with torch.amp.autocast(device_type="cuda", enabled=False):
@@ -110,10 +128,39 @@ class BEVDecoder(nn.Module):
             loss_bev_per_sample = loss_bev_per_sample.mean(dim=(1, 2))  # (B,)
 
             # Mask out losses from other data sources
-            loss_bev = (loss_bev_per_sample * source_mask).sum() / source_mask.sum().clamp(min=1)
+            loss_bev = (
+                loss_bev_per_sample * source_mask
+            ).sum() / source_mask.sum().clamp(min=1)
 
         # Add dataset name prefix
         loss[f"{prefix}loss_bev_semantic"] = loss_bev
+
+        if (
+            "iteration" in data
+            and ((data["iteration"] + 1) % self.config.log_scalars_frequency) == 0
+        ):
+            subset = source_mask.bool()
+            log[f"{prefix}bev_semantic/output_min"] = pred.min().item()
+            log[f"{prefix}bev_semantic/output_max"] = pred.max().item()
+            pred_classes = pred[subset].argmax(dim=1)
+            subset_label = visible_label[subset]
+            valid_pixels = subset_label >= 0
+            if valid_pixels.any():
+                miou = torchmetrics.functional.jaccard_index(
+                    pred_classes[valid_pixels],
+                    subset_label[valid_pixels],
+                    task="multiclass",
+                    num_classes=self.num_classes,
+                )
+                f1 = torchmetrics.functional.f1_score(
+                    pred_classes[valid_pixels],
+                    subset_label[valid_pixels],
+                    task="multiclass",
+                    num_classes=self.num_classes,
+                    average="macro",
+                )
+                log[f"{prefix}metric/bev_semantic_miou"] = miou.item()
+                log[f"{prefix}metric/bev_semantic_f1"] = f1.item()
 
     @beartype
     def forward(self, bev_feature_grid: torch.Tensor, log: dict):
@@ -137,6 +184,10 @@ class BEVDecoder(nn.Module):
             label: (B, H, W) Masked BEV semantic label tensor
         """
         valid_bev_pixels = self.valid_bev_pixels
-        visible_bev_semantic_label = label * valid_bev_pixels  # (B, H, W). Set invisible pixels to 0
-        visible_bev_semantic_label = (valid_bev_pixels - 1) + visible_bev_semantic_label  # Set invisible pixels to -1
+        visible_bev_semantic_label = (
+            label * valid_bev_pixels
+        )  # (B, H, W). Set invisible pixels to 0
+        visible_bev_semantic_label = (
+            valid_bev_pixels - 1
+        ) + visible_bev_semantic_label  # Set invisible pixels to -1
         return visible_bev_semantic_label

@@ -1,7 +1,7 @@
-from typing import Tuple
 from collections import deque
 from copy import deepcopy
 
+import jaxtyping as jt
 import numpy as np
 import numpy.typing as npt
 from beartype import beartype
@@ -19,7 +19,13 @@ class PIDController:
     """
 
     @beartype
-    def __init__(self, k_p: float = 1.0, k_i: float = 0.0, k_d: float = 0.0, n: int = 20) -> None:
+    def __init__(
+        self,
+        k_p: float = 1.0,
+        k_i: float = 0.0,
+        k_d: float = 0.0,
+        n: int = 20,
+    ) -> None:
         """Initialize the PID controller with gain parameters.
 
         Args:
@@ -96,11 +102,12 @@ class LateralPIDController:
         self._window = []
         self.config = config
 
+    @jt.jaxtyped(typechecker=beartype)
     def step(
         self,
-        route: npt.NDArray,
+        route: jt.Float[npt.NDArray, "n_points 2"],
         current_speed: float,
-        ego_vehicle_location: npt.NDArray,
+        ego_vehicle_location: float,
         ego_vehicle_rotation: float,
         sensor_agent_steer_correction: bool = False,
     ) -> float:
@@ -117,23 +124,31 @@ class LateralPIDController:
         """
         current_speed = current_speed * 3.6
         # Transfuser predicts checkpoints 1m apart, whereas in the expert the route points have distance 10cm.
-        n_lookahead = np.clip(self.speed_scale * current_speed + self.speed_offset, 24, 105) / 10  # range [2.4, 10.5]
+        n_lookahead = (
+            np.clip(self.speed_scale * current_speed + self.speed_offset, 24, 105) / 10
+        )  # range [2.4, 10.5]
         n_lookahead = n_lookahead - 2  # range [0.4, 8.5]
         n_lookahead = int(
-            min(n_lookahead, route.shape[0] - 1)
+            min(n_lookahead, route.shape[0] - 1),
         )  # range [0, 8] - but 0 and 1 are never used because n_lookahead is overwritten below
 
         n_lookahead = min(n_lookahead, len(route) - 1)
         curvature = common_utils.waypoints_curvature(route)
 
         if sensor_agent_steer_correction:
-            n_lookahead += np.clip(int(curvature * self.config.sensor_agent_steer_correction_param), 0, 2)
+            n_lookahead += np.clip(
+                int(curvature * self.config.sensor_agent_steer_correction_param),
+                0,
+                2,
+            )
 
         desired_heading_vec = route[n_lookahead] - ego_vehicle_location
 
         yaw_path = np.arctan2(desired_heading_vec[1], desired_heading_vec[0])
         heading_error = (yaw_path - ego_vehicle_rotation) % (2 * np.pi)
-        heading_error = heading_error if heading_error < np.pi else heading_error - 2 * np.pi
+        heading_error = (
+            heading_error if heading_error < np.pi else heading_error - 2 * np.pi
+        )
 
         # the scaling doesn't deserve any specific purpose but is a leftover from a previous less efficient implementation,
         # on which we optimized the parameters
@@ -142,10 +157,16 @@ class LateralPIDController:
         self._window.append(heading_error)
         self._window = self._window[-self.n :]
 
-        derivative = 0.0 if len(self._window) == 1 else self._window[-1] - self._window[-2]
+        derivative = (
+            0.0 if len(self._window) == 1 else self._window[-1] - self._window[-2]
+        )
         integral = np.mean(self._window)
 
-        steering = np.clip(self.k_p * heading_error + self.k_d * derivative + self.k_i * integral, -1.0, 1.0).item()
+        steering = np.clip(
+            self.k_p * heading_error + self.k_d * derivative + self.k_i * integral,
+            -1.0,
+            1.0,
+        ).item()
 
         return round(float(np.clip(steering, -1.0, 1.0)), 3)
 
@@ -184,8 +205,12 @@ class ExpertLateralPIDController:
         self.lateral_pid_speed_threshold = self.config.lateral_pid_speed_threshold
 
         self.lateral_pid_window_size = self.config.lateral_pid_window_size
-        self.lateral_pid_minimum_lookahead_distance = self.config.lateral_pid_minimum_lookahead_distance
-        self.lateral_pid_maximum_lookahead_distance = self.config.lateral_pid_maximum_lookahead_distance
+        self.lateral_pid_minimum_lookahead_distance = (
+            self.config.lateral_pid_minimum_lookahead_distance
+        )
+        self.lateral_pid_maximum_lookahead_distance = (
+            self.config.lateral_pid_maximum_lookahead_distance
+        )
 
         # The following lists are used as deques
         self.error_history = []  # Sliding window to store past errors
@@ -193,9 +218,9 @@ class ExpertLateralPIDController:
 
     def step(
         self,
-        route_points: np.ndarray,
+        route_points: jt.Float[npt.NDArray, "n 2"],
         current_speed: float,
-        vehicle_position: np.ndarray,
+        vehicle_position: jt.Float[npt.NDArray, " 2"],
         vehicle_heading: float,
         inference_mode: bool = False,
     ) -> float:
@@ -216,7 +241,10 @@ class ExpertLateralPIDController:
         # Compute the lookahead distance based on the current speed
         # Transfuser predicts checkpoints 1m apart, whereas in the expert the route points have distance 10cm.
         if inference_mode:
-            lookahead_distance = self.lateral_pid_speed_scale * current_speed + self.lateral_pid_speed_offset
+            lookahead_distance = (
+                self.lateral_pid_speed_scale * current_speed
+                + self.lateral_pid_speed_offset
+            )
             lookahead_distance = (
                 np.clip(
                     lookahead_distance,
@@ -227,7 +255,10 @@ class ExpertLateralPIDController:
             )  # range [2.4, 10.5]
             lookahead_distance = lookahead_distance - 2  # range [0.4, 8.5]
         else:
-            lookahead_distance = self.lateral_pid_speed_scale * current_speed_kph + self.lateral_pid_speed_offset
+            lookahead_distance = (
+                self.lateral_pid_speed_scale * current_speed_kph
+                + self.lateral_pid_speed_offset
+            )
             lookahead_distance = np.clip(
                 lookahead_distance,
                 self.lateral_pid_minimum_lookahead_distance,
@@ -238,11 +269,16 @@ class ExpertLateralPIDController:
 
         # Calculate the desired heading vector from the lookahead point
         desired_heading_vec = route_points[lookahead_distance] - vehicle_position
-        desired_heading_angle = np.arctan2(desired_heading_vec[1], desired_heading_vec[0])
+        desired_heading_angle = np.arctan2(
+            desired_heading_vec[1],
+            desired_heading_vec[0],
+        )
 
         # Calculate the heading error
         heading_error = (desired_heading_angle - vehicle_heading) % (2 * np.pi)
-        heading_error = heading_error if heading_error < np.pi else heading_error - 2 * np.pi
+        heading_error = (
+            heading_error if heading_error < np.pi else heading_error - 2 * np.pi
+        )
 
         # Scale the heading error (leftover from a previous implementation)
         heading_error = heading_error * 180.0 / np.pi / 90.0
@@ -252,12 +288,18 @@ class ExpertLateralPIDController:
         self.error_history = self.error_history[-self.lateral_pid_window_size :]
 
         # Calculate the derivative and integral terms
-        derivative = 0.0 if len(self.error_history) == 1 else self.error_history[-1] - self.error_history[-2]
+        derivative = (
+            0.0
+            if len(self.error_history) == 1
+            else self.error_history[-1] - self.error_history[-2]
+        )
         integral = np.mean(self.error_history)
 
         # Compute the steering angle using the PID control law
         steering = np.clip(
-            self.lateral_pid_kp * heading_error + self.lateral_pid_kd * derivative + self.lateral_pid_ki * integral,
+            self.lateral_pid_kp * heading_error
+            + self.lateral_pid_kd * derivative
+            + self.lateral_pid_ki * integral,
             -1.0,
             1.0,
         ).item()
@@ -288,12 +330,23 @@ class ExpertLongitudinalController:
             config: expert configuration containing regression parameters.
         """
         self.config = config
-        self.minimum_target_speed = self.config.longitudinal_linear_regression_minimum_target_speed
+        self.minimum_target_speed = (
+            self.config.longitudinal_linear_regression_minimum_target_speed
+        )
         self.params = self.config.longitudinal_linear_regression_params
-        self.maximum_acceleration = self.config.longitudinal_linear_regression_maximum_acceleration
-        self.maximum_deceleration = self.config.longitudinal_linear_regression_maximum_deceleration
+        self.maximum_acceleration = (
+            self.config.longitudinal_linear_regression_maximum_acceleration
+        )
+        self.maximum_deceleration = (
+            self.config.longitudinal_linear_regression_maximum_deceleration
+        )
 
-    def get_throttle_and_brake(self, hazard_brake: bool, target_speed: float, current_speed: float) -> Tuple[float, bool]:
+    def get_throttle_and_brake(
+        self,
+        hazard_brake: bool,
+        target_speed: float,
+        current_speed: float,
+    ) -> tuple[float, bool]:
         """Get throttle and brake values using linear regression model.
 
         Args:
@@ -332,14 +385,18 @@ class ExpertLongitudinalController:
                 speed_error_cl**2,
                 current_speed * speed_error_cl,
                 current_speed**2 * speed_error_cl,
-            ]
+            ],
         )
 
         throttle, control_brake = np.clip(features @ params[:-1], 0.0, 1.0), False
 
         return throttle, control_brake
 
-    def get_throttle_extrapolation(self, target_speed: float, current_speed: float) -> float:
+    def get_throttle_extrapolation(
+        self,
+        target_speed: float,
+        current_speed: float,
+    ) -> float:
         """Get throttle value for forecasting purposes.
 
         Computes throttle assuming no hazard brake condition, used for
@@ -352,8 +409,8 @@ class ExpertLongitudinalController:
         Returns:
             The throttle value in range [0, 1].
         """
-        current_speed = current_speed * 3.6  # Convertion to km/h
-        target_speed = target_speed * 3.6  # Convertion to km/h
+        current_speed = current_speed * 3.6  # Conversion to km/h
+        target_speed = target_speed * 3.6  # Conversion to km/h
         params = self.params
         speed_error = target_speed - current_speed
 
@@ -369,7 +426,9 @@ class ExpertLongitudinalController:
         if target_speed < 0.1 or current_speed / target_speed > params[-1]:
             return throttle
 
-        speed_error_cl = np.clip(speed_error, 0.0, np.inf) / 100.0  # The scaling is a leftover from the optimization
+        speed_error_cl = (
+            np.clip(speed_error, 0.0, np.inf) / 100.0
+        )  # The scaling is a leftover from the optimization
         current_speed /= 100.0  # The scaling is a leftover from the optimization
         features = np.array(
             [
@@ -379,7 +438,7 @@ class ExpertLongitudinalController:
                 speed_error_cl**2,
                 current_speed * speed_error_cl,
                 current_speed**2 * speed_error_cl,
-            ]
+            ],
         ).flatten()
 
         throttle = np.clip(features @ params[:-1], 0.0, 1.0)
@@ -388,7 +447,12 @@ class ExpertLongitudinalController:
 
 
 @beartype
-def get_throttle(brake: bool, target_speed: float, speed: float, config: ExpertConfig) -> Tuple[float, bool]:
+def get_throttle(
+    brake: bool,
+    target_speed: float,
+    speed: float,
+    config: ExpertConfig,
+) -> tuple[float, bool]:
     """Compute throttle and brake values using expert longitudinal control.
 
     Standalone function for computing longitudinal control outputs using
@@ -426,7 +490,14 @@ def get_throttle(brake: bool, target_speed: float, speed: float, config: ExpertC
     speed_error_cl = np.clip(speed_error, 0.0, np.inf) / 100.0
     speed /= 100.0
     features = np.array(
-        [speed, speed**2, 100 * speed_error_cl, speed_error_cl**2, speed * speed_error_cl, speed**2 * speed_error_cl]
+        [
+            speed,
+            speed**2,
+            100 * speed_error_cl,
+            speed_error_cl**2,
+            speed * speed_error_cl,
+            speed**2 * speed_error_cl,
+        ],
     ).squeeze()
 
     params = np.array(params[:-1])

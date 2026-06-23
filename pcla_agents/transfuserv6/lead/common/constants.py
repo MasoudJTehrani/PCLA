@@ -17,8 +17,10 @@ class TargetDataset(IntEnum):
     UNKNOWN = 0
     CARLA_LEADERBOARD2_3CAMERAS = auto()
     CARLA_LEADERBOARD2_6CAMERAS = auto()
+    CARLA_LEADERBOARD2_1CAMERA = auto()
     NAVSIM_4CAMERAS = auto()
     WAYMO_E2E_2025_3CAMERAS = auto()
+    CARLA_PY123D_6CAMERAS = auto()
 
 
 class SourceDataset(IntEnum):
@@ -96,8 +98,20 @@ class CarlaNavigationCommand(IntEnum):
     CHANGELANERIGHT = 6
 
 
+# Mapping from CARLA navigation command to natural language string
+CARLA_NAVIGATION_COMMAND_STR_MAP = {
+    CarlaNavigationCommand.UNKNOWN: "Unknown",
+    CarlaNavigationCommand.LEFT: "Turn Left",
+    CarlaNavigationCommand.RIGHT: "Turn Right",
+    CarlaNavigationCommand.STRAIGHT: "Straight",
+    CarlaNavigationCommand.LANEFOLLOW: "Follow Lane",
+    CarlaNavigationCommand.CHANGELANELEFT: "Change Lane Left",
+    CarlaNavigationCommand.CHANGELANERIGHT: "Change Lane Right",
+}
+
+
 class ChaffeurNetBEVSemanticClass(IntEnum):
-    """Indicies to access BEV semantic map produced by ChaffeurNet."""
+    """Indices to access BEV semantic map produced by ChaffeurNet."""
 
     UNLABELED = 0
     ROAD = 1
@@ -111,7 +125,7 @@ class ChaffeurNetBEVSemanticClass(IntEnum):
 
 
 class TransfuserBEVSemanticClass(IntEnum):
-    """Indicies to access BEV semantic map produced by TransFuser."""
+    """Indices to access BEV semantic map produced by TransFuser."""
 
     UNLABELED = 0
     ROAD = 1
@@ -129,7 +143,7 @@ class TransfuserBEVSemanticClass(IntEnum):
 
 
 class TransfuserBEVOccupancyClass(IntEnum):
-    """Indicies to access BEV occupancy map produced by TransFuser."""
+    """Indices to access BEV occupancy map produced by TransFuser."""
 
     UNLABELED = 0
     VEHICLE = 1
@@ -211,7 +225,7 @@ def rgb(r, g, b):
 
 
 # Other visualization
-LIDAR_COLOR = rgb(90, 107, 249)
+LIDAR_COLOR = rgb(0, 0, 0)
 EGO_BB_COLOR = rgb(151, 15, 48)
 TP_DEFAULT_COLOR = rgb(255, 10, 10)
 RADAR_COLOR = rgb(24, 237, 3)
@@ -245,7 +259,7 @@ CARLA_TRANSFUSER_BEV_SEMANTIC_COLOR_CONVERTER = {
 
 # TransFuser++ semantic segmentation colors for CARLA data
 TRANSFUSER_SEMANTIC_COLORS = {
-    TransfuserSemanticSegmentationClass.UNLABELED: rgb(0, 0, 0),
+    TransfuserSemanticSegmentationClass.UNLABELED: rgb(255, 255, 255),
     TransfuserSemanticSegmentationClass.VEHICLE: rgb(31, 119, 180),
     TransfuserSemanticSegmentationClass.ROAD: rgb(128, 64, 128),
     TransfuserSemanticSegmentationClass.TRAFFIC_LIGHT: rgb(250, 170, 30),
@@ -384,10 +398,6 @@ BIKER_MESHES = {
     "vehicle.diamondback.century",
     "vehicle.gazelle.omafiets",
     "vehicle.bh.crossbike",
-    "vehicle.harley-davidson.low_rider",
-    "vehicle.kawasaki.ninja",
-    "vehicle.vespa.zx125",
-    "vehicle.yamaha.yzf",
 }
 
 URBAN_MAX_SPEED_LIMIT = 15
@@ -450,6 +460,26 @@ LOOKUP_TABLE = {
         0.1720348298549652,
         0.2928849756717682,
     ],
+}
+
+CARLA_MAP_PATHS = {
+    **{
+        location.lower(): f"CarlaUE4/Content/Carla/Maps/OpenDrive/{location}.xodr"
+        for location in [
+            "Town01",
+            "Town02",
+            "Town03",
+            "Town04",
+            "Town05",
+            "Town06",
+            "Town07",
+            "Town10HD",
+        ]
+    },
+    **{
+        location.lower(): f"CarlaUE4/Content/Carla/Maps/{location}/OpenDrive/{location}.xodr"
+        for location in ["Town11", "Town12", "Town13", "Town15"]
+    },
 }
 
 CONSTRUCTION_CONE_BB_SIZE = [0.1720348298549652, 0.1720348298549652]
@@ -537,7 +567,7 @@ NUPLAN_CAMERA_CALIBRATION = {
 
 
 class NavSimBEVSemanticClass(IntEnum):  # dead: disable
-    """Indicies to access BEV semantic map produced by NavSim.
+    """Indices to access BEV semantic map produced by NavSim.
 
     See: https://github.com/autonomousvision/navsim/blob/main/navsim/agents/transfuser/transfuser_config.py#L83
     """
@@ -639,7 +669,11 @@ SIM2REAL_BEV_OCCUPANCY_CLASS_CONVERTER = {
     TransfuserBEVOccupancyClass.TRAFFIC_RED_NOT_NORMAL: TransfuserBEVOccupancyClass.TRAFFIC_RED_NORMAL,
 }
 
-CARLA_REAR_AXLE = [-1.389, 0.0, 0.360]  # Rear axle position relative to the vehicle center
+CARLA_REAR_AXLE = [
+    -1.389,
+    0.0,
+    0.360,
+]  # Rear axle position relative to the vehicle center
 
 # Waymo E2E 2025 camera intrinsics
 WAYMO_E2E_INTRINSIC = [
@@ -700,4 +734,6 @@ class CarlaImageCroppingType(IntEnum):
 
 
 WAYMO_DOWN_SAMPLE_FACTOR = 3  # Down-sample factor for Waymo E2E 2025 images
-WAYMO_E2E_REAL_DATA_JPEG_LEVEL = 50  # JPEG compression level for Waymo E2E 2025 real data
+WAYMO_E2E_REAL_DATA_JPEG_LEVEL = (
+    50  # JPEG compression level for Waymo E2E 2025 real data
+)

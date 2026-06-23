@@ -1,14 +1,3 @@
-How to export environment correctly:
-
-run:
-conda env export | grep -v "^prefix: " > environment.yml
-
-Remove torch-scatter
-Move - packaging==### to conda dependancies and not pip dependencies
-Add - pip to conda dependancies
-Add - timm to pip dependancies
-
-
 # Trace back code for debugging
 
 def trace_calls(frame, event, arg):

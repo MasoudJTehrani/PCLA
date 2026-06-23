@@ -5,7 +5,7 @@ import carla
 import numpy as np
 
 from lead.common import weathers
-from lead.common.config_base import BaseConfig
+from lead.common.config_base import BaseConfig, overridable_property
 from lead.common.constants import TargetDataset, WeatherVisibility
 
 # Temporal hack for points per meter conversion - needs to be fixed
@@ -24,13 +24,49 @@ class ExpertConfig(BaseConfig):
         super().__init__()
         self.load_from_environment(
             loaded_config=None,
-            env_key="EXPERT_CONFIG",
+            env_key="LEAD_EXPERT_CONFIG",
             raise_error_on_missing_key=True,
         )
 
-    @property
+    @overridable_property
     def target_dataset(self):
+        """Set this to the target dataset for data collection. Will affect sensor setup."""
         return TargetDataset.CARLA_LEADERBOARD2_3CAMERAS
+
+    @overridable_property
+    def perturbate_sensors(self):
+        """If true enable camera perturbation during data collection"""
+        if self.eval_expert:
+            return False
+        return True
+
+    # --- Py123D ---
+    # If true, save data in Py123D format instead of classic CARLA Leaderboard Format
+    py123d_data_format = False
+    # Timestep in seconds for Py123D data (0.1 = 10 Hz)
+    py123d_timestep_seconds = 0.1
+    # Save Py123D data every N simulation steps (2 = save every other step for 10 Hz from 20 Hz sim)
+    py123d_save_interval = 2
+    # Log Py123D save progress every N steps
+    py123d_log_interval = 20
+    # Log Py123D debug info every N steps
+    py123d_debug_log_interval = 100
+    # Py123D dataset name
+    py123d_dataset = "carla"
+    # Py123D split name
+    py123d_split = "train"
+
+    # ---- Performance settings ---
+    # If true, also run speed benchmarking during expert data collection
+    profile_expert = False
+    # If true, unproject camera on CUDA. Turning this on will speed up unprojection but use more GPU memory.
+    unproject_on_cuda = False
+    # How often we log in the main loop
+    log_info_freq = 10
+
+    # --- Data saving configuration for LiDAR ---
+    # How many steps to stack LiDAR point clouds
+    lidar_stack_size = 5
 
     # --- Planning Area ---
     # Maximum planning area coordinate in x direction (meters)
@@ -42,7 +78,7 @@ class ExpertConfig(BaseConfig):
         """Back boundary of the planning area in meters."""
         return -32
 
-    @property
+    @overridable_property
     def max_x_meter(self):
         """Front boundary of the planning area in meters."""
         return 64
@@ -90,50 +126,54 @@ class ExpertConfig(BaseConfig):
     parking_vehicle_min_num_lidar_points = 5
     # Minimum number of visible pixels for a parking vehicle to be considered valid.
     parking_vehicle_min_num_visible_pixels = 10
+    # Minimum number of LiDAR points for a static prop (barrier, cone, sign) to be considered valid.
+    static_prop_min_num_lidar_points = 1
+    # Minimum number of visible pixels for a static prop (barrier, cone, sign) to be considered valid.
+    static_prop_min_num_visible_pixels = 1
 
     # --- Debug Colors for Visualization ---
     # Color for future route visualization during debugging
     future_route_color = rgb(0, 255, 0)
     # Color for other vehicles' forecasted bounding boxes
-    other_vehicles_forecasted_bbs_color = carla.Color(0, 0, 255)
+    other_vehicles_forecasted_bbs_color = rgb(0, 0, 255)
     # Color for leading vehicle visualization
-    leading_vehicle_color = carla.Color(255, 0, 0)
+    leading_vehicle_color = rgb(255, 0, 0)
     # Color for trailing vehicle visualization
-    trailing_vehicle_color = carla.Color(255, 255, 255)
+    trailing_vehicle_color = rgb(255, 255, 255)
     # Color for ego vehicle bounding box
-    ego_vehicle_bb_color = carla.Color(0, 0, 0)
+    ego_vehicle_bb_color = rgb(0, 0, 0)
     # Color for pedestrian forecasted bounding boxes
-    pedestrian_forecasted_bbs_color = carla.Color(0, 0, 255)
+    pedestrian_forecasted_bbs_color = rgb(0, 0, 255)
     # Color for red traffic lights
-    red_traffic_light_color = carla.Color(0, 255, 0)
+    red_traffic_light_color = rgb(0, 255, 0)
     # Color for yellow traffic lights
-    yellow_traffic_light_color = carla.Color(255, 255, 0)
+    yellow_traffic_light_color = rgb(255, 255, 0)
     # Color for green traffic lights
-    green_traffic_light_color = carla.Color(255, 0, 0, 255)
+    green_traffic_light_color = rgb(255, 0, 0)
     # Color for off traffic lights
-    off_traffic_light_color = carla.Color(0, 0, 0)
+    off_traffic_light_color = rgb(0, 0, 0)
     # Color for unknown traffic lights
-    unknown_traffic_light_color = carla.Color(0, 0, 0)
+    unknown_traffic_light_color = rgb(0, 0, 0)
     # Color for cleared stop signs
-    cleared_stop_sign_color = carla.Color(0, 255, 0)
+    cleared_stop_sign_color = rgb(0, 255, 0)
     # Color for uncleared stop signs
-    uncleared_stop_sign_color = carla.Color(255, 0, 0)
+    uncleared_stop_sign_color = rgb(255, 0, 0)
     # Color for ego vehicle forecasted bounding boxes in hazard situations
-    ego_vehicle_forecasted_bbs_hazard_color = carla.Color(255, 0, 0)
+    ego_vehicle_forecasted_bbs_hazard_color = rgb(255, 0, 0)
     # Color for ego vehicle forecasted bounding boxes in normal situations
-    ego_vehicle_forecasted_bbs_normal_color = carla.Color(0, 255, 0)
+    ego_vehicle_forecasted_bbs_normal_color = rgb(0, 255, 0)
     # Color for highlighted route segments
-    highlight_route_segment_color = carla.Color(255, 0, 0)
+    highlight_route_segment_color = rgb(255, 0, 0)
     # Color for source lane visualization
-    source_lane_color = carla.Color(0, 255, 0)
+    source_lane_color = rgb(0, 255, 0)
     # Color for target lane visualization
-    target_lane_color = carla.Color(255, 0, 0)
+    target_lane_color = rgb(255, 0, 0)
     # Color for opponent traffic route
-    opponent_traffic_route_color = carla.Color(255, 0, 0)
+    opponent_traffic_route_color = rgb(255, 0, 0)
     # Color for intersection points
-    intersection_point_color = carla.Color(0, 0, 255)
+    intersection_point_color = rgb(0, 0, 255)
     # Color for adversarial situations
-    adversarial_color = carla.Color(255, 0, 0)
+    adversarial_color = rgb(255, 0, 0)
 
     # --- Dataset and Timing Configuration ---
     # How many pixels make up 1 meter in BEV grids.
@@ -142,28 +182,28 @@ class ExpertConfig(BaseConfig):
     @property
     def shuffle_weather(self):
         """If true shuffle weather conditions during training."""
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return True
         return True
 
     @property
     def nice_weather(self):
         """If true use only nice weather conditions."""
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return True
 
     @property
     def jpeg_compression(self):
         """If true enable JPEG compression for image storage."""
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return True
         return True
 
     @property
     def datagen(self):
         """If true enable data generation mode."""
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return True
         return True
 
@@ -216,7 +256,7 @@ class ExpertConfig(BaseConfig):
             1.556497522998393,
             -0.7013479734904027,
             1.031266635497984,
-        ]
+        ],
     )
     # Coefficients for polynomial equation estimating speed change with throttle input for ego model
     throttle_values = np.array(
@@ -229,7 +269,7 @@ class ExpertConfig(BaseConfig):
             -7.05461530e-02,
             -1.05996152e-03,
             6.71079346e-04,
-        ]
+        ],
     )
     # Coefficients for polynomial equation estimating speed change with brake input for the ego model
     brake_values = np.array(
@@ -241,7 +281,7 @@ class ExpertConfig(BaseConfig):
             -4.90357228e-07,
             2.44419284e-09,
             -4.91381935e-12,
-        ]
+        ],
     )
 
     # --- Autopilot Configuration ---
@@ -301,7 +341,7 @@ class ExpertConfig(BaseConfig):
     idm_two_way_scenarios_time_headway = 0.1
     # Boundary time - the integration won’t continue beyond it.
     idm_t_bound = 0.05
-    # IDM maximum accelaration parameter per frame
+    # IDM maximum acceleration parameter per frame
     idm_maximum_acceleration = 24.0
     # The following parameters were determined by measuring the vehicle's braking performance.
     # IDM maximum deceleration parameter per frame while driving slow
@@ -354,7 +394,9 @@ class ExpertConfig(BaseConfig):
     tf_first_checkpoint_distance = int(2.5 * points_per_meter)
     # Parameters to calculate how much the ego agent needs to cover a given distance. Values are taken from
     # the kinematic bicycle model
-    compute_min_time_to_cover_distance_params = np.array([0.00904221, 0.00733342, -0.03744807, 0.0235038])
+    compute_min_time_to_cover_distance_params = np.array(
+        [0.00904221, 0.00733342, -0.03744807, 0.0235038],
+    )
     # Distance to check for road_id/lane_id for RouteObstacle scenarios
     previous_road_lane_retrieve_distance = 100
     # Distance to check for road_id/lane_id for RouteObstacle scenarios
@@ -510,12 +552,30 @@ class ExpertConfig(BaseConfig):
     traffic_warning_bb_size = [1.186714768409729, 1.4352929592132568]
     # Default bounding box size for construction cones.
     construction_cone_bb_size = [0.1720348298549652, 0.1720348298549652]
+
     # If true  save camera point clouds
-    save_camera_pc = False
-    # If true save instance segmentation images
-    save_instance_segmentation = False
-    # If true run expert evaluation
-    eval_expert = False
+    @property
+    def save_camera_pc(self):
+        if not self.debug_mode:
+            return False
+        return True
+
+    @property
+    def save_instance_segmentation(self):
+        """If true save instance segmentation images."""
+        if self.eval_expert:
+            return False
+        if not self.debug_mode:
+            return False
+        return True
+
+    @overridable_property
+    def eval_expert(self):
+        """If true run expert evaluation. This will minimize sensor production and other overheads to maximize
+        inference speed."""
+        if not self.debug_mode:
+            return False
+        return False
 
     @property
     def image_width(self):
@@ -562,12 +622,12 @@ class ExpertConfig(BaseConfig):
                 "yaw": 0,
             },
             DemoCameraOptions.HIGH_BEV: {
-                "image_size_x": "1980",
+                "image_size_x": "786",
                 "image_size_y": "786",
                 "fov": "90",
-                "x": 18,
+                "x": 30,
                 "y": 0,
-                "z": 50,
+                "z": 75,
                 "pitch": -90,
                 "yaw": 0,
             },
@@ -591,135 +651,135 @@ class ExpertConfig(BaseConfig):
                 "pitch": -90,
                 "yaw": 0,
             },
-        }[DemoCameraOptions.PAPER_BEV]
+        }[DemoCameraOptions.HIGH_BEV]
 
-    @property
+    @overridable_property
     def visualize_source_lane(self):
         """If true source lane should be visualized."""
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_target_lane(self):
         """If true target lane should be visualized."""
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_adversarial(self):
         """If true adversarial elements should be visualized."""
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_planning_area(self):
         """If true planning area should be visualized."""
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_radar(self):
         """If true planning area should be visualized."""
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_target_points(self):
         """If true visualize target points during debugging."""
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_route(self):
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_original_route(self):
         """If true visualize the original route."""
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_bb_ids(self):
         """If true visualize bounding box IDs during debugging."""
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_internal_data(self):
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_bounding_boxes(self):
         """If true bounding boxes should be visualized."""
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
-    @property
+    @overridable_property
     def visualize_traffic_lights_bounding_boxes(self):
         """If true traffic light bounding boxes should be visualized."""
         if not self.visualization_allowed:
             return False
         if self.forced_debug_visualization:
             return True
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
         return False
 
@@ -748,10 +808,12 @@ class ExpertConfig(BaseConfig):
     # --- Data Storage Configuration ---
     save_sensors = True
 
-    @property
+    @overridable_property
     def save_3rd_person_camera(self):
         """If true 3rd person camera images should be saved."""
-        if self.is_on_slurm:
+        if self.eval_expert:
+            return True
+        if not self.debug_mode:
             return False
         # If true save the 3rd person camera images
         return False
@@ -759,7 +821,9 @@ class ExpertConfig(BaseConfig):
     @property
     def save_depth(self):
         """If true depth images should be saved."""
-        if self.is_on_slurm:
+        if self.eval_expert:
+            return False
+        if not self.debug_mode:
             return True
         return True
 
@@ -770,7 +834,7 @@ class ExpertConfig(BaseConfig):
     replace_semantics_segmentation_with_instance_segmentation = True
 
     # JPEG quality for 3rd person camera images
-    jpg_quality_3rd_person = 100
+    jpg_quality_3rd_person = 40
 
     # --- Weather Configuration ---
     # JPEG compression quality settings for different weather conditions
@@ -794,7 +858,9 @@ class ExpertConfig(BaseConfig):
         LOW_COMPRESSION = normalize({80: 0.25, 85: 0.5, 90: 0.25})
         MILD_COMPRESSION = normalize({70: 0.1, 75: 0.25, 80: 0.4, 90: 0.2})
         MEDIUM_COMPRESSION = normalize({70: 0.2, 75: 0.2, 80: 0.15, 90: 0.2})
-        HIGH_COMPRESION = normalize({60: 0.05, 65: 0.1, 70: 0.1, 75: 0.2, 80: 0.1, 90: 0.2})
+        HIGH_COMPRESION = normalize(
+            {60: 0.05, 65: 0.1, 70: 0.1, 75: 0.2, 80: 0.1, 90: 0.2},
+        )
         VERY_HIGH_COMPRESION = normalize({55: 0.15, 65: 0.4, 75: 0.15, 90: 0.2})
         EXTREME_COMPRESSION = normalize({30: 0.2, 40: 0.35, 50: 0.15, 90: 0.2})
 
@@ -802,7 +868,9 @@ class ExpertConfig(BaseConfig):
             LOW_COMPRESSION = normalize({80: 0.30, 85: 0.5, 90: 0.2})
             MILD_COMPRESSION = normalize({70: 0.15, 75: 0.25, 80: 0.4, 90: 0.15})
             MEDIUM_COMPRESSION = normalize({70: 0.25, 75: 0.2, 80: 0.15, 90: 0.15})
-            HIGH_COMPRESION = normalize({60: 0.10, 65: 0.1, 70: 0.1, 75: 0.2, 80: 0.1, 90: 0.15})
+            HIGH_COMPRESION = normalize(
+                {60: 0.10, 65: 0.1, 70: 0.1, 75: 0.2, 80: 0.1, 90: 0.15},
+            )
             VERY_HIGH_COMPRESION = normalize({55: 0.20, 65: 0.4, 75: 0.15, 90: 0.15})
             EXTREME_COMPRESSION = normalize({30: 0.25, 40: 0.35, 50: 0.15, 90: 0.15})
 
@@ -879,7 +947,11 @@ class ExpertConfig(BaseConfig):
         ret = weathers.WEATHER_SETTINGS
         if self.target_dataset == TargetDataset.NAVSIM_4CAMERAS:
             # Keep only clear weather
-            return {k: v for k, v in ret.items() if weathers.WEATHER_VISIBILITY_MAPPING[k] == WeatherVisibility.CLEAR}
+            return {
+                k: v
+                for k, v in ret.items()
+                if weathers.WEATHER_VISIBILITY_MAPPING[k] == WeatherVisibility.CLEAR
+            }
         elif self.target_dataset == TargetDataset.WAYMO_E2E_2025_3CAMERAS:
             # Remove foggy weather
             return {k: v for k, v in ret.items() if v["fog_density"] < 20.0}

@@ -9,7 +9,7 @@ Ground plane removal from a point cloud. What this algorithm does:
 5. Return the final ground mask which is the union of all ground masks of every center.
 """
 
-from typing import Union
+import jaxtyping as jt
 import numpy as np
 import numpy.typing as npt
 from beartype import beartype
@@ -22,7 +22,9 @@ from lead.training.config_training import TrainingConfig
 @njit(cache=True)
 def extract_initial_seeds(P_segment, center, Th_center, N_LPR, Th_seeds):
     """Extract initial seed points for ground plane estimation. Choose the lowest points near center."""
-    dist = np.abs(P_segment[:, 0] - center[0]) + np.abs(P_segment[:, 1] - center[1])  # L1 distance
+    dist = np.abs(P_segment[:, 0] - center[0]) + np.abs(
+        P_segment[:, 1] - center[1],
+    )  # L1 distance
     P_near_center = P_segment[dist <= Th_center]
     P_sorted = P_near_center[np.argsort(P_near_center[:, 2])]
     if len(P_sorted) < N_LPR:
@@ -54,7 +56,15 @@ def height_difference_to_plane(plane, P):
 
 
 @njit(cache=True)
-def fit_plane_on_radial_segment(P_segment, center, N_iter, N_LPR, Th_seeds, Th_dist, Th_center):
+def fit_plane_on_radial_segment(
+    P_segment,
+    center,
+    N_iter,
+    N_LPR,
+    Th_seeds,
+    Th_dist,
+    Th_center,
+):
     """Fit ground plane for a radial_segment iteratively."""
     if len(P_segment) < 3:
         return np.zeros(P_segment.shape[0], dtype=np.bool_)
@@ -94,22 +104,55 @@ def divide_plane_into_radial_segments(P, center, n_segments):
 
 
 @njit(cache=True)
-def remove_ground_around_a_center(P, center, n_segments, N_iter, N_LPR, Th_seeds, Th_dist, Th_center):
+def remove_ground_around_a_center(
+    P,
+    center,
+    n_segments,
+    N_iter,
+    N_LPR,
+    Th_seeds,
+    Th_dist,
+    Th_center,
+):
     """Fit a ground plane for each radial segment around a center."""
-    radial_segments, segments_point_indices = divide_plane_into_radial_segments(P, center, n_segments)
+    radial_segments, segments_point_indices = divide_plane_into_radial_segments(
+        P,
+        center,
+        n_segments,
+    )
     plane_ground_mask = np.zeros(P.shape[0], dtype=np.bool_)
     loop_range = range(len(radial_segments))
     for i in loop_range:
-        radial_segment, segment_point_indices = radial_segments[i], segments_point_indices[i]
+        radial_segment, segment_point_indices = (
+            radial_segments[i],
+            segments_point_indices[i],
+        )
         radial_segment_ground_mask = fit_plane_on_radial_segment(
-            radial_segment, center, N_iter, N_LPR, Th_seeds, Th_dist, Th_center
+            radial_segment,
+            center,
+            N_iter,
+            N_LPR,
+            Th_seeds,
+            Th_dist,
+            Th_center,
         )
         plane_ground_mask[segment_point_indices] = radial_segment_ground_mask
     return plane_ground_mask
 
 
 @njit(cache=True)
-def fit_ground(P, centers, n_segments, N_iter, N_LPR, Th_seeds, Th_dist, Th_center, max_r, min_r):
+def fit_ground(
+    P,
+    centers,
+    n_segments,
+    N_iter,
+    N_LPR,
+    Th_seeds,
+    Th_dist,
+    Th_center,
+    max_r,
+    min_r,
+):
     """Fit ground plane for each center, return the conjunction of ground masks.."""
     n_points = P.shape[0]
     union_ground_mask = np.zeros(n_points, dtype=np.bool_)
@@ -117,22 +160,45 @@ def fit_ground(P, centers, n_segments, N_iter, N_LPR, Th_seeds, Th_dist, Th_cent
     loop_range = range(n_centers)
     for i in loop_range:
         center = centers[i]
-        distances_to_center = np.sum(np.abs(P[:, :2] - center[:2]), axis=1)  # L1 distance
-        if np.sum(distances_to_center < 20) < 3:  # If there are less than 5 points within 20m, skip. TODO: parametrize this.
+        distances_to_center = np.sum(
+            np.abs(P[:, :2] - center[:2]),
+            axis=1,
+        )  # L1 distance
+        if (
+            np.sum(distances_to_center < 20) < 3
+        ):  # If there are less than 5 points within 20m, skip. TODO: parametrize this.
             continue
         proximity_mask = (distances_to_center < max_r) & (
             distances_to_center > min_r
         )  # Only consider points within a certain radius
         points_within_radius = P[proximity_mask]
         center_ground_mask = remove_ground_around_a_center(
-            points_within_radius, center, n_segments, N_iter, N_LPR, Th_seeds, Th_dist, Th_center
+            points_within_radius,
+            center,
+            n_segments,
+            N_iter,
+            N_LPR,
+            Th_seeds,
+            Th_dist,
+            Th_center,
         )
         union_ground_mask[proximity_mask] |= center_ground_mask
     return union_ground_mask
 
 
 @njit(parallel=True, cache=True)
-def fit_ground_parallel(P, centers, n_segments, N_iter, N_LPR, Th_seeds, Th_dist, Th_center, max_r, min_r):
+def fit_ground_parallel(
+    P,
+    centers,
+    n_segments,
+    N_iter,
+    N_LPR,
+    Th_seeds,
+    Th_dist,
+    Th_center,
+    max_r,
+    min_r,
+):
     """Fit ground plane for each center, return the conjunction of ground masks.."""
     n_points = P.shape[0]
     union_ground_mask = np.zeros(n_points, dtype=np.bool_)
@@ -140,15 +206,27 @@ def fit_ground_parallel(P, centers, n_segments, N_iter, N_LPR, Th_seeds, Th_dist
     loop_range = prange(n_centers)
     for i in loop_range:
         center = centers[i]
-        distances_to_center = np.sum(np.abs(P[:, :2] - center[:2]), axis=1)  # L1 distance
-        if np.sum(distances_to_center < 20) < 3:  # If there are less than 5 points within 20m, skip. TODO: parametrize this.
+        distances_to_center = np.sum(
+            np.abs(P[:, :2] - center[:2]),
+            axis=1,
+        )  # L1 distance
+        if (
+            np.sum(distances_to_center < 20) < 3
+        ):  # If there are less than 5 points within 20m, skip. TODO: parametrize this.
             continue
         proximity_mask = (distances_to_center < max_r) & (
             distances_to_center > min_r
         )  # Only consider points within a certain radius
         points_within_radius = P[proximity_mask]
         center_ground_mask = remove_ground_around_a_center(
-            points_within_radius, center, n_segments, N_iter, N_LPR, Th_seeds, Th_dist, Th_center
+            points_within_radius,
+            center,
+            n_segments,
+            N_iter,
+            N_LPR,
+            Th_seeds,
+            Th_dist,
+            Th_center,
         )
         union_ground_mask[proximity_mask] |= center_ground_mask
     return union_ground_mask
@@ -156,8 +234,16 @@ def fit_ground_parallel(P, centers, n_segments, N_iter, N_LPR, Th_seeds, Th_dist
 
 def generate_center_grid(center_resolution, min_x, max_x, min_y, max_y):
     """Generate a grid of centers for ground plane fitting.."""
-    x_values = np.arange(min_x - center_resolution // 2, max_x + center_resolution, center_resolution)
-    y_values = np.arange(min_y - center_resolution // 2, max_y + center_resolution, center_resolution)
+    x_values = np.arange(
+        min_x - center_resolution // 2,
+        max_x + center_resolution,
+        center_resolution,
+    )
+    y_values = np.arange(
+        min_y - center_resolution // 2,
+        max_y + center_resolution,
+        center_resolution,
+    )
     grid_points = np.array([(x, y) for x in x_values for y in y_values])
     grid_points = [center for center in grid_points] + [[0, 0]]  # Add the origin
     return np.array(grid_points).reshape(-1, 2)
@@ -165,8 +251,8 @@ def generate_center_grid(center_resolution, min_x, max_x, min_y, max_y):
 
 @beartype
 def remove_ground(
-    P: np.ndarray,
-    config: Union[ExpertConfig, TrainingConfig],
+    P: jt.Float[npt.NDArray, "n 3"],
+    config: ExpertConfig | TrainingConfig,
     n_segments: int = 8,
     N_iter: int = 2,
     N_LPR: int = 64,
@@ -177,7 +263,7 @@ def remove_ground(
     max_r: float = 32.0,
     center_resolution: float = 28.0,
     parallel: bool = False,
-) -> np.ndarray:
+) -> jt.Bool[npt.NDArray, " n"]:
     """Remove ground points from a point cloud.
 
     Args:
@@ -201,11 +287,37 @@ def remove_ground(
     if P.dtype != np.float64:
         P = P.astype(np.float64)
     centers = generate_center_grid(
-        center_resolution, config.min_x_meter, config.max_x_meter, config.min_y_meter, config.max_y_meter
+        center_resolution,
+        config.min_x_meter,
+        config.max_x_meter,
+        config.min_y_meter,
+        config.max_y_meter,
     )
     if parallel:
-        mask = fit_ground_parallel(P, centers, n_segments, N_iter, N_LPR, Th_seeds, Th_dist, Th_center, max_r, min_r)
+        mask = fit_ground_parallel(
+            P,
+            centers,
+            n_segments,
+            N_iter,
+            N_LPR,
+            Th_seeds,
+            Th_dist,
+            Th_center,
+            max_r,
+            min_r,
+        )
     else:
-        mask = fit_ground(P, centers, n_segments, N_iter, N_LPR, Th_seeds, Th_dist, Th_center, max_r, min_r)
+        mask = fit_ground(
+            P,
+            centers,
+            n_segments,
+            N_iter,
+            N_LPR,
+            Th_seeds,
+            Th_dist,
+            Th_center,
+            max_r,
+            min_r,
+        )
     # mask = mask | ((P[:, 0] < 2.45) & (-2.45 < P[:, 0]) & (P[:, 1] < 1.06) & (-1.06 < P[:, 1]))  # Remove points inside ego
     return mask

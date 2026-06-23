@@ -1,4 +1,3 @@
-from typing import List, Union
 import os
 from enum import IntEnum
 
@@ -14,7 +13,7 @@ class Buckets(IntEnum):
 
 
 class Town13HeldoutPosttrainBucketCollection(AbstractBucketCollection):
-    def __init__(self, root: Union[str, List[str]], config: TrainingConfig):
+    def __init__(self, root: str | list[str], config: TrainingConfig):
         self.buckets = [Bucket(config), Bucket(config)]
         super().__init__(root, config)
         print("Using Town13 held-out post-train bucket collection")
@@ -43,5 +42,11 @@ class Town13HeldoutPosttrainBucketCollection(AbstractBucketCollection):
         )
 
     def buckets_mixture_per_epoch(self, _):
-        total_samples = len(self.buckets[Buckets.TOWN13]) + len(self.buckets[Buckets.OTHER_TOWNS])
-        return {Buckets.TOWN13: 0.0, Buckets.OTHER_TOWNS: total_samples / max(1, len(self.buckets[Buckets.OTHER_TOWNS]))}
+        total_samples = len(self.buckets[Buckets.TOWN13]) + len(
+            self.buckets[Buckets.OTHER_TOWNS],
+        )
+        return {
+            Buckets.TOWN13: 0.0,
+            Buckets.OTHER_TOWNS: total_samples
+            / max(1, len(self.buckets[Buckets.OTHER_TOWNS])),
+        }

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple, Union
-
 import io
 import lzma
 import os
@@ -9,57 +7,48 @@ import pickle
 from dataclasses import dataclass
 
 import cv2
+import jaxtyping as jt
 import numpy as np
 import numpy.typing as npt
 from beartype import beartype
 
-from lead.common.jaxtyping_stub import jt
 from lead.common import common_utils
 from lead.training.config_training import TrainingConfig
-
-# Compatibility aliases for legacy numpy type names used in annotations.
-if not hasattr(np, "ndarray32"):
-    np.ndarray32 = np.ndarray
-if not hasattr(np, "ndarray16"):
-    np.ndarray16 = np.ndarray
-if not hasattr(np, "ndarray8"):
-    np.ndarray8 = np.ndarray
-
-# Disable beartype runtime checks in this module to avoid evaluating complex annotations on Python 3.8.
-def _beartype_noop(obj=None, **_kwargs):
-    if obj is None:
-        return lambda fn: fn
-    return obj
-
-beartype = _beartype_noop
 
 
 @jt.jaxtyped(typechecker=beartype)
 @dataclass
 class SensorData:
     image: jt.UInt8[npt.NDArray, "img_height img_width 3"] | None
-    rasterized_lidar: np.ndarray32[npt.NDArray, "bev_height bev_width"] | None
+    rasterized_lidar: jt.Float32[npt.NDArray, "bev_height bev_width"] | None
     semantic: jt.UInt8[npt.NDArray, "img_height img_width"] | None
     hdmap: jt.UInt8[npt.NDArray, "bev_semantic_height bev_semantic_width"] | None
-    depth: np.ndarray32[npt.NDArray, "depth_img_height depth_img_width"] | None
-    boxes: np.ndarray32[npt.NDArray, "num_boxes features"] | None
-    boxes_waypoints: np.ndarray32[npt.NDArray, "num_boxes timesteps 2"] | None
+    depth: jt.Float32[npt.NDArray, "depth_img_height depth_img_width"] | None
+    boxes: jt.Float32[npt.NDArray, "num_boxes features"] | None
+    boxes_waypoints: jt.Float32[npt.NDArray, "num_boxes timesteps 2"] | None
     boxes_num_waypoints: jt.Int32[npt.NDArray, " num_boxes"] | None
-    bev_occupancy: jt.UInt8[npt.NDArray, "bev_occupancy_height bev_occupancy_width"] | None
+    bev_occupancy: (
+        jt.UInt8[npt.NDArray, "bev_occupancy_height bev_occupancy_width"] | None
+    )
     bev_3rd_person_image: jt.UInt8[npt.NDArray, "bev_img_height bev_img_width 3"] | None
     radars: (
-        Tuple[
-            np.ndarray16[npt.NDArray, "num_points_1 4"],
-            np.ndarray16[npt.NDArray, "num_points_2 4"],
-            np.ndarray16[npt.NDArray, "num_points_3 4"],
-            np.ndarray16[npt.NDArray, "num_points_4 4"],
+        tuple[
+            jt.Float16[npt.NDArray, "num_points_1 4"],
+            jt.Float16[npt.NDArray, "num_points_2 4"],
+            jt.Float16[npt.NDArray, "num_points_3 4"],
+            jt.Float16[npt.NDArray, "num_points_4 4"],
         ]
         | None
     )
-    radar_detections: np.ndarray32[npt.NDArray, "num_radar_queries radar_features"] | None
+    radar_detections: jt.Float32[npt.NDArray, "num_radar_queries radar_features"] | None
 
     @beartype
-    def compress(self, raw_image_bytes, config: TrainingConfig, current_measurement: dict) -> CompressedSensorData:
+    def compress(
+        self,
+        raw_image_bytes,
+        config: TrainingConfig,
+        current_measurement: dict,
+    ) -> CompressedSensorData:
         # LiDAR BEV
         compressed_lidar_bev = None
         if self.rasterized_lidar is not None:
@@ -73,7 +62,10 @@ class SensorData:
         # BEV semantic
         compressed_bev_semantic = None
         if self.hdmap is not None:
-            compressed_bev_semantic = compress_integer_image_lossless(self.hdmap, config)
+            compressed_bev_semantic = compress_integer_image_lossless(
+                self.hdmap,
+                config,
+            )
 
         # Depth
         compressed_depth = None
@@ -84,13 +76,17 @@ class SensorData:
         # BEV occupancy
         compressed_bev_occupancy = None
         if self.bev_occupancy is not None:
-            compressed_bev_occupancy = compress_integer_image_lossless(self.bev_occupancy, config)
+            compressed_bev_occupancy = compress_integer_image_lossless(
+                self.bev_occupancy,
+                config,
+            )
 
         # BEV 3rd person image
         compressed_bev_3rd_person_image = None
         if self.bev_3rd_person_image is not None:
             compressed_bev_3rd_person_image = compress_integer_image_lossy(
-                self.bev_3rd_person_image, current_measurement["jpeg_storage_quality"]
+                self.bev_3rd_person_image,
+                current_measurement["jpeg_storage_quality"],
             )
 
         # Radars
@@ -122,18 +118,36 @@ class SensorData:
 class CompressedSensorData:
     """Compressed version of SensorData for efficient storage."""
 
-    image: Union[bytes, None]  # JPEG compressed RGB image
-    lidar_bev: jt.UInt8[npt.NDArray, " lidar_bytes"] | None  # PNG compressed float image
-    semantic: jt.UInt8[npt.NDArray, " semantic_bytes"] | None  # PNG compressed integer image
-    bev_semantic: jt.UInt8[npt.NDArray, " bev_semantic_bytes"] | None  # PNG compressed integer image
-    depth: jt.UInt8[npt.NDArray, " depth_bytes"] | None  # PNG compressed 8-bit encoded depth
-    bboxes: np.ndarray32[npt.NDArray, "num_boxes features"] | None  # Uncompressed boxes
-    bboxes_waypoints: np.ndarray32[npt.NDArray, "num_boxes timesteps 2"] | None  # Uncompressed boxes waypoints
-    bboxes_num_waypoints: jt.Int32[npt.NDArray, " num_boxes"] | None  # Uncompressed boxes num waypoints
-    bev_occupancy: jt.UInt8[npt.NDArray, " bev_occupancy_bytes"] | None  # PNG compressed integer image
-    bev_3rd_person_image: jt.UInt8[npt.NDArray, " bev_3rd_person_bytes"] | None  # JPEG compressed BEV image (as numpy array)
-    radars: Tuple[bytes, ...] | None  # Tuple of compressed radar data
-    radar_detections: np.ndarray32[npt.NDArray, "num_radar_queries radar_features"] | None  # Uncompressed radar detections
+    image: bytes | None  # JPEG compressed RGB image
+    lidar_bev: (
+        jt.UInt8[npt.NDArray, " lidar_bytes"] | None
+    )  # PNG compressed float image
+    semantic: (
+        jt.UInt8[npt.NDArray, " semantic_bytes"] | None
+    )  # PNG compressed integer image
+    bev_semantic: (
+        jt.UInt8[npt.NDArray, " bev_semantic_bytes"] | None
+    )  # PNG compressed integer image
+    depth: (
+        jt.UInt8[npt.NDArray, " depth_bytes"] | None
+    )  # PNG compressed 8-bit encoded depth
+    bboxes: jt.Float32[npt.NDArray, "num_boxes features"] | None  # Uncompressed boxes
+    bboxes_waypoints: (
+        jt.Float32[npt.NDArray, "num_boxes timesteps 2"] | None
+    )  # Uncompressed boxes waypoints
+    bboxes_num_waypoints: (
+        jt.Int32[npt.NDArray, " num_boxes"] | None
+    )  # Uncompressed boxes num waypoints
+    bev_occupancy: (
+        jt.UInt8[npt.NDArray, " bev_occupancy_bytes"] | None
+    )  # PNG compressed integer image
+    bev_3rd_person_image: (
+        jt.UInt8[npt.NDArray, " bev_3rd_person_bytes"] | None
+    )  # JPEG compressed BEV image (as numpy array)
+    radars: tuple[bytes, ...] | None  # Tuple of compressed radar data
+    radar_detections: (
+        jt.Float32[npt.NDArray, "num_radar_queries radar_features"] | None
+    )  # Uncompressed radar detections
 
     @beartype
     def decompress(self) -> SensorData:
@@ -141,7 +155,10 @@ class CompressedSensorData:
         # RGB image
         decompressed_image = None
         if self.image is not None:
-            decompressed_image = cv2.imdecode(np.frombuffer(self.image, np.uint8), cv2.IMREAD_UNCHANGED)
+            decompressed_image = cv2.imdecode(
+                np.frombuffer(self.image, np.uint8),
+                cv2.IMREAD_UNCHANGED,
+            )
             decompressed_image = cv2.cvtColor(decompressed_image, cv2.COLOR_BGR2RGB)
 
         # LiDAR BEV
@@ -157,7 +174,10 @@ class CompressedSensorData:
         # BEV semantic
         decompressed_bev_semantic = None
         if self.bev_semantic is not None:
-            decompressed_bev_semantic = cv2.imdecode(self.bev_semantic, cv2.IMREAD_UNCHANGED)
+            decompressed_bev_semantic = cv2.imdecode(
+                self.bev_semantic,
+                cv2.IMREAD_UNCHANGED,
+            )
 
         # Depth
         decompressed_depth = None
@@ -168,19 +188,27 @@ class CompressedSensorData:
         # BEV occupancy
         decompressed_bev_occupancy = None
         if self.bev_occupancy is not None:
-            decompressed_bev_occupancy = cv2.imdecode(self.bev_occupancy, cv2.IMREAD_UNCHANGED)
+            decompressed_bev_occupancy = cv2.imdecode(
+                self.bev_occupancy,
+                cv2.IMREAD_UNCHANGED,
+            )
 
         # BEV 3rd person image
         decompressed_bev_3rd_person_image = None
         if self.bev_3rd_person_image is not None:
-            decompressed_bev_3rd_person_image = cv2.imdecode(self.bev_3rd_person_image, cv2.IMREAD_UNCHANGED)
+            decompressed_bev_3rd_person_image = cv2.imdecode(
+                self.bev_3rd_person_image,
+                cv2.IMREAD_UNCHANGED,
+            )
 
         # Radars
         decompressed_radars = None
         if self.radars is not None:
             decompressed_radars_list = []
             for compressed_radar in self.radars:
-                decompressed_radars_list.append(decompress_radar_lossless(compressed_radar))
+                decompressed_radars_list.append(
+                    decompress_radar_lossless(compressed_radar),
+                )
             decompressed_radars = tuple(decompressed_radars_list)
 
         return SensorData(
@@ -253,7 +281,10 @@ class PersistentCache:
 
 
 @beartype
-def compress_float_image(image: npt.NDArray, config: TrainingConfig) -> jt.UInt8[npt.NDArray, " N"]:
+def compress_float_image(
+    image: npt.NDArray,
+    config: TrainingConfig,
+) -> jt.UInt8[npt.NDArray, " N"]:
     """Compress a float image to PNG format for storage efficiency.
 
     Args:
@@ -268,7 +299,9 @@ def compress_float_image(image: npt.NDArray, config: TrainingConfig) -> jt.UInt8
     )
     scaled_image = (image * 65535.0).astype(np.uint16)  # Scale to 16-bit range
     success, compressed = cv2.imencode(
-        ".png", scaled_image, [int(cv2.IMWRITE_PNG_COMPRESSION), config.training_png_compression_level]
+        ".png",
+        scaled_image,
+        [int(cv2.IMWRITE_PNG_COMPRESSION), config.training_png_compression_level],
     )
     if not success:
         raise RuntimeError("Failed to compress float image")
@@ -276,7 +309,9 @@ def compress_float_image(image: npt.NDArray, config: TrainingConfig) -> jt.UInt8
 
 
 @beartype
-def decompress_float_image(compressed_image: jt.UInt8[npt.NDArray, " N"]) -> npt.NDArray:
+def decompress_float_image(
+    compressed_image: jt.UInt8[npt.NDArray, " N"],
+) -> npt.NDArray:
     """Decompress a PNG-compressed float image back to original format.
 
     Args:
@@ -285,7 +320,10 @@ def decompress_float_image(compressed_image: jt.UInt8[npt.NDArray, " N"]) -> npt
     Returns:
         Decompressed float image array with values in range [0, 1].
     """
-    decoded_image = cv2.imdecode(compressed_image, cv2.IMREAD_UNCHANGED).astype(np.float32) / 65535.0
+    decoded_image = (
+        cv2.imdecode(compressed_image, cv2.IMREAD_UNCHANGED).astype(np.float32)
+        / 65535.0
+    )
     assert 0 <= decoded_image.min() <= decoded_image.max() <= 1.0, (
         f"Decoded image values should be in range [0, 1]. Found {decoded_image.min()} to {decoded_image.max()}"
     )
@@ -293,7 +331,10 @@ def decompress_float_image(compressed_image: jt.UInt8[npt.NDArray, " N"]) -> npt
 
 
 @beartype
-def compress_integer_image_lossless(image: npt.NDArray, config: TrainingConfig) -> jt.UInt8[npt.NDArray, " N"]:
+def compress_integer_image_lossless(
+    image: npt.NDArray,
+    config: TrainingConfig,
+) -> jt.UInt8[npt.NDArray, " N"]:
     """Compress an integer image to PNG format using lossless compression.
 
     Args:
@@ -304,7 +345,11 @@ def compress_integer_image_lossless(image: npt.NDArray, config: TrainingConfig) 
         Compressed image as bytes in PNG format.
     """
     assert image.dtype == np.uint8, "Image must be of type np.uint8"
-    success, compressed = cv2.imencode(".png", image, [int(cv2.IMWRITE_PNG_COMPRESSION), config.training_png_compression_level])
+    success, compressed = cv2.imencode(
+        ".png",
+        image,
+        [int(cv2.IMWRITE_PNG_COMPRESSION), config.training_png_compression_level],
+    )
     if not success:
         raise RuntimeError("Failed to compress integer image")
     return compressed
@@ -322,7 +367,11 @@ def compress_integer_image_lossy(image: npt.NDArray, jpeg_quality: int) -> bytes
         Compressed image as bytes in JPEG format.
     """
     assert image.dtype == np.uint8, "Image must be of type np.uint8"
-    success, compressed = cv2.imencode(".jpg", image, [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality])
+    success, compressed = cv2.imencode(
+        ".jpg",
+        image,
+        [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality],
+    )
     if not success:
         raise RuntimeError("Failed to compress integer image lossy")
     return compressed

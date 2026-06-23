@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-from typing import List, Optional, Tuple, Union
 import io
 import os
 from copy import deepcopy
@@ -17,6 +14,7 @@ from PIL import Image, ImageDraw, ImageFont
 import lead.common.common_utils as common_utils
 import lead.common.constants as constants
 from lead.common.constants import (
+    CARLA_NAVIGATION_COMMAND_STR_MAP,
     RadarLabels,
     TransfuserBoundingBoxIndex,
 )
@@ -27,19 +25,12 @@ from lead.inference.open_loop_inference import OpenLoopPrediction
 from lead.tfv6.center_net_decoder import PredictedBoundingBox
 from lead.tfv6.tfv6 import Prediction
 from lead.training.config_training import TrainingConfig
+from lead.visualization import viz_utils
 
 
 class Visualizer:
     """Visualizer for LEAD training and inference results. This class provides methods to visualize various aspects
     of the LEAD model's groundtruths and predictions
-
-    Args:
-        config: Training configuration object.
-        data: Dictionary containing input data tensors.
-        prediction: Prediction object containing model outputs.
-        training: Boolean indicating if in training mode.
-        config_test_time: Configuration for test-time settings.
-        test_time: Boolean indicating if in test-time mode.
     """
 
     @beartype
@@ -47,11 +38,22 @@ class Visualizer:
         self,
         config: TrainingConfig,
         data: dict,
-        prediction: Optional[Union[Prediction, ClosedLoopPrediction, OpenLoopPrediction]],
+        prediction: Prediction | ClosedLoopPrediction | OpenLoopPrediction | None,
         training: bool = False,
-        config_test_time: Union[ClosedLoopConfig, None] = None,
+        config_test_time: ClosedLoopConfig | None = None,
         test_time: bool = False,
     ):
+        """
+        Initialize the Visualizer.
+
+        Args:
+            config: Training configuration object.
+            data: Dictionary containing input data tensors.
+            prediction: Prediction object containing model outputs.
+            training: Boolean indicating if in training mode.
+            config_test_time: Configuration for test-time settings.
+            test_time: Boolean indicating if in test-time mode.
+        """
         self.test_time = test_time
         self.training = training
         self.config = config
@@ -65,11 +67,20 @@ class Visualizer:
         # Initialize variables for visualization
         self.rasterized_lidar = data.get("rasterized_lidar")
 
-        self.size_width = int((self.config.max_y_meter - self.config.min_y_meter) * self.config.pixels_per_meter)
-        self.size_height = int((self.config.max_x_meter - self.config.min_x_meter) * self.config.pixels_per_meter)
+        self.size_width = int(
+            (self.config.max_y_meter - self.config.min_y_meter)
+            * self.config.pixels_per_meter,
+        )
+        self.size_height = int(
+            (self.config.max_x_meter - self.config.min_x_meter)
+            * self.config.pixels_per_meter,
+        )
         self.origin = (
             (self.size_height * self.scale_factor)
-            // ((self.config.max_x_meter - self.config.min_x_meter) / max((-self.config.min_x_meter), 1)),
+            // (
+                (self.config.max_x_meter - self.config.min_x_meter)
+                / max((-self.config.min_x_meter), 1)
+            ),
             (self.size_width * self.scale_factor) // 2,
         )
         self.loc_pixels_per_meter = self.config.pixels_per_meter * self.scale_factor
@@ -88,19 +99,23 @@ class Visualizer:
 
         self.bev_image = cv2.resize(
             bev_img,
-            dsize=(bev_img.shape[1] * self.scale_factor, bev_img.shape[0] * self.scale_factor),
+            dsize=(
+                bev_img.shape[1] * self.scale_factor,
+                bev_img.shape[0] * self.scale_factor,
+            ),
             interpolation=cv2.INTER_NEAREST,
         )
 
         self.meta_panel = 255 * np.ones((639, 1492, 3), dtype=np.uint8)
         if self.test_time:
-            self.meta_panel = 255 * np.ones((250, 1492, 3), dtype=np.uint8)
+            self.meta_panel = 255 * np.ones((115, 1492, 3), dtype=np.uint8)
 
     def visualize_training_labels(self):
+        """Visualize groundtruth labels during training."""
         # Perspectives
         self._process_all_perspectives()
 
-        # Bev
+        # BEV
         self._bev_semantic(ground_truth=True)
         self._route()
         self._future_waypoints()
@@ -110,7 +125,6 @@ class Visualizer:
         self._radars(plot_detection_label=True, plot_detection_prediction=False)
         self.bev_image = np.rot90(self.bev_image, k=1)
         self.bev_image = np.ascontiguousarray(self.bev_image)
-        self.draw_tokenization_grid()
 
         # Text
         self._meta()
@@ -119,10 +133,11 @@ class Visualizer:
         return self._concatenate_all_perspectives_and_bev()
 
     def visualize_training_prediction(self):
+        """Visualize model predictions during training."""
         # Perspective
         self._process_all_perspectives(training=True)
 
-        # Image
+        # BEV
         self._bev_semantic(ground_truth=False)
         self._target_point()
         if self.config.use_planning_decoder:
@@ -135,8 +150,6 @@ class Visualizer:
         self.bev_image = np.rot90(self.bev_image, k=1)
         self.bev_image = np.ascontiguousarray(self.bev_image)
 
-        self.draw_tokenization_grid()
-
         # Text
         self._meta()
 
@@ -144,13 +157,14 @@ class Visualizer:
         return self._concatenate_all_perspectives_and_bev()
 
     def visualize_inference_prediction(self):
+        """Visualize model predictions during inference."""
         # Perspective
         self._process_all_perspectives(training=True)
 
         # BEV
         self._bev_semantic(ground_truth=False)
         self._pred_route()
-        self._pred_future_waypoints()
+        # self._pred_future_waypoints()
         self._target_point()
         self._radars(plot_detection_label=False, plot_detection_prediction=True)
         self._ego_bounding_box()
@@ -158,27 +172,10 @@ class Visualizer:
         self.bev_image = np.rot90(self.bev_image, k=1)
         self.bev_image = np.ascontiguousarray(self.bev_image)
 
-        self.draw_tokenization_grid()
-
         # Text
         self._meta()
 
         return self._concatenate_all_perspectives_and_bev()
-
-    def draw_tokenization_grid(self, grid_size_meters=8):
-        """Draw light grid lines on the BEV image to demonstrate tokenization process."""
-        grid_spacing_pixels = int(grid_size_meters * self.loc_pixels_per_meter)
-        height, width = self.bev_image.shape[:2]
-        line_color = (220, 220, 220)
-        line_thickness = 2
-
-        # Draw vertical lines
-        for x in range(0, width, grid_spacing_pixels):
-            cv2.line(self.bev_image, (x, 0), (x, height), line_color, line_thickness)
-
-        # Draw horizontal lines
-        for y in range(0, height, grid_spacing_pixels):
-            cv2.line(self.bev_image, (0, y), (width, y), line_color, line_thickness)
 
     def _radars(self, plot_detection_label: bool, plot_detection_prediction: bool):
         if not self.config.use_radars:
@@ -190,39 +187,6 @@ class Visualizer:
 
         vmax = 20.0  # m/s for scaling radius
         min_r, max_r = 1.0, 20  # px
-
-        def draw_gaussian_blob(x, y, size, color, filled=True):
-            """Draw a 2D Gaussian blob"""
-            # Create a small patch around the point
-            patch_size = int(size * 2.5)  # Make patch larger than the blob
-
-            # Create coordinate grids
-            xx, yy = np.meshgrid(np.arange(-patch_size, patch_size + 1), np.arange(-patch_size, patch_size + 1))
-
-            # 2D Gaussian formula
-            sigma = size  # Standard deviation
-            gaussian = np.exp(-(xx**2 + yy**2) / (2 * sigma**2))
-
-            # Normalize to 0-255 range
-            if filled:
-                gaussian = (gaussian * 255).astype(np.uint8)
-            else:
-                # For outline, create a ring-like effect
-                gaussian = ((gaussian > 0.1) & (gaussian < 0.5)).astype(np.uint8) * 255
-
-            # Apply the blob to the image
-            y1, y2 = max(0, y - patch_size), min(bev.shape[0], y + patch_size + 1)
-            x1, x2 = max(0, x - patch_size), min(bev.shape[1], x + patch_size + 1)
-
-            # Adjust gaussian patch to fit within image bounds
-            gy1, gy2 = max(0, patch_size - y), min(gaussian.shape[0], patch_size + bev.shape[0] - y)
-            gx1, gx2 = max(0, patch_size - x), min(gaussian.shape[1], patch_size + bev.shape[1] - x)
-
-            if y2 > y1 and x2 > x1 and gy2 > gy1 and gx2 > gx1:
-                # Blend the gaussian with the existing image
-                for c in range(3):  # For each color channel
-                    alpha = gaussian[gy1:gy2, gx1:gx2] / 255.0
-                    bev[y1:y2, x1:x2, c] = (bev[y1:y2, x1:x2, c] * (1 - alpha) + color[c] * alpha).astype(np.uint8)
 
         # Visualize raw radars
         for i in range(1, self.config.num_radar_sensors + 1):
@@ -245,16 +209,27 @@ class Visualizer:
                 px = int(origin[0] + xm * ppm)
                 py = int(origin[1] + ym * ppm)
 
-                rpx = int(np.clip(min_r + (abs(vk) / vmax) * (max_r - min_r), min_r, max_r))
+                rpx = int(
+                    np.clip(min_r + (abs(vk) / vmax) * (max_r - min_r), min_r, max_r),
+                )
                 filled = vk > 0  # filled = approaching, outline = receding
 
-                draw_gaussian_blob(px, py, rpx, constants.RADAR_COLOR, filled)
+                viz_utils.draw_gaussian_blob(
+                    bev,
+                    px,
+                    py,
+                    rpx,
+                    constants.RADAR_COLOR,
+                    filled,
+                )
 
         # Visualize radar detections labels
         if plot_detection_label:
             radar_detections = self.data.get("radar_detections")
             radar_detection_waypoints = self.data.get("radar_detection_waypoints")
-            radar_detection_num_waypoints = self.data.get("radar_detection_num_waypoints")
+            radar_detection_num_waypoints = self.data.get(
+                "radar_detection_num_waypoints",
+            )
 
             if radar_detections is not None:
                 radar_detections = radar_detections[0].cpu().numpy()
@@ -264,26 +239,52 @@ class Visualizer:
                 if valid_detections.shape[0] > 0:
                     x = valid_detections[:, 0]  # x coordinates
                     y = valid_detections[:, 1]  # y coordinates
-                    v = np.abs(np.nan_to_num(valid_detections[:, 2], nan=0.0))  # velocity magnitude
+                    v = np.abs(
+                        np.nan_to_num(valid_detections[:, 2], nan=0.0),
+                    )  # velocity magnitude
 
                     for xm, ym, vk in zip(x, y, v, strict=False):
                         px = int(origin[0] + xm * ppm)
                         py = int(origin[1] + ym * ppm)
 
-                        rpx = 1 + int(np.clip(min_r + (abs(vk) / vmax) * (max_r - min_r), min_r, max_r))
+                        rpx = 1 + int(
+                            np.clip(
+                                min_r + (abs(vk) / vmax) * (max_r - min_r),
+                                min_r,
+                                max_r,
+                            ),
+                        )
                         filled = vk > 0  # filled = approaching, outline = receding
-                        draw_gaussian_blob(px, py, rpx, constants.RADAR_DETECTION_COLOR, filled)
+                        viz_utils.draw_gaussian_blob(
+                            bev,
+                            px,
+                            py,
+                            rpx,
+                            constants.RADAR_DETECTION_COLOR,
+                            filled,
+                        )
 
                 # Draw waypoints for valid detections
-                if radar_detection_waypoints is not None and radar_detection_num_waypoints is not None:
-                    radar_detection_waypoints = radar_detection_waypoints[0].cpu().numpy()
-                    radar_detection_num_waypoints = radar_detection_num_waypoints[0].cpu().numpy()
+                if (
+                    radar_detection_waypoints is not None
+                    and radar_detection_num_waypoints is not None
+                ):
+                    radar_detection_waypoints = (
+                        radar_detection_waypoints[0].cpu().numpy()
+                    )
+                    radar_detection_num_waypoints = (
+                        radar_detection_num_waypoints[0].cpu().numpy()
+                    )
 
                     # Get waypoints only for valid detections
                     valid_waypoints = radar_detection_waypoints[valid_mask]
                     valid_num_waypoints = radar_detection_num_waypoints[valid_mask]
 
-                    for waypoints, num_wps in zip(valid_waypoints, valid_num_waypoints, strict=False):
+                    for waypoints, num_wps in zip(
+                        valid_waypoints,
+                        valid_num_waypoints,
+                        strict=False,
+                    ):
                         if num_wps > 0:
                             # Draw waypoints as small circles
                             for i in range(int(num_wps)):
@@ -324,7 +325,11 @@ class Visualizer:
                                 )
 
         # Visualize radar detection predictions
-        if plot_detection_prediction and self.predictions is not None and self.predictions.pred_radar_predictions is not None:
+        if (
+            plot_detection_prediction
+            and self.predictions is not None
+            and self.predictions.pred_radar_predictions is not None
+        ):
             radar_predictions = self.predictions.pred_radar_predictions[0].cpu()
             valid_mask = torch.sigmoid(radar_predictions[:, RadarLabels.VALID]) > 0.5
             valid_predictions = radar_predictions[valid_mask].detach().float().numpy()
@@ -332,19 +337,34 @@ class Visualizer:
             if valid_predictions.shape[0] > 0:
                 x = valid_predictions[:, 0]  # x coordinates
                 y = valid_predictions[:, 1]  # y coordinates
-                v = np.abs(np.nan_to_num(valid_predictions[:, 2], nan=0.0))  # velocity magnitude
+                v = np.abs(
+                    np.nan_to_num(valid_predictions[:, 2], nan=0.0),
+                )  # velocity magnitude
 
                 for xm, ym, vk in zip(x, y, v, strict=False):
                     px = int(origin[0] + xm * ppm)
                     py = int(origin[1] + ym * ppm)
 
-                    rpx = 1 + int(np.clip(min_r + (abs(vk) / vmax) * (max_r - min_r), min_r, max_r))
+                    rpx = 1 + int(
+                        np.clip(
+                            min_r + (abs(vk) / vmax) * (max_r - min_r),
+                            min_r,
+                            max_r,
+                        ),
+                    )
                     filled = vk > 0  # filled = approaching, outline = receding
-                    draw_gaussian_blob(px, py, rpx, constants.RADAR_DETECTION_COLOR, filled)
+                    viz_utils.draw_gaussian_blob(
+                        bev,
+                        px,
+                        py,
+                        rpx,
+                        constants.RADAR_DETECTION_COLOR,
+                        filled,
+                    )
 
     def _process_all_perspectives(self, training=False):
         self.perspectives = {}
-        for perspective_modality in ["rgb", "semantic"]:
+        for perspective_modality in ["rgb", "semantic"]:  # , "depth"]:
             if not training:
                 perspective = self.data.get(perspective_modality)
             else:
@@ -365,11 +385,20 @@ class Visualizer:
                 else:
                     perspective = perspective.unsqueeze(0)
 
-            perspective_image = perspective.permute(1, 2, 0).detach().cpu().float().numpy().astype(np.uint8)
+            perspective_image = (
+                perspective.permute(1, 2, 0)
+                .detach()
+                .cpu()
+                .float()
+                .numpy()
+                .astype(np.uint8)
+            )
             perspective_image = np.ascontiguousarray(perspective_image)
 
             if perspective_modality == "semantic":
-                converter = np.uint8(list(constants.TRANSFUSER_SEMANTIC_COLORS.values()))
+                converter = np.uint8(
+                    list(constants.TRANSFUSER_SEMANTIC_COLORS.values()),
+                )
                 perspective_image = converter[perspective_image[..., 0]]
             if perspective_modality == "depth":
                 image = perspective_image[..., 0].astype(np.float32)
@@ -378,10 +407,73 @@ class Visualizer:
                 log_image -= log_image.min()
                 log_image /= log_image.max() + 1e-6
                 log_image = (log_image * 255).astype(np.uint8)
-                perspective_image = cv2.applyColorMap(log_image, cv2.COLORMAP_PLASMA)
+                perspective_image = cv2.applyColorMap(log_image, cv2.COLORMAP_WINTER)
+
+            # Draw target speed prediction on RGB image
+            if (
+                perspective_modality == "rgb"
+                and training
+                and self.predictions is not None
+            ):
+                if (
+                    hasattr(self.predictions, "pred_target_speed_scalar")
+                    and self.predictions.pred_target_speed_scalar is not None
+                ):
+                    pred_speed = float(
+                        self.predictions.pred_target_speed_scalar.detach()
+                        .cpu()
+                        .float()[0],
+                    )
+
+                    # Position: lower middle of the image
+                    img_height, img_width = perspective_image.shape[:2]
+                    text = f"Target Speed: {pred_speed:.1f} m/s"
+
+                    # Use PIL for better text rendering
+                    img_pil = Image.fromarray(perspective_image)
+                    draw = ImageDraw.Draw(img_pil)
+
+                    try:
+                        font = ImageFont.truetype("3rd_party/Roboto-Bold.ttf", 20)
+                    except:
+                        font = ImageFont.load_default()
+
+                    # Get text size
+                    bbox = draw.textbbox((0, 0), text, font=font)
+                    text_width = bbox[2] - bbox[0]
+                    text_height = bbox[3] - bbox[1]
+
+                    # Position at lower middle
+                    x = (img_width - text_width) // 2
+                    y = img_height - text_height - 20
+
+                    # Draw background rectangle for better visibility
+                    padding_horizontal = 6
+                    padding_top = 3
+                    padding_bottom = 6
+                    draw.rectangle(
+                        [
+                            (x - padding_horizontal, y - padding_top),
+                            (
+                                x + text_width + padding_horizontal,
+                                y + text_height + padding_bottom,
+                            ),
+                        ],
+                        fill=(0, 0, 0, 180),
+                    )
+
+                    # Draw text in white
+                    draw.text((x, y), text, font=font, fill=(255, 255, 255))
+
+                    perspective_image = np.array(img_pil)
+
             self.perspectives[perspective_modality] = perspective_image
 
-    def _concatenate_all_perspectives_and_bev(self, border_size: int = 10, border_color: tuple = (255, 255, 255)) -> np.ndarray:
+    def _concatenate_all_perspectives_and_bev(
+        self,
+        border_size: int = 10,
+        border_color: tuple = (255, 255, 255),
+    ) -> np.ndarray:
         """
         Concatenate all perspectives vertically, then add BEV on the left side with white borders.
 
@@ -401,7 +493,7 @@ class Visualizer:
         perspective_images = []
         target_width = lidar_image.shape[1]  # Use BEV width as reference
 
-        for modality in ["rgb", "semantic"]:  # Define order
+        for modality in ["rgb", "semantic"]:  # , "depth"]:  # Define order
             if modality in self.perspectives:
                 img = np.ascontiguousarray(self.perspectives[modality], dtype=np.uint8)
                 # Resize to match target width
@@ -418,7 +510,13 @@ class Visualizer:
             # Add top border (except for first image)
             if i > 0:
                 top_border = np.full(
-                    (border_size, img.shape[1], img.shape[2] if len(img.shape) == 3 else 1), border_color, dtype=np.uint8
+                    (
+                        border_size,
+                        img.shape[1],
+                        img.shape[2] if len(img.shape) == 3 else 1,
+                    ),
+                    border_color,
+                    dtype=np.uint8,
                 )
                 if len(img.shape) == 2:  # Grayscale
                     top_border = top_border.squeeze(-1)
@@ -429,15 +527,30 @@ class Visualizer:
         # Concatenate all perspectives vertically
         stacked_perspectives = np.concatenate(bordered_perspectives, axis=0)
 
+        self.stacked_perspectives = stacked_perspectives
+
         # Add only right border to perspectives (left border will be shared with BEV)
         if len(stacked_perspectives.shape) == 3:
             right_border = np.full(
-                (stacked_perspectives.shape[0], border_size, stacked_perspectives.shape[2]), border_color, dtype=np.uint8
+                (
+                    stacked_perspectives.shape[0],
+                    border_size,
+                    stacked_perspectives.shape[2],
+                ),
+                border_color,
+                dtype=np.uint8,
             )
         else:  # Grayscale
-            right_border = np.full((stacked_perspectives.shape[0], border_size), border_color[0], dtype=np.uint8)
+            right_border = np.full(
+                (stacked_perspectives.shape[0], border_size),
+                border_color[0],
+                dtype=np.uint8,
+            )
 
-        stacked_perspectives = np.concatenate((stacked_perspectives, right_border), axis=1)
+        stacked_perspectives = np.concatenate(
+            (stacked_perspectives, right_border),
+            axis=1,
+        )
 
         # Resize BEV to match the total height of stacked perspectives
         target_height = stacked_perspectives.shape[0]
@@ -447,57 +560,120 @@ class Visualizer:
         # Add only left border to BEV (right border will be shared with perspectives)
         if len(lidar_resized.shape) == 3:
             bev_left_border = np.full(
-                (lidar_resized.shape[0], border_size, lidar_resized.shape[2]), border_color, dtype=np.uint8
+                (lidar_resized.shape[0], border_size, lidar_resized.shape[2]),
+                border_color,
+                dtype=np.uint8,
             )
         else:  # Grayscale
-            bev_left_border = np.full((lidar_resized.shape[0], border_size), border_color[0], dtype=np.uint8)
+            bev_left_border = np.full(
+                (lidar_resized.shape[0], border_size),
+                border_color[0],
+                dtype=np.uint8,
+            )
 
         lidar_bordered = np.concatenate((bev_left_border, lidar_resized), axis=1)
 
         # Add shared border between BEV and perspectives
         if len(lidar_bordered.shape) == 3:
             shared_border = np.full(
-                (lidar_bordered.shape[0], border_size, lidar_bordered.shape[2]), border_color, dtype=np.uint8
+                (lidar_bordered.shape[0], border_size, lidar_bordered.shape[2]),
+                border_color,
+                dtype=np.uint8,
             )
         else:  # Grayscale
-            shared_border = np.full((lidar_bordered.shape[0], border_size), border_color[0], dtype=np.uint8)
+            shared_border = np.full(
+                (lidar_bordered.shape[0], border_size),
+                border_color[0],
+                dtype=np.uint8,
+            )
 
         # Concatenate BEV on the left, shared border, then perspectives on the right
-        ret = np.concatenate((lidar_bordered, shared_border, stacked_perspectives), axis=1)
+        ret = np.concatenate(
+            (lidar_bordered, shared_border, stacked_perspectives),
+            axis=1,
+        )
 
         # Add third person view if available
         if self.config.load_bev_3rd_person_images:
             third_person_image = self.data.get("bev_3rd_person")
             if third_person_image is not None:
                 third_person_image = third_person_image[0].detach().cpu().numpy()
-                third_person_image = np.ascontiguousarray(third_person_image, dtype=np.uint8)
+                third_person_image = np.ascontiguousarray(
+                    third_person_image,
+                    dtype=np.uint8,
+                )
 
                 target_height = ret.shape[0]
-                target_width = int(third_person_image.shape[1] * (target_height / third_person_image.shape[0]))
-                third_person_image = cv2.resize(third_person_image, (target_width, target_height))
+                target_width = int(
+                    third_person_image.shape[1]
+                    * (target_height / third_person_image.shape[0]),
+                )
+                third_person_image = cv2.resize(
+                    third_person_image,
+                    (target_width, target_height),
+                )
 
                 # Add borders to third person view
                 if len(third_person_image.shape) == 3:
                     tp_left_border = np.full(
-                        (third_person_image.shape[0], border_size, third_person_image.shape[2]), border_color, dtype=np.uint8
+                        (
+                            third_person_image.shape[0],
+                            border_size,
+                            third_person_image.shape[2],
+                        ),
+                        border_color,
+                        dtype=np.uint8,
                     )
                     tp_right_border = np.full(
-                        (third_person_image.shape[0], border_size, third_person_image.shape[2]), border_color, dtype=np.uint8
+                        (
+                            third_person_image.shape[0],
+                            border_size,
+                            third_person_image.shape[2],
+                        ),
+                        border_color,
+                        dtype=np.uint8,
                     )
                 else:  # Grayscale
-                    tp_left_border = np.full((third_person_image.shape[0], border_size), border_color[0], dtype=np.uint8)
-                    tp_right_border = np.full((third_person_image.shape[0], border_size), border_color[0], dtype=np.uint8)
+                    tp_left_border = np.full(
+                        (third_person_image.shape[0], border_size),
+                        border_color[0],
+                        dtype=np.uint8,
+                    )
+                    tp_right_border = np.full(
+                        (third_person_image.shape[0], border_size),
+                        border_color[0],
+                        dtype=np.uint8,
+                    )
 
-                third_person_bordered = np.concatenate((tp_left_border, third_person_image, tp_right_border), axis=1)
+                third_person_bordered = np.concatenate(
+                    (tp_left_border, third_person_image, tp_right_border),
+                    axis=1,
+                )
                 ret = np.concatenate((ret, third_person_bordered), axis=1)
 
         # Add top and bottom borders to the entire composition
         if len(ret.shape) == 3:
-            top_border = np.full((border_size, ret.shape[1], ret.shape[2]), border_color, dtype=np.uint8)
-            bottom_border = np.full((border_size, ret.shape[1], ret.shape[2]), border_color, dtype=np.uint8)
+            top_border = np.full(
+                (border_size, ret.shape[1], ret.shape[2]),
+                border_color,
+                dtype=np.uint8,
+            )
+            bottom_border = np.full(
+                (border_size, ret.shape[1], ret.shape[2]),
+                border_color,
+                dtype=np.uint8,
+            )
         else:  # Grayscale
-            top_border = np.full((border_size, ret.shape[1]), border_color[0], dtype=np.uint8)
-            bottom_border = np.full((border_size, ret.shape[1]), border_color[0], dtype=np.uint8)
+            top_border = np.full(
+                (border_size, ret.shape[1]),
+                border_color[0],
+                dtype=np.uint8,
+            )
+            bottom_border = np.full(
+                (border_size, ret.shape[1]),
+                border_color[0],
+                dtype=np.uint8,
+            )
 
         ret = np.concatenate((top_border, ret, bottom_border), axis=0)
 
@@ -510,10 +686,16 @@ class Visualizer:
         # Add border above meta panel
         if len(meta_panel_resized.shape) == 3:
             meta_top_border = np.full(
-                (border_size, meta_panel_resized.shape[1], meta_panel_resized.shape[2]), border_color, dtype=np.uint8
+                (border_size, meta_panel_resized.shape[1], meta_panel_resized.shape[2]),
+                border_color,
+                dtype=np.uint8,
             )
         else:
-            meta_top_border = np.full((border_size, meta_panel_resized.shape[1]), border_color[0], dtype=np.uint8)
+            meta_top_border = np.full(
+                (border_size, meta_panel_resized.shape[1]),
+                border_color[0],
+                dtype=np.uint8,
+            )
 
         ret = np.concatenate((ret, meta_top_border, meta_panel_resized), axis=0)
 
@@ -534,7 +716,9 @@ class Visualizer:
 
         # Visualization
         if bev_semantic is not None:
-            converter = np.array(list(constants.CARLA_TRANSFUSER_BEV_SEMANTIC_COLOR_CONVERTER.values()))
+            converter = np.array(
+                list(constants.CARLA_TRANSFUSER_BEV_SEMANTIC_COLOR_CONVERTER.values()),
+            )
             converter[1][0:3] = 40
             bev_semantic_image = converter[bev_semantic, ...].astype("uint8")
             alpha = np.ones_like(bev_semantic) * 0.33
@@ -563,33 +747,54 @@ class Visualizer:
         target_point_next = self.data.get("target_point_next")
         target_point_previous = self.data.get("target_point_previous")
 
-        def draw_square(x, y, color, size):
-            """Draw a square"""
-            half_size = size // 2
-
-            # Define square corners
-            top_left = (x - half_size, y - half_size)
-            bottom_right = (x + half_size, y + half_size)
-
-            cv2.rectangle(self.bev_image, top_left, bottom_right, color, thickness=-1)
-
         if target_point_previous is not None:
-            x_tp = target_point_previous[0][0] * self.loc_pixels_per_meter + self.origin[0]
-            y_tp = target_point_previous[0][1] * self.loc_pixels_per_meter + self.origin[1]
-            draw_square(int(x_tp), int(y_tp), constants.TP_DEFAULT_COLOR, size=16)
+            x_tp = (
+                target_point_previous[0][0] * self.loc_pixels_per_meter + self.origin[0]
+            )
+            y_tp = (
+                target_point_previous[0][1] * self.loc_pixels_per_meter + self.origin[1]
+            )
+            viz_utils.draw_circle_with_number(
+                self.bev_image,
+                int(x_tp),
+                int(y_tp),
+                constants.TP_DEFAULT_COLOR,
+                radius=14,
+                number=0,
+            )
 
         if target_point_next is not None:
             x_tp = target_point_next[0][0] * self.loc_pixels_per_meter + self.origin[0]
             y_tp = target_point_next[0][1] * self.loc_pixels_per_meter + self.origin[1]
-            draw_square(int(x_tp), int(y_tp), constants.TP_DEFAULT_COLOR, size=16)
+            viz_utils.draw_circle_with_number(
+                self.bev_image,
+                int(x_tp),
+                int(y_tp),
+                constants.TP_DEFAULT_COLOR,
+                radius=14,
+                number=2,
+            )
 
         if target_point is not None:
             x_tp = target_point[0][0] * self.loc_pixels_per_meter + self.origin[0]
             y_tp = target_point[0][1] * self.loc_pixels_per_meter + self.origin[1]
-            draw_square(int(x_tp), int(y_tp), constants.TP_DEFAULT_COLOR, size=36)
+            viz_utils.draw_circle_with_number(
+                self.bev_image,
+                int(x_tp),
+                int(y_tp),
+                constants.TP_DEFAULT_COLOR,
+                radius=18,
+                number=1,
+            )
 
     @beartype
-    def _draw_points_in_perspective(self, points: NDArray, size: int, connected: bool, color: Tuple[int, int, int]):
+    def _draw_points_in_perspective(
+        self,
+        points: NDArray,
+        size: int,
+        connected: bool,
+        color: tuple[int, int, int],
+    ):
         if not (len(points) > 0 and points.shape[0] > 0):
             return
         # Image
@@ -619,7 +824,12 @@ class Visualizer:
         for i in range(3):
             # Project points to current camera
             projected_points, inside_image = common_utils.project_points_to_image(
-                camera_rots[i], camera_poses[i], camera_fovs[i], camera_widths[i], camera_height, points
+                camera_rots[i],
+                camera_poses[i],
+                camera_fovs[i],
+                camera_widths[i],
+                camera_height,
+                points,
             )
 
             if connected:
@@ -654,7 +864,9 @@ class Visualizer:
 
     def _route(self):
         route = self.data.get("route")
-        if route is not None and (self.config.use_planning_decoder or self.config.visualize_dataset):
+        if route is not None and (
+            self.config.use_planning_decoder or self.config.visualize_dataset
+        ):
             wps = route.detach().cpu().numpy()[0]
 
             for i in range(len(wps) - 1):
@@ -663,7 +875,11 @@ class Visualizer:
                 x2 = int(wps[i + 1][0] * self.loc_pixels_per_meter + self.origin[0])
                 y2 = int(wps[i + 1][1] * self.loc_pixels_per_meter + self.origin[1])
 
-                color = common_utils.ligher_shade(constants.PREDICTION_ROUTE_COLOR, i, len(wps))
+                color = viz_utils.lighter_shade(
+                    constants.PREDICTION_ROUTE_COLOR,
+                    i,
+                    len(wps),
+                )
                 cv2.line(
                     self.bev_image,
                     (x1, y1),
@@ -672,7 +888,10 @@ class Visualizer:
                     thickness=constants.PREDICTION_ROUTE_RADIUS,
                     lineType=cv2.LINE_AA,
                 )
-            self._draw_points_in_perspective(points=wps, size=3, connected=True, color=constants.PREDICTION_ROUTE_COLOR)
+            # self._draw_points_in_perspective(points=wps,
+            #                                  size=3,
+            #                                  connected=True,
+            #                                  color=constants.PREDICTION_ROUTE_COLOR)
 
     def _future_waypoints(self):
         if self.config.use_planning_decoder or self.config.visualize_dataset:
@@ -684,7 +903,11 @@ class Visualizer:
                     for i, wp in enumerate(wps):
                         wp_x = wp[0] * self.loc_pixels_per_meter + self.origin[0]
                         wp_y = wp[1] * self.loc_pixels_per_meter + self.origin[1]
-                        color = common_utils.ligher_shade(constants.GROUNDTRUTH_FUTURE_WAYPOINT_COLOR, i, len(wps))
+                        color = viz_utils.lighter_shade(
+                            constants.GROUNDTRUTH_FUTURE_WAYPOINT_COLOR,
+                            i,
+                            len(wps),
+                        )
                         cv2.circle(
                             self.bev_image,
                             (int(wp_x), int(wp_y)),
@@ -692,7 +915,10 @@ class Visualizer:
                             color=color,
                             thickness=-1,
                         )
-                self._draw_points_in_perspective(points=wps, size=5, connected=False, color=constants.PREDICTION_WAYPOINT_COLOR)
+                # self._draw_points_in_perspective(points=wps,
+                #                                  size=5,
+                #                                  connected=False,
+                #                                  color=constants.PREDICTION_WAYPOINT_COLOR)
 
             past_waypoints = self.data.get("past_waypoints")
             # past_yaws = self.data.get("past_yaws")
@@ -701,7 +927,11 @@ class Visualizer:
                 for i, wp in enumerate(wps):
                     wp_x = wp[0] * self.loc_pixels_per_meter + self.origin[0]
                     wp_y = wp[1] * self.loc_pixels_per_meter + self.origin[1]
-                    color = common_utils.ligher_shade(constants.GROUND_TRUTH_PAST_WAYPOINT_COLOR, i, len(wps))
+                    color = viz_utils.lighter_shade(
+                        constants.GROUND_TRUTH_PAST_WAYPOINT_COLOR,
+                        i,
+                        len(wps),
+                    )
                     cv2.circle(
                         self.bev_image,
                         (int(wp_x), int(wp_y)),
@@ -717,7 +947,11 @@ class Visualizer:
             for i in range(len(wps) - 1):
                 x1 = int(wps[i][0] * self.loc_pixels_per_meter + self.origin[0])
                 y1 = int(wps[i][1] * self.loc_pixels_per_meter + self.origin[1])
-                color = common_utils.ligher_shade(constants.PREDICTION_ROUTE_COLOR, i, len(wps))
+                color = viz_utils.lighter_shade(
+                    constants.PREDICTION_ROUTE_COLOR,
+                    i,
+                    len(wps),
+                )
                 cv2.circle(
                     self.bev_image,
                     (x1, y1),
@@ -725,7 +959,7 @@ class Visualizer:
                     color=color,
                     thickness=-1,
                 )
-            self._draw_points_in_perspective(points=wps, size=3, connected=True, color=constants.PREDICTION_ROUTE_COLOR)
+            # self._draw_points_in_perspective(points=wps, size=3, connected=True, color=constants.PREDICTION_ROUTE_COLOR)
 
     def _pred_future_waypoints(self):
         pred_waypoints = self.predictions.pred_future_waypoints
@@ -734,7 +968,11 @@ class Visualizer:
             for i, wp in enumerate(wps):
                 wp_x = wp[0] * self.loc_pixels_per_meter + self.origin[0]
                 wp_y = wp[1] * self.loc_pixels_per_meter + self.origin[1]
-                color = common_utils.ligher_shade(constants.PREDICTION_WAYPOINT_COLOR, i, len(wps))
+                color = viz_utils.lighter_shade(
+                    constants.PREDICTION_WAYPOINT_COLOR,
+                    i,
+                    len(wps),
+                )
                 cv2.circle(
                     self.bev_image,
                     (int(wp_x), int(wp_y)),
@@ -742,53 +980,91 @@ class Visualizer:
                     color=color,
                     thickness=-1,
                 )
-            self._draw_points_in_perspective(points=wps, size=5, connected=False, color=constants.PREDICTION_WAYPOINT_COLOR)
+            # self._draw_points_in_perspective(points=wps, size=5, connected=False, color=constants.PREDICTION_WAYPOINT_COLOR)
 
     def _ego_bounding_box(self):
+        """Visualize ego bounding box on BEV image."""
         ego_box = np.array(
             [
-                int(self.bev_image.shape[1] * (-self.config.min_x_meter / (self.config.max_x_meter - self.config.min_x_meter))),
+                int(
+                    self.bev_image.shape[1]
+                    * (
+                        -self.config.min_x_meter
+                        / (self.config.max_x_meter - self.config.min_x_meter)
+                    ),
+                ),
                 int(self.bev_image.shape[0] / 2),
                 self.config.ego_extent_x * self.loc_pixels_per_meter,
                 self.config.ego_extent_y * self.loc_pixels_per_meter,
                 np.deg2rad(0.0),
-                0.0,
-            ]
+                self.data.get("speed")[0].item(),
+            ],
         )
-        self.bev_image = draw_box(self.bev_image, ego_box, color=constants.EGO_BB_COLOR, thickness=4)
+        self.bev_image = viz_utils.draw_box(
+            self.bev_image,
+            ego_box,
+            color=constants.EGO_BB_COLOR,
+            thickness=4,
+        )
 
     def _pred_bounding_box(self):
+        """Visualize predicted bounding boxes on BEV image."""
         if self.config.detect_boxes:
             if isinstance(self.predictions, OpenLoopPrediction):
-                pred_bounding_boxes: List[PredictedBoundingBox] = self.predictions.pred_bounding_box_image_system
+                pred_bounding_boxes: list[PredictedBoundingBox] = (
+                    self.predictions.pred_bounding_box_image_system
+                )
                 for box in pred_bounding_boxes:
                     if box.score < self.config.bb_confidence_threshold:
                         continue
                     box = deepcopy(box)
                     inv_brake = 1.0 - box.brake
-                    color_box = deepcopy(list(constants.TRANSFUSER_BOUNDING_BOX_COLORS.values())[box.clazz])
+                    color_box = deepcopy(
+                        list(constants.TRANSFUSER_BOUNDING_BOX_COLORS.values())[
+                            box.clazz
+                        ],
+                    )
                     color_box = list(color_box)
                     color_box[1] = color_box[1] * inv_brake
                     box = box.scale(self.scale_factor)
-                    self.bev_image = draw_box(self.bev_image, box, color=color_box)
+                    self.bev_image = viz_utils.draw_box(
+                        self.bev_image,
+                        box,
+                        color=color_box,
+                    )
 
-            elif isinstance(self.predictions, Prediction) and self.predictions.pred_bounding_box is not None:
-                bb = self.predictions.pred_bounding_box.pred_bounding_box_image_system[0]
+            elif (
+                isinstance(self.predictions, Prediction)
+                and self.predictions.pred_bounding_box is not None
+            ):
+                bb = self.predictions.pred_bounding_box.pred_bounding_box_image_system[
+                    0
+                ]
                 if bb is not None:
                     for box in bb:
-                        if box[TransfuserBoundingBoxIndex.SCORE] < self.config.bb_confidence_threshold:
+                        if (
+                            box[TransfuserBoundingBoxIndex.SCORE]
+                            < self.config.bb_confidence_threshold
+                        ):
                             continue
                         box = deepcopy(box)
                         inv_brake = 1.0 - box[6]
                         color_box = deepcopy(
-                            list(constants.TRANSFUSER_BOUNDING_BOX_COLORS.values())[int(box[TransfuserBoundingBoxIndex.CLASS])]
+                            list(constants.TRANSFUSER_BOUNDING_BOX_COLORS.values())[
+                                int(box[TransfuserBoundingBoxIndex.CLASS])
+                            ],
                         )
                         color_box = list(color_box)
                         color_box[1] = color_box[1] * inv_brake
                         box[:4] = box[:4] * self.scale_factor
-                        self.bev_image = draw_box(self.bev_image, box, color=color_box)
+                        self.bev_image = viz_utils.draw_box(
+                            self.bev_image,
+                            box,
+                            color=color_box,
+                        )
 
     def _bounding_boxes(self):
+        """Visualize ground truth bounding boxes on BEV image."""
         bounding_boxes = self.data.get("center_net_bounding_boxes")
         if bounding_boxes is not None:
             bounding_boxes = bounding_boxes.detach().cpu().numpy()[0]
@@ -798,9 +1074,15 @@ class Visualizer:
                 box = deepcopy(box)
                 box[:4] = box[:4] * self.scale_factor
                 color_box = deepcopy(
-                    list(constants.TRANSFUSER_BOUNDING_BOX_COLORS.values())[int(box[TransfuserBoundingBoxIndex.CLASS])]
+                    list(constants.TRANSFUSER_BOUNDING_BOX_COLORS.values())[
+                        int(box[TransfuserBoundingBoxIndex.CLASS])
+                    ],
                 )
-                self.bev_image = draw_box(self.bev_image, box, color=color_box)
+                self.bev_image = viz_utils.draw_box(
+                    self.bev_image,
+                    box,
+                    color=color_box,
+                )
         vehicles_future_waypoints = self.data.get("vehicles_future_waypoints")
         vehicle_future_yaws = self.data.get("vehicles_future_yaws")
 
@@ -810,7 +1092,11 @@ class Visualizer:
                 for i, wp in enumerate(wps):
                     wp_x = wp[0] * self.loc_pixels_per_meter + self.origin[0]
                     wp_y = wp[1] * self.loc_pixels_per_meter + self.origin[1]
-                    color = common_utils.ligher_shade(constants.GROUNDTRUTH_BB_WP_COLOR, i, len(wps))
+                    color = viz_utils.lighter_shade(
+                        constants.GROUNDTRUTH_BB_WP_COLOR,
+                        i,
+                        len(wps),
+                    )
                     cv2.circle(
                         self.bev_image,
                         (int(wp_x), int(wp_y)),
@@ -820,31 +1106,75 @@ class Visualizer:
                     )
 
         if vehicles_future_waypoints is not None and vehicle_future_yaws is not None:
-            for future_box_waypoints, future_box_yaws in zip(vehicles_future_waypoints, vehicle_future_yaws, strict=False):
+            for future_box_waypoints, future_box_yaws in zip(
+                vehicles_future_waypoints,
+                vehicle_future_yaws,
+                strict=False,
+            ):
                 wps = future_box_waypoints[0]
                 yaws = future_box_yaws[0]
                 for i, wp in enumerate(wps):
-                    color = common_utils.ligher_shade(constants.GROUNDTRUTH_BB_WP_COLOR, i, len(wps))
+                    color = viz_utils.lighter_shade(
+                        constants.GROUNDTRUTH_BB_WP_COLOR,
+                        i,
+                        len(wps),
+                    )
                     self._draw_bounding_box_from_waypoint(
-                        wp[0], wp[1], yaws[i], self.config.ego_extent_x, self.config.ego_extent_y, color=color
+                        wp[0],
+                        wp[1],
+                        yaws[i],
+                        self.config.ego_extent_x,
+                        self.config.ego_extent_y,
+                        color=color,
                     )
 
     def _meta(self):
+        """Render meta information panel."""
         # Configuration variables
-        max_rows_per_column = 30
         column_width = 400
 
         # Starting position
         start_x = 10
-        start_y = 30
+        start_y = 10
         line_height = 20
         separator = "-" * 45
+
+        # Define units for attributes
+        units_map = {
+            # Velocities
+            "speed": "m/s",
+            "target_speed": "m/s",
+            "second_highest_speed": "m/s",
+            "speed_limit": "m/s",
+            "target_speed_limit": "m/s",
+            "second_highest_speed_limit": "m/s",
+            # Accelerations
+            "accel_x": "m/s²",
+            "accel_y": "m/s²",
+            "accel_z": "m/s²",
+            "privileged_acceleration": "m/s²",
+            # Distances
+            "distance_to_next_junction": "m",
+            "distance_to_junction": "m",
+            "signed_dist_to_lane_change": "m",
+            "distance_to_stop_sign": "m",
+            "meters_travelled": "m",
+            "ego_lane_width": "m",
+            "perturbation_translation": "m",
+            # Angles
+            "theta": "rad",
+            "privileged_yaw": "rad",
+            "perturbation_rotation": "rad",
+            # Angular velocities
+            "angular_velocity_x": "rad/s",
+            "angular_velocity_y": "rad/s",
+            "angular_velocity_z": "rad/s",
+        }
 
         # Collect all text lines
         text_lines = []
 
-        # First group - float values with 2 decimal places
-        group_text_lines = []
+        # Collect all attributes - float values with 2 decimal places
         for attr_name in [
             "steer",
             "throttle",
@@ -880,14 +1210,25 @@ class Visualizer:
                 attr_data = attr_data[0]
                 if isinstance(attr_data, torch.Tensor):
                     attr_data = attr_data.item()
-                group_text_lines.append(f"{attr_name} {attr_data:.2f}")
+                unit = units_map.get(attr_name, "")
+                unit_str = f" {unit}" if unit else ""
+                text_lines.append(f"{attr_name} {attr_data:.2f}{unit_str}")
 
-        text_lines += sorted(group_text_lines)
-        if len(group_text_lines) > 0 and not self.test_time:
-            text_lines.append(separator)
+        # Add navigation command in natural language
+        for nav in ["command", "next_command"]:
+            nav_command_data = self.data.get(nav)
+            if nav_command_data is not None:
+                nav_command_value = nav_command_data[0].argmax()
+                if isinstance(nav_command_value, torch.Tensor):
+                    nav_command_value = int(nav_command_value.item())
+                else:
+                    nav_command_value = int(nav_command_value)
+                nav_command_text = CARLA_NAVIGATION_COMMAND_STR_MAP.get(
+                    nav_command_value,
+                )
+                text_lines.append(f"{nav} {nav_command_text}")
 
-        # Second group - other values
-        group_text_lines = []
+        # Collect other values
         for attr_name in [
             "vehicle_hazard",
             "light_hazard",
@@ -919,10 +1260,6 @@ class Visualizer:
             "rear_adversarial_id",
             "stuck_detector",
             "force_move",
-            "urgent_lane_change",
-            "pre_urgent_lane_change",
-            "post_urgent_lane_change",
-            "near_urgent_lane_change",
             "bucket_identity",
             "perturbate_sensor",
         ]:
@@ -931,12 +1268,9 @@ class Visualizer:
                 attr_data = attr_data[0]
                 if isinstance(attr_data, torch.Tensor):
                     attr_data = attr_data.item()
-                group_text_lines.append(f"{attr_name} {attr_data}")
-        text_lines += sorted(group_text_lines)
-        if len(group_text_lines) > 0 and not self.test_time:
-            text_lines.append(separator)
+                text_lines.append(f"{attr_name} {attr_data}")
 
-        # Third group - Long Stuff
+        # Collect long text attributes
         for attr_name in [
             "route_number",
             "current_active_scenario_type",
@@ -950,55 +1284,132 @@ class Visualizer:
                     attr_data = attr_data.item()
                 text_lines.append(f"{attr_name} {attr_data}")
 
-        # Fourth group - Prediction
+        # Collect prediction values
         if self.predictions is not None:
-            text_lines.append("new_column")
             if self.predictions.pred_target_speed_scalar is not None:
-                text_lines += [
-                    f"pred_target_speed: {float(self.predictions.pred_target_speed_scalar.detach().cpu().float()[0]):.2f} m/s"
-                ]
+                text_lines.append(
+                    f"pred_target_speed {float(self.predictions.pred_target_speed_scalar.detach().cpu().float()[0]):.2f} m/s",
+                )
 
+        # Collect target points
         for attr_name in ["target_point_previous", "target_point", "target_point_next"]:
             attr_data = self.data.get(attr_name)
             if attr_data is not None:
                 attr_data = attr_data[0]
                 if isinstance(attr_data, torch.Tensor):
                     attr_data = attr_data.detach().cpu().numpy()
-                text_lines.append(f"{attr_name}: {np.array2string(attr_data, precision=2, separator=', ')}")
+                text_lines.append(
+                    f"{attr_name} (x={attr_data[0]:.1f}m, y={attr_data[1]:.1f}m)",
+                )
 
-        # Load font once
-        font = ImageFont.truetype("3rd_party/Roboto-Regular.ttf", 17)
+        # Sort all lines alphabetically
+        text_lines = sorted(text_lines)
 
-        # Draw all text lines
-        current_column = 0
-        current_row = 0
+        # Load fonts once
+        font_regular = ImageFont.truetype("3rd_party/Roboto-Regular.ttf", 17)
+        font_bold = ImageFont.truetype("3rd_party/Roboto-Bold.ttf", 17)
+
         img_pil = Image.fromarray(self.meta_panel)
         draw = ImageDraw.Draw(img_pil)
 
+        # Fixed layout parameters
+        column_width = 350
+        num_columns = 4
+        start_x = 10
+        start_y = 10
+        line_height = 20
+
+        # Process text lines and prepare items
+        items = []
         for text in text_lines:
             if text == "new_column":
-                current_row = 0
-                current_column += 1
+                continue
+            if text == separator:
+                items.append({"type": "separator", "text": text})
                 continue
 
-            x = start_x + current_column * column_width
-            y = start_y + current_row * line_height
+            # Split text into attribute name and value
+            if " " in text or ":" in text:
+                split_idx = text.find(" ") if " " in text else text.find(":")
+                if text.find(":") != -1 and (
+                    text.find(" ") == -1 or text.find(":") < text.find(" ")
+                ):
+                    split_idx = text.find(":")
+                    attr_name_part = text[: split_idx + 1]
+                    value_part = text[split_idx + 1 :].strip()
+                else:
+                    attr_name_part = text[:split_idx]
+                    value_part = text[split_idx:].strip()
 
-            # Draw text with PIL instead of cv2.putText
-            draw.text((x, y), text, font=font, fill=(0, 0, 0))
+                # Calculate widths for right-alignment
+                value_bbox = draw.textbbox((0, 0), value_part, font=font_regular)
+                value_width = value_bbox[2] - value_bbox[0]
 
-            current_row += 1
-            if current_row >= max_rows_per_column:
-                current_row = 0
-                current_column += 1
+                items.append(
+                    {
+                        "type": "item",
+                        "name": attr_name_part,
+                        "value": value_part,
+                        "value_width": value_width,
+                    },
+                )
+            else:
+                items.append({"type": "other", "text": text})
+
+        # Draw all text lines (left to right, top to bottom)
+        item_index = 0
+        for item in items:
+            if item["type"] == "separator":
+                # Draw separator across all columns on current row
+                row = item_index // num_columns
+                y = start_y + row * line_height
+                draw.text((start_x, y), item["text"], font=font_regular, fill=(0, 0, 0))
+                item_index += 1
+                continue
+
+            if item["type"] == "other":
+                row = item_index // num_columns
+                col = item_index % num_columns
+                x = start_x + col * column_width
+                y = start_y + row * line_height
+                draw.text((x, y), item["text"], font=font_regular, fill=(0, 0, 0))
+                item_index += 1
+                continue
+
+            if item["type"] == "item":
+                row = item_index // num_columns
+                col = item_index % num_columns
+                x = start_x + col * column_width
+                y = start_y + row * line_height
+
+                # Draw attribute name in bold, left aligned
+                draw.text((x, y), item["name"], font=font_bold, fill=(0, 0, 0))
+
+                # Draw value right-aligned within this column's space
+                value_x = x + column_width - item["value_width"] - 20
+                draw.text(
+                    (value_x, y),
+                    item["value"],
+                    font=font_regular,
+                    fill=(0, 0, 0),
+                )
+                item_index += 1
 
         # Convert back to cv2
         self.meta_panel = np.array(img_pil)
 
     def _draw_bounding_box_from_waypoint(
-        self, ego_x: float, ego_y: float, ego_yaw: float, extent_x: float, extent_y: float, color
+        self,
+        ego_x: float,
+        ego_y: float,
+        ego_yaw: float,
+        extent_x: float,
+        extent_y: float,
+        color,
     ):
-        bb = np.array([ego_x, ego_y, self.config.ego_extent_x, self.config.ego_extent_y, ego_yaw])
+        bb = np.array(
+            [ego_x, ego_y, self.config.ego_extent_x, self.config.ego_extent_y, ego_yaw],
+        )
         bb = carla_dataset_utils.bb_vehicle_to_image_system(
             bb[None],
             pixels_per_meter=self.config.pixels_per_meter,
@@ -1006,79 +1417,12 @@ class Visualizer:
             min_y=self.config.min_y_meter,
         )[0]
         bb[:4] = bb[:4] * self.scale_factor
-        self.bev_image = draw_box(
+        self.bev_image = viz_utils.draw_box(
             self.bev_image,
             bb,
             color=color,
             thickness=1,
         )
-
-
-def draw_box(
-    img,
-    box,
-    color=(255, 255, 255),
-    thickness=2,
-    corner_radius=2,
-):
-    translation = np.array([[box[1], box[0]]])
-    width = box[TransfuserBoundingBoxIndex.W]
-    height = box[TransfuserBoundingBoxIndex.H]
-    yaw = -box[TransfuserBoundingBoxIndex.YAW] + np.pi / 2
-    rot = np.array([[np.cos(yaw), -np.sin(yaw)], [np.sin(yaw), np.cos(yaw)]])
-    corners = np.array([[-width, -height], [width, -height], [width, height], [-width, height]])
-    corner_global = (rot @ corners.T).T + translation
-    corner_global = corner_global.astype(int)
-
-    # Draw edges with rounded corners
-    for i in range(4):
-        r0, c0 = corner_global[i]
-        r1, c1 = corner_global[(i + 1) % 4]
-        r2, c2 = corner_global[(i + 2) % 4]
-
-        # Calculate shortened line segment (leave space for arc)
-        vec1 = np.array([c1 - c0, r1 - r0])
-        vec2 = np.array([c2 - c1, r2 - r1])
-
-        len1 = np.linalg.norm(vec1)
-        len2 = np.linalg.norm(vec2)
-
-        if len1 > corner_radius and len2 > corner_radius:
-            # Shorten lines by corner_radius
-            unit1 = vec1 / len1
-            unit2 = vec2 / len2
-
-            start_point = (int(c0 + unit1[0] * corner_radius), int(r0 + unit1[1] * corner_radius))
-            end_point = (int(c1 - unit1[0] * corner_radius), int(r1 - unit1[1] * corner_radius))
-
-            # Draw the shortened line
-            cv2.line(img, start_point, end_point, color, thickness=thickness, lineType=cv2.LINE_AA)
-
-            # Draw arc at corner
-            # Calculate arc parameters
-            center = (c1, r1)
-            start_angle = np.degrees(np.arctan2(-unit1[1], -unit1[0]))
-            end_angle = np.degrees(np.arctan2(unit2[1], unit2[0]))
-
-            # Handle angle wraparound
-            if end_angle - start_angle > 180:
-                end_angle -= 360
-            elif start_angle - end_angle > 180:
-                start_angle -= 360
-
-            cv2.ellipse(
-                img,
-                center,
-                (corner_radius, corner_radius),
-                0,
-                start_angle,
-                end_angle,
-                color,
-                thickness=thickness,
-                lineType=cv2.LINE_AA,
-            )
-
-    return img
 
 
 def visualize_sample(
@@ -1134,7 +1478,12 @@ def visualize_sample(
             prediction_resized.save(f"{save_path}/prediction_{postfix}.png")
 
         # Visualize ground truth labels
-        visualizer = Visualizer(config, data=data, prediction=predictions, training=True)
+        visualizer = Visualizer(
+            config,
+            data=data,
+            prediction=predictions,
+            training=True,
+        )
         ground_truth = visualizer.visualize_training_labels()
         ground_truth_pil = Image.fromarray(ground_truth)  # Convert to PIL image
         new_size = (
@@ -1167,15 +1516,43 @@ def visualize_feature_maps(
     _, axs = plt.subplots(n_rows, n_cols, figsize=(24, 12))
     images = [
         (data["rasterized_lidar"][0, 0].detach().cpu().numpy(), "BEV LiDAR", "hot"),
-        (data["center_net_heatmap"][0, 0].detach().cpu().numpy(), "Heatmap Label", "hot"),
+        (
+            data["center_net_heatmap"][0, 0].detach().cpu().numpy(),
+            "Heatmap Label",
+            "hot",
+        ),
         (data["center_net_wh"][0, 0].detach().cpu().numpy(), "WH Label", "hot"),
-        (data["center_net_yaw_class"][0].detach().cpu().numpy(), "Yaw Class Label", "hot"),
-        (data["center_net_yaw_res"][0, 0].detach().cpu().numpy(), "Yaw Res Label", "hot"),
+        (
+            data["center_net_yaw_class"][0].detach().cpu().numpy(),
+            "Yaw Class Label",
+            "hot",
+        ),
+        (
+            data["center_net_yaw_res"][0, 0].detach().cpu().numpy(),
+            "Yaw Res Label",
+            "hot",
+        ),
         (data["center_net_offset"][0, 0].detach().cpu().numpy(), "Offset Label", "hot"),
-        (data["center_net_velocity"][0, 0].detach().cpu().numpy(), "Velocity Label", "hot"),
+        (
+            data["center_net_velocity"][0, 0].detach().cpu().numpy(),
+            "Velocity Label",
+            "hot",
+        ),
         (data["bev_semantic"][0].detach().cpu().numpy(), "BEV Semantic Label", "hot"),
-        (predictions.pred_bounding_box.center_heatmap_pred[0].detach().argmax(0).cpu().numpy(), "Heatmap Prediction", "hot"),
-        (predictions.pred_bev_semantic[0].detach().argmax(0).cpu().numpy(), "BEV Semantic Prediction", "hot"),
+        (
+            predictions.pred_bounding_box.center_heatmap_pred[0]
+            .detach()
+            .argmax(0)
+            .cpu()
+            .numpy(),
+            "Heatmap Prediction",
+            "hot",
+        ),
+        (
+            predictions.pred_bev_semantic[0].detach().argmax(0).cpu().numpy(),
+            "BEV Semantic Prediction",
+            "hot",
+        ),
         (
             predictions.pred_future_waypoints[0].detach().cpu().numpy()
             if predictions.pred_future_waypoints is not None
@@ -1183,7 +1560,13 @@ def visualize_feature_maps(
             "Waypoints",
             "hot",
         ),
-        (predictions.pred_route[0].detach().cpu().numpy() if predictions.pred_route is not None else None, "Route", "hot"),
+        (
+            predictions.pred_route[0].detach().cpu().numpy()
+            if predictions.pred_route is not None
+            else None,
+            "Route",
+            "hot",
+        ),
         (data.get("radar")[0].cpu().numpy(), "Radar Input", "hot"),
         (data.get("radar_detections"), "Radar Detection Label", "hot"),
         (predictions.pred_radar_predictions, "Radar Detection Prediction", "hot"),
@@ -1259,7 +1642,10 @@ def visualize_feature_maps(
         buf = io.BytesIO()
         plt.savefig(buf, format="png", dpi=150)
         buf.seek(0)
-        wandb.log({"train_viz/feature_maps": wandb.Image(Image.open(buf))}, commit=False)
+        wandb.log(
+            {"train_viz/feature_maps": wandb.Image(Image.open(buf))},
+            commit=False,
+        )
         buf.close()
 
     plt.close()

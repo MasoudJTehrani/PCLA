@@ -8,9 +8,10 @@ import math
 import xml.etree.ElementTree as ET
 from collections import deque
 from copy import deepcopy
-from typing import Any, Dict, List, Tuple, Union, Optional
+from typing import Any
 
 import carla
+import jaxtyping as jt
 import numpy as np
 import numpy.typing as npt
 from leaderboard_codes.global_route_planner import GlobalRoutePlanner
@@ -40,16 +41,16 @@ class RoutePlanner:
         self.min_distance = min_distance
         self.max_distance = max_distance
         self.is_last = False
-        self.previous_target_points: List[np.ndarray] = []
-        self.previous_commands: List[Any] = []
+        self.previous_target_points: list[jt.Float[npt.NDArray, 3]] = []
+        self.previous_commands: list[Any] = []
 
     def set_route(
         self,
-        global_plan: List[Tuple[Any, Any]],
+        global_plan: list[tuple[Any, Any]],
         gps: bool = False,
-        carla_map: Optional[carla.Map] = None,
-        lat_ref: Union[float, None] = None,
-        lon_ref: Union[float, None] = None,
+        carla_map: carla.Map | None = None,
+        lat_ref: float | None = None,
+        lon_ref: float | None = None,
     ) -> None:
         """Set the global route plan for navigation.
 
@@ -74,7 +75,11 @@ class RoutePlanner:
 
         if carla_map is not None:
             for _ in range(50):
-                loc = carla.Location(x=self.route[-1][0][0], y=self.route[-1][0][1], z=self.route[-1][0][2])
+                loc = carla.Location(
+                    x=self.route[-1][0][0],
+                    y=self.route[-1][0][1],
+                    z=self.route[-1][0][2],
+                )
                 next_loc = carla_map.get_waypoint(loc).next(1)[0].transform.location
                 next_loc = np.array([next_loc.x, next_loc.y, next_loc.z])
                 self.route.append((next_loc, self.route[-1][1]))
@@ -87,7 +92,7 @@ class RoutePlanner:
             distance = (diff[0] ** 2 + diff[1] ** 2) ** 0.5
             self.route_distances.append(distance)
 
-    def run_step(self, gps: np.ndarray) -> deque:
+    def run_step(self, gps: jt.Float[npt.NDArray, " 3"]) -> deque:
         """Execute one step of route planning based on current GPS position.
 
         Args:
@@ -141,8 +146,28 @@ class RoutePlanner:
         """
         # because self.route saves objects of traffic lights and traffic signs a deep copy is not possible
         self.saved_route = []
-        for loc, cmd, d_traffic, traffic, d_stop, stop, speed_limit, corrected_speed_limit in self.route:
-            self.saved_route.append((np.copy(loc), cmd, d_traffic, traffic, d_stop, stop, speed_limit, corrected_speed_limit))
+        for (
+            loc,
+            cmd,
+            d_traffic,
+            traffic,
+            d_stop,
+            stop,
+            speed_limit,
+            corrected_speed_limit,
+        ) in self.route:
+            self.saved_route.append(
+                (
+                    np.copy(loc),
+                    cmd,
+                    d_traffic,
+                    traffic,
+                    d_stop,
+                    stop,
+                    speed_limit,
+                    corrected_speed_limit,
+                ),
+            )
 
         self.saved_route = deque(self.saved_route)
         self.saved_route_distances = deepcopy(self.route_distances)
@@ -162,8 +187,11 @@ class RoutePlanner:
 
 
 def interpolate_trajectory(
-    world_map: carla.Map, waypoints_trajectory: List[carla.Location], hop_resolution: float = 1.0, max_len: int = 400
-) -> Tuple[List[Tuple[Dict[str, float], Any]], List[Tuple[carla.Transform, Any]]]:
+    world_map: carla.Map,
+    waypoints_trajectory: list[carla.Location],
+    hop_resolution: float = 1.0,
+    max_len: int = 400,
+) -> tuple[list[tuple[dict[str, float], Any]], list[tuple[carla.Transform, Any]]]:
     """Interpolate a dense trajectory from sparse keypoints.
 
     Given raw keypoints, interpolate a full dense trajectory to be used
@@ -199,13 +227,17 @@ def interpolate_trajectory(
             else:
                 for wp, connection in interpolated_trace:
                     route.append((wp.transform, connection))
-                    gps_coord = _location_to_gps(lat_ref, lon_ref, wp.transform.location)
+                    gps_coord = _location_to_gps(
+                        lat_ref,
+                        lon_ref,
+                        wp.transform.location,
+                    )
                     gps_route.append((gps_coord, connection))
 
     return gps_route, route
 
 
-def _get_latlon_ref(world_map: carla.Map) -> Tuple[float, float]:
+def _get_latlon_ref(world_map: carla.Map) -> tuple[float, float]:
     """Extract latitude and longitude reference from CARLA map.
 
     Converts from waypoints world coordinates to CARLA GPS coordinates
@@ -237,7 +269,11 @@ def _get_latlon_ref(world_map: carla.Map) -> Tuple[float, float]:
     return lat_ref, lon_ref
 
 
-def _location_to_gps(lat_ref: float, lon_ref: float, location: carla.Location) -> Dict[str, float]:
+def _location_to_gps(
+    lat_ref: float,
+    lon_ref: float,
+    location: carla.Location,
+) -> dict[str, float]:
     """Convert from world coordinates to GPS coordinates.
 
     Transforms CARLA world coordinates to GPS latitude/longitude
@@ -255,7 +291,11 @@ def _location_to_gps(lat_ref: float, lon_ref: float, location: carla.Location) -
     EARTH_RADIUS_EQUA = 6378137.0  # pylint: disable=invalid-name
     scale = math.cos(lat_ref * math.pi / 180.0)
     mx = scale * lon_ref * math.pi * EARTH_RADIUS_EQUA / 180.0
-    my = scale * EARTH_RADIUS_EQUA * math.log(math.tan((90.0 + lat_ref) * math.pi / 360.0))
+    my = (
+        scale
+        * EARTH_RADIUS_EQUA
+        * math.log(math.tan((90.0 + lat_ref) * math.pi / 360.0))
+    )
     mx += location.x
     my -= location.y
 

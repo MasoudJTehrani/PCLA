@@ -1,4 +1,3 @@
-from typing import Dict, List, Union
 import abc
 import logging
 import lzma
@@ -8,7 +7,7 @@ import pickle
 import random
 import sys
 import typing
-from typing import Generator
+from collections.abc import Generator
 
 from beartype import beartype
 from tqdm import tqdm
@@ -20,10 +19,10 @@ LOG = logging.getLogger(__name__)
 
 
 class AbstractBucketCollection(abc.ABC):
-    buckets: List[Bucket] = []
+    buckets: list[Bucket] = []
 
     @beartype
-    def __init__(self, root: Union[str, List[str]], config: TrainingConfig):
+    def __init__(self, root: str | list[str], config: TrainingConfig):
         if isinstance(root, str):
             root = [str(p) for p in pathlib.Path(root).iterdir() if p.is_dir()]
         self.root = sorted(root)
@@ -36,10 +35,15 @@ class AbstractBucketCollection(abc.ABC):
         self.trainable_frames = 0
 
         # Try to load from cache first
+        cache_loaded = False
         if self._does_cache_exist() and not self.config.force_rebuild_bucket:
             LOG.info(f"Loading collection from cache: {self.cache_file_path()}")
-            self._load_from_cache()
-        else:
+            try:
+                self._load_from_cache()
+                cache_loaded = True
+            except lzma.LZMAError as e:
+                LOG.error(f"Error while trying to load bucket from cache {str(e)}")
+        if not cache_loaded:
             LOG.info("Building collection from scratch...")
             self._build_buckets()
             for bucket in self.buckets:
@@ -104,7 +108,7 @@ class AbstractBucketCollection(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def buckets_mixture_per_epoch(self, epoch) -> Dict[int, float]:
+    def buckets_mixture_per_epoch(self, epoch) -> dict[int, float]:
         pass
 
     def __len__(self):

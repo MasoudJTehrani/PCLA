@@ -1,4 +1,3 @@
-from typing import Union
 import logging
 import os
 
@@ -9,9 +8,10 @@ from beartype import beartype
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 
-from lead.common.visualizer import visualize_sample
-from lead.tfv6.tfv6 import Prediction, TFv6
+from lead.plant.plant_visualizer import visualize_plant_sample
+from lead.tfv6.tfv6 import Prediction
 from lead.training.config_training import TrainingConfig
+from lead.visualization.visualizer import visualize_sample
 
 LOG = logging.getLogger(__name__)
 
@@ -21,9 +21,9 @@ class Logger:
     def __init__(
         self,
         config: TrainingConfig,
-        model: Union[TFv6, torch].nn.parallel.distributed.DistributedDataParallel,
+        model: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
-        scaler: torch.amp.GradScaler,
+        scaler: torch.cuda.amp.GradScaler,
         continue_step: int,
         dataset: Dataset,
         dataloader: DataLoader,
@@ -68,8 +68,14 @@ class Logger:
                     settings=wandb.Settings(_service_wait=300),
                 )
                 self.step = max(self.step, wandb.run.step)
-                LOG.info(f"WandB logger will log scalar every {self.config.log_scalars_frequency} steps")
-                LOG.info(f"WandB logger will log images every {self.config.log_images_frequency} steps")
+                LOG.info(
+                    f"WandB logger will log scalar every {self.config.log_scalars_frequency} steps",
+                )
+                LOG.info(
+                    f"WandB logger will log images every {self.config.log_images_frequency} steps",
+                )
+            else:
+                LOG.info("WandB is disabled. Only TensorBoard logging is enabled.")
 
     def __del__(self):
         if self.config.rank == 0:
@@ -105,15 +111,20 @@ class Logger:
             predictions: Model predictions for the current batch.
             log: Dictionary containing debug information.
         """
-        if (
+        is_plant = self.config.model_type == "plant"
+        should_viz = (
             self.config.rank == 0
-            and not self.config.is_on_slurm
             and self.config.visualize_training
-            and self.config.carla_leaderboard_mode
-            and ((epoch_iteration + 1) % self.config.log_images_frequency == 0 or epoch_iteration <= 1)
-        ):
+            and (
+                (epoch_iteration + 1) % self.config.log_images_frequency == 0
+                or epoch_iteration <= 1
+            )
+        )
+        viz_fn = visualize_plant_sample if is_plant else visualize_sample
+
+        if should_viz and self.config.debug_mode and self.config.carla_leaderboard_mode:
             LOG.info(f"Visualizing training sample at step {step}.")
-            visualize_sample(
+            viz_fn(
                 config=self.config,
                 predictions=predictions,
                 data=data,
@@ -126,11 +137,11 @@ class Logger:
         if self.config.rank == 0:
             if (
                 self.config.log_wandb
-                and ((epoch_iteration + 1) % self.config.log_images_frequency == 0 or epoch_iteration <= 1)
+                and should_viz
                 and self.config.carla_leaderboard_mode
             ):
                 LOG.info(f"Logging training sample to WandB at step {step}.")
-                visualize_sample(
+                viz_fn(
                     config=self.config,
                     predictions=predictions,
                     data=data,
@@ -149,7 +160,9 @@ class Logger:
                     message[f"debug/lr_{g}"] = self.optimizer.param_groups[g]["lr"]
                 message["debug/batch_size_per_gpu"] = data["source_dataset"].shape[0]
                 message["debug/num_gpu"] = torch.cuda.device_count()
-                message["debug/model_size"] = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+                message["debug/model_size"] = sum(
+                    p.numel() for p in self.model.parameters() if p.requires_grad
+                )
                 message["debug/dataset_size"] = len(self.dataset)
                 message["debug/num_gradient_steps"] = self.total_gradient_steps
                 message["debug/finished_percentage"] = step / self.total_gradient_steps
@@ -157,11 +170,21 @@ class Logger:
                 message["debug/dataloader_size"] = len(self.dataloader)
                 message["debug/allocated_cpus"] = self.config.assigned_cpu_cores
                 message["debug/gradient_steps_skipped"] = gradient_steps_skipped
-                message["debug/max_gpu_mem"] = torch.cuda.max_memory_allocated(self.config.device) / (1024**3)  # Convert to GB
-                message["debug/average_loading_time"] = data["loading_time"].cpu().numpy().mean()
-                message["debug/average_loading_meta_time"] = data["loading_meta_time"].cpu().numpy().mean()
-                message["debug/average_loading_sensor_time"] = data["loading_sensor_time"].cpu().numpy().mean()
-                message["debug/source_dataset"] = data["source_dataset"].cpu().numpy().mean()
+                message["debug/max_gpu_mem"] = torch.cuda.max_memory_allocated(
+                    self.config.device,
+                ) / (1024**3)  # Convert to GB
+                message["debug/average_loading_time"] = (
+                    data["loading_time"].cpu().numpy().mean()
+                )
+                message["debug/average_loading_meta_time"] = (
+                    data["loading_meta_time"].cpu().numpy().mean()
+                )
+                message["debug/average_loading_sensor_time"] = (
+                    data["loading_sensor_time"].cpu().numpy().mean()
+                )
+                message["debug/source_dataset"] = (
+                    data["source_dataset"].cpu().numpy().mean()
+                )
                 if self.scaler is not None:
                     message["debug/grad_scale"] = self.scaler.get_scale()
 
@@ -182,7 +205,10 @@ class Logger:
 
                 # Convert bfloat16 to float for logging
                 for key, value in message.items():
-                    if isinstance(value, torch.Tensor) and value.dtype == torch.bfloat16:
+                    if (
+                        isinstance(value, torch.Tensor)
+                        and value.dtype == torch.bfloat16
+                    ):
                         message[key] = value.float().item()
 
                 if self.config.log_wandb:

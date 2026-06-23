@@ -1,35 +1,52 @@
-from __future__ import annotations
-
 import glob
 import gzip
+import logging
 import os
 import pickle
 import time
 
 import cv2
+import jaxtyping as jt
 import numpy as np
 import numpy.typing as npt
 from numpy.random import default_rng
 from torch.utils.data import Dataset
 
-from lead.common.jaxtyping_stub import jt
-from lead.common.constants import NavSimBoundingBoxIndex, SourceDataset, TransfuserBoundingBoxIndex
+from lead.common.constants import (
+    NavSimBoundingBoxIndex,
+    SourceDataset,
+    TransfuserBoundingBoxIndex,
+)
 from lead.data_loader import carla_dataset_utils, navsim_dataset_utils
 from lead.training.config_training import TrainingConfig
+
+LOG = logging.getLogger(__name__)
 
 
 class NavsimData(Dataset):
     """Data loader for NavSim data"""
 
-    def __init__(self, root, config: TrainingConfig, training_session_cache=None, random=True):
+    def __init__(
+        self,
+        root,
+        config: TrainingConfig,
+        training_session_cache=None,
+        random=True,
+    ):
         self.root = root
         self.config = config
         self.training_session_cache = training_session_cache
         self.rank = config.rank
         self.data_sampling_generator = default_rng(seed=self.config.seed)
 
-        self._feature = glob.glob(os.path.join(self.root, "**/transfuser_feature.gz"), recursive=True)
-        self._target = glob.glob(os.path.join(self.root, "**/transfuser_target.gz"), recursive=True)
+        self._feature = glob.glob(
+            os.path.join(self.root, "**/transfuser_feature.gz"),
+            recursive=True,
+        )
+        self._target = glob.glob(
+            os.path.join(self.root, "**/transfuser_target.gz"),
+            recursive=True,
+        )
 
         self._feature.sort()
         self._target.sort()
@@ -42,7 +59,9 @@ class NavsimData(Dataset):
             assert len(self._feature) == len(self._target), (
                 f"Mismatch in number of files. Found {len(self._feature)} features and {len(self._target)} targets."
             )
-            print(f"NavSim: Found {len(self._feature)} samples. Upsampled to {self.size} samples")
+            LOG.info(
+                f"NavSim: Found {len(self._feature)} samples. Upsampled to {self.size} samples",
+            )
 
     def shuffle(self, epoch):
         # Use epoch as seed for reproducible sampling across epochs
@@ -63,7 +82,11 @@ class NavsimData(Dataset):
                 if self.random:
                     # Add random samples for the remainder
                     if remainder > 0:
-                        extra_indices = rng.choice(original_size, size=remainder, replace=False)
+                        extra_indices = rng.choice(
+                            original_size,
+                            size=remainder,
+                            replace=False,
+                        )
                         indices.extend(extra_indices)
 
                     # Shuffle the indices to mix repeated and original samples
@@ -111,7 +134,7 @@ class NavsimData(Dataset):
 
         feature, target = cache[target_path]
 
-        rgb = cv2.imdecode(np.frombuffer(feature["camera_feature"], np.uint8), cv2.IMREAD_COLOR)
+        rgb = cv2.imdecode(feature["camera_feature"], cv2.IMREAD_COLOR)
         rgb = np.transpose(rgb, (2, 0, 1))  # HWC to CHW
 
         agent_states = target["agent_states"]
@@ -119,7 +142,10 @@ class NavsimData(Dataset):
         trajectory = target["trajectory"]
 
         bev_semantic_map = target["bev_semantic_map"].numpy().astype(np.uint8)
-        bev_semantic_map = np.rot90(bev_semantic_map, 1)  # Align NavSim BEV with CARLA BEV
+        bev_semantic_map = np.rot90(
+            bev_semantic_map,
+            1,
+        )  # Align NavSim BEV with CARLA BEV
         bev_semantic_map = cv2.imencode(".png", bev_semantic_map)[1]
 
         data = {
@@ -143,14 +169,22 @@ class NavsimData(Dataset):
             bev_semantic_map = cv2.imdecode(bev_semantic_map, cv2.IMREAD_UNCHANGED)
             data["navsim_bev_semantic"] = bev_semantic_map.astype(np.uint8)
 
-        data["future_waypoints"][:, 1] = -data["future_waypoints"][:, 1]  # Flip Y axis to align with CARLA
+        data["future_waypoints"][:, 1] = -data["future_waypoints"][
+            :,
+            1,
+        ]  # Flip Y axis to align with CARLA
         data["future_yaws"] = -data["future_yaws"]  # Flip Y axis to align with CARLA
 
-        data["loading_time"] = data["loading_meta_time"] = data["loading_sensor_time"] = time.time() - before
+        data["loading_time"] = data["loading_meta_time"] = data[
+            "loading_sensor_time"
+        ] = time.time() - before
         return data
 
     def _convert_navsim_bb_to_carla(
-        self, agent_states: np.ndarray, agent_labels: jt.Bool[npt.NDArray, " n"], data: dict
+        self,
+        agent_states: jt.Float[npt.NDArray, "n 5"],
+        agent_labels: jt.Bool[npt.NDArray, " n"],
+        data: dict,
     ):
         """
         Convert NAVSIM bounding boxes to Transfuser format and add to data dictionary.
@@ -165,13 +199,23 @@ class NavsimData(Dataset):
             if not agent_labels[i]:
                 continue
             box_center_x = box[NavSimBoundingBoxIndex.X]
-            box_center_y = -box[NavSimBoundingBoxIndex.Y]  # Align NavSim Y axis with CARLA Y axis
-            box_yaw = -box[NavSimBoundingBoxIndex.HEADING]  # Align NavSim Y axis with CARLA Y axis
+            box_center_y = -box[
+                NavSimBoundingBoxIndex.Y
+            ]  # Align NavSim Y axis with CARLA Y axis
+            box_yaw = -box[
+                NavSimBoundingBoxIndex.HEADING
+            ]  # Align NavSim Y axis with CARLA Y axis
             box_length = box[NavSimBoundingBoxIndex.LENGTH] / 2
             box_width = box[NavSimBoundingBoxIndex.WIDTH] / 2
-            if box_center_x < self.config.min_x_meter or box_center_x > self.config.max_x_meter:
+            if (
+                box_center_x < self.config.min_x_meter
+                or box_center_x > self.config.max_x_meter
+            ):
                 continue
-            if box_center_y < self.config.min_y_meter or box_center_y > self.config.max_y_meter:
+            if (
+                box_center_y < self.config.min_y_meter
+                or box_center_y > self.config.max_y_meter
+            ):
                 continue
             box = {
                 TransfuserBoundingBoxIndex.X: box_center_x,
@@ -191,8 +235,11 @@ class NavsimData(Dataset):
         for box in boxes_array:
             image_system_boxes.append(
                 carla_dataset_utils.bb_vehicle_to_image_system(
-                    box.reshape(1, -1), self.config.pixels_per_meter, self.config.min_x_meter, self.config.min_y_meter
-                ).squeeze()
+                    box.reshape(1, -1),
+                    self.config.pixels_per_meter,
+                    self.config.min_x_meter,
+                    self.config.min_y_meter,
+                ).squeeze(),
             )
         image_system_boxes = np.array(image_system_boxes)
 
@@ -205,6 +252,8 @@ class NavsimData(Dataset):
                 image_system_boxes = padding
 
         for key, value in navsim_dataset_utils.get_centernet_labels(
-            image_system_boxes, self.config, self.config.navsim_num_bb_classes
+            image_system_boxes,
+            self.config,
+            self.config.navsim_num_bb_classes,
         ).items():
             data["navsim_" + key] = value

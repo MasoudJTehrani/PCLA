@@ -6,14 +6,24 @@ from lead.inference.config_open_loop import OpenLoopConfig
 
 
 class ClosedLoopConfig(OpenLoopConfig):
+    """Configuration class for closed-loop inference settings in CARLA.
+
+    See more details at https://ln2697.github.io/lead/docs/config_system.html
+    """
+
     def __init__(self, raise_error_on_missing_key: bool = True):
         super().__init__(raise_error_on_missing_key=raise_error_on_missing_key)
         self.load_from_environment(
-            loaded_config=None, env_key="LEAD_CLOSED_LOOP_CONFIG", raise_error_on_missing_key=raise_error_on_missing_key
+            loaded_config=None,
+            env_key="LEAD_CLOSED_LOOP_CONFIG",
+            raise_error_on_missing_key=raise_error_on_missing_key,
         )
 
+    # --- Kalman Filter Settings ---
+    use_kalman_filter = True
+
     # --- Image Processing ---
-    # JPEG quality for saving images (0-100)
+    # JPEG quality used in inference (0-100)
     jpeg_quality = 90
 
     # --- Control which output is used for controlling ---
@@ -45,12 +55,26 @@ class ClosedLoopConfig(OpenLoopConfig):
     sensor_agent_pop_distance_adaptive = True
 
     # --- Creeping Heuristic ---
+    # If true, enable the creeping heuristic that forces the agent to move when stuck
+    sensor_agent_creeping = True
     # Number of frames after which the creep controller starts triggering (larger than red light wait time)
     sensor_agent_stuck_threshold = 1100
     # Number of frames to creep forward when stuck
     sensor_agent_stuck_move_duration = 20
     # Throttle value for creeping when stuck
     sensor_agent_stuck_throttle = 0.4
+
+    # --- Stop Sign Heuristic ---
+    # If true enable stop sign controller
+    slower_for_stop_sign = True
+    # Distance threshold for stop sign controller activation
+    slower_for_stop_sign_dist_threshold = 1.0
+    # Cool down period for stop sign controller (frames)
+    slower_for_stop_sign_cool_down = 120
+    # Number of frames to apply slower behavior
+    slower_for_stop_sign_count = 40
+    # Throttle threshold for slower stop sign behavior
+    slower_for_stop_sign_throttle_threshold = 0.1
 
     # --- PID Controller Parameters ---
     # Maximum change in speed input to longitudinal controller
@@ -101,7 +125,7 @@ class ClosedLoopConfig(OpenLoopConfig):
     tuned_aim_distance = False
 
     # --- Evaluation Visualization Settings ---
-    # If true, set nice weather
+    # If not None, set a custom weather for evaluation
     custom_weather = None  # e.g., "ClearNoon"
     # If true, use random weather
     random_weather = False
@@ -112,37 +136,65 @@ class ClosedLoopConfig(OpenLoopConfig):
     @overridable_property
     def produce_demo_image(self):
         """If true produce demo image output."""
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
-        return True
+        return False
 
     @overridable_property
     def produce_demo_video(self):
         """If true produce demo video output."""
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
-        return True
+        return False
 
     @overridable_property
     def produce_debug_image(self):
         """If true produce debug image output."""
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
-        return True
+        return False
 
     @overridable_property
     def produce_debug_video(self):
         """If true produce debug video output."""
-        if self.is_on_slurm:
-            return True
+        if not self.debug_mode:
+            return False
         return True
+
+    @overridable_property
+    def produce_input_image(self):
+        """If true produce input image output."""
+        if not self.debug_mode:
+            return False
+        return False
+
+    @overridable_property
+    def produce_input_video(self):
+        """If true produce input video output."""
+        if not self.debug_mode:
+            return False
+        return False
+
+    @overridable_property
+    def produce_grid_image(self):
+        """If true produce grid image output (demo + input stacked vertically)."""
+        if not self.debug_mode:
+            return False
+        return False
+
+    @overridable_property
+    def produce_grid_video(self):
+        """If true produce grid video output (demo + input stacked vertically)."""
+        if not self.debug_mode:
+            return False
+        return False
 
     @overridable_property
     def produce_input_log(self):
         """If true produce input logging."""
-        if self.is_on_slurm:
+        if not self.debug_mode:
             return False
-        return True
+        return False
 
     @property
     def save_path(self):
@@ -166,29 +218,29 @@ class ClosedLoopConfig(OpenLoopConfig):
     @property
     def debug_video_path(self):
         """Get the path for video output."""
-        return os.path.join(self.save_path, "..", f"{self.route_id}_debug.mp4")
-
-    @property
-    def temp_debug_video_path(self):
-        """Get the path for temporary video output."""
-        return os.path.join(self.save_path, "..", f"{self.route_id}_debug_temp.mp4")
+        return os.path.join(self.save_path, f"{self.route_id}_debug.mp4")
 
     @property
     def demo_video_path(self):
         """Get the path for demo video output."""
-        return os.path.join(self.save_path, "..", f"{self.route_id}_demo.mp4")
-
-    @property
-    def temp_demo_video_path(self):
-        """Get the path for temporary demo video output."""
-        return os.path.join(self.save_path, "..", f"{self.route_id}_demo_temp.mp4")
+        return os.path.join(self.save_path, f"{self.route_id}_demo.mp4")
 
     @property
     def input_log_path(self):
         """Get and create the path for input logging."""
-        path = os.path.join(self.save_path, "..", "input_log")
+        path = os.path.join(self.save_path, "input_log")
         os.makedirs(path, exist_ok=True)
         return path
+
+    @property
+    def input_video_path(self):
+        """Get the path for input video output."""
+        return os.path.join(self.save_path, f"{self.route_id}_input.mp4")
+
+    @property
+    def grid_video_path(self):
+        """Get the path for grid video output."""
+        return os.path.join(self.save_path, f"{self.route_id}_grid.mp4")
 
     @overridable_property
     def video_fps(self):

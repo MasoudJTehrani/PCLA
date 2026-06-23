@@ -1,4 +1,4 @@
-from typing import Tuple
+import jaxtyping as jt
 import numpy as np
 from beartype import beartype
 from numpy.typing import NDArray
@@ -27,16 +27,22 @@ class KinematicBicycleModel:
         self.throttle_acceleration = self.config.throttle_acceleration
         self.throttle_values = self.config.throttle_values
         self.brake_values = self.config.brake_values
-        self.throttle_threshold_during_forecasting = self.config.throttle_threshold_during_forecasting
+        self.throttle_threshold_during_forecasting = (
+            self.config.throttle_threshold_during_forecasting
+        )
 
     @beartype
     def forecast_other_vehicles(
         self,
-        locations: np.ndarray,
-        headings: np.ndarray,
-        speeds: np.ndarray,
-        actions: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        locations: jt.Float[NDArray, "... 3"],
+        headings: jt.Float[NDArray, "..."],
+        speeds: jt.Float[NDArray, "..."],
+        actions: jt.Float[NDArray, "... 3"],
+    ) -> tuple[
+        jt.Float[NDArray, "... 3"],
+        jt.Float[NDArray, "..."],
+        jt.Float[NDArray, "..."],
+    ]:
         """Forecast the future states of other vehicles based on their current states and actions.
 
         Args:
@@ -48,16 +54,31 @@ class KinematicBicycleModel:
         Returns:
             A tuple containing the forecasted locations, headings, and speeds for other vehicles.
         """
-        steers, throttles, brakes = actions[:, 0], actions[:, 1], actions[:, 2].astype(np.uint8)
+        steers, throttles = actions[:, 0], actions[:, 1]
+        with np.errstate(invalid="ignore"):
+            brakes = actions[:, 2].astype(np.uint8)
         wheel_angles = self.steering_gain * steers
-        slip_angles = np.arctan(self.rear_wheel_base / (self.front_wheel_base + self.rear_wheel_base) * np.tan(wheel_angles))
+        slip_angles = np.arctan(
+            self.rear_wheel_base
+            / (self.front_wheel_base + self.rear_wheel_base)
+            * np.tan(wheel_angles),
+        )
 
-        next_x = locations[:, 0] + speeds * np.cos(headings + slip_angles) * self.time_step
-        next_y = locations[:, 1] + speeds * np.sin(headings + slip_angles) * self.time_step
-        next_headings = headings + speeds / self.rear_wheel_base * np.sin(slip_angles) * self.time_step
+        next_x = (
+            locations[:, 0] + speeds * np.cos(headings + slip_angles) * self.time_step
+        )
+        next_y = (
+            locations[:, 1] + speeds * np.sin(headings + slip_angles) * self.time_step
+        )
+        next_headings = (
+            headings
+            + speeds / self.rear_wheel_base * np.sin(slip_angles) * self.time_step
+        )
 
         next_speeds = speeds + self.time_step * np.where(
-            brakes, self.brake_acceleration, throttles * self.throttle_acceleration
+            brakes,
+            self.brake_acceleration,
+            throttles * self.throttle_acceleration,
         )
         next_speeds = np.maximum(0.0, next_speeds)
 
@@ -67,8 +88,12 @@ class KinematicBicycleModel:
 
     @beartype
     def forecast_ego_vehicle(
-        self, location: np.ndarray, heading: float, speed: float, action: np.ndarray
-    ) -> Tuple[np.ndarray, float, float]:
+        self,
+        location: jt.Float[NDArray, "3"],
+        heading: float,
+        speed: float,
+        action: jt.Float[NDArray, "3"],
+    ) -> tuple[jt.Float[NDArray, "3"], float, float]:
         """Forecast the future state of the ego vehicle based on its current state and action.
 
         Args:
@@ -86,11 +111,17 @@ class KinematicBicycleModel:
         brake = bool(brake)
         speed = float(speed)
         wheel_angle = self.steering_gain * steer
-        slip_angle = np.arctan(self.rear_wheel_base / (self.front_wheel_base + self.rear_wheel_base) * np.tan(wheel_angle))
+        slip_angle = np.arctan(
+            self.rear_wheel_base
+            / (self.front_wheel_base + self.rear_wheel_base)
+            * np.tan(wheel_angle),
+        )
 
         next_x = location[0] + speed * np.cos(heading + slip_angle) * self.time_step
         next_y = location[1] + speed * np.sin(heading + slip_angle) * self.time_step
-        next_heading = heading + speed / self.rear_wheel_base * np.sin(slip_angle) * self.time_step
+        next_heading = (
+            heading + speed / self.rear_wheel_base * np.sin(slip_angle) * self.time_step
+        )
 
         # We use different polynomial models for estimating the speed depending on whether
         # the ego vehicle brakes or not.
@@ -122,7 +153,7 @@ class KinematicBicycleModel:
                         speed_kph * throttle**2,
                         speed_kph**2 * throttle,
                         speed_kph**2 * throttle**2,
-                    ]
+                    ],
                 ).T
 
                 next_speed_kph = features @ self.throttle_values

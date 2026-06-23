@@ -2,7 +2,6 @@
 Perception curriculum for pretraining on CARLA datasets. Just load everything, no filtering, no skipping failed routes.
 """
 
-from typing import Dict, List, Union
 import logging
 import os
 
@@ -15,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 class FullPretrainBucketCollection(AbstractBucketCollection):
-    def __init__(self, root: Union[str, List[str]], config: TrainingConfig):
+    def __init__(self, root: str | list[str], config: TrainingConfig):
         self.buckets = [Bucket(config)]
         super().__init__(root, config)
         LOG.info("Using pre-train bucket collection")
@@ -40,7 +39,10 @@ class FullPretrainBucketCollection(AbstractBucketCollection):
 
     def cache_file_path(self) -> str:
         """Return path for cache file"""
-        return os.path.join(self.config.bucket_collection_path, "full_pretrain_buckets.gz")
+        return os.path.join(
+            self.config.bucket_collection_path,
+            "full_pretrain_buckets.gz",
+        )
 
-    def buckets_mixture_per_epoch(self, _) -> Dict[int, float]:
+    def buckets_mixture_per_epoch(self, _) -> dict[int, float]:
         return {0: 1.0}

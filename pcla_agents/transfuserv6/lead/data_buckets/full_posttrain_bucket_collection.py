@@ -1,4 +1,3 @@
-from typing import List, Union
 import os
 
 from lead.data_buckets import route_filtering
@@ -8,7 +7,7 @@ from lead.training.config_training import TrainingConfig
 
 
 class FullPosttrainBucketCollection(AbstractBucketCollection):
-    def __init__(self, root: Union[str, List[str]], config: TrainingConfig):
+    def __init__(self, root: str | list[str], config: TrainingConfig):
         self.buckets = [Bucket(config)]
         super().__init__(root, config)
         print("Using full post-train curriculum")
