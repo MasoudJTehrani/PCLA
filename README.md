@@ -319,9 +319,7 @@ PCLA provides utility functions to help you generate waypoints and routes usable
 
 To see all available spawn points and their associated index numbers in your current map:
 
-Shell
-
-```
+```Shell
 python pcla_functions/spawn_points.py
 ```
 
