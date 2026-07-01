@@ -182,7 +182,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
     def setup(self, path_to_conf_file):
 
         # Set memory optimization BEFORE any CUDA operations
-        os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
+        #os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
         
         # Clear GPU cache
         torch.cuda.empty_cache()
@@ -223,156 +223,19 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         self.now_notice_frame_id = -1
         self.sample_rate = self.config.sample_rate * 2 # The frequency of CARLA simulation is 20Hz
 
-        print('Building model...')
-
-        # Select target CUDA device: prefer explicit env, else highest-VRAM GPU.
-        target_device = None
-        if torch.cuda.is_available() and torch.cuda.device_count() > 0:
-            env_idx = os.environ.get('LMDRIVE_CUDA_DEVICE') or os.environ.get('PCLA_CUDA_DEVICE')
-            if env_idx is not None:
-                try:
-                    idx = int(env_idx)
-                    if 0 <= idx < torch.cuda.device_count():
-                        target_device = idx
-                except ValueError:
-                    target_device = None
-            if target_device is None:
-                target_device = max(
-                    range(torch.cuda.device_count()),
-                    key=lambda i: torch.cuda.get_device_properties(i).total_memory,
-                )
-            with torch.cuda.device(target_device):
-                torch.cuda.empty_cache()
-        
-        # Resolve checkpoint paths to absolute so callers from any CWD work
-        def _resolve_path(path_str):
-            if not path_str:
-                return path_str
-            # If already absolute and exists, return
-            if os.path.isabs(path_str) and os.path.exists(path_str):
-                return path_str
-            # Try environment override
-            env_root = os.environ.get('PCLA_ROOT')
-            if env_root:
-                candidate = os.path.join(env_root, path_str)
-                if os.path.exists(candidate):
-                    return candidate
-            # Try repo root (three levels up from this file)
-            repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            candidate = os.path.join(repo_root, path_str)
-            if os.path.exists(candidate):
-                return candidate
-            # Try relative to current module directory
-            candidate = os.path.join(os.path.dirname(os.path.abspath(__file__)), path_str)
-            if os.path.exists(candidate):
-                return candidate
-            # Fall back to original string
-            return path_str
-
-        resolved_preception_ckpt = _resolve_path(self.config.preception_model_ckpt)
-        resolved_lmdrive_ckpt = _resolve_path(getattr(self.config, 'lmdrive_ckpt', ''))
-
+        print('build model...')
         model = model_cls(preception_model=self.config.preception_model,
-                        preception_model_ckpt=resolved_preception_ckpt,
-                        llm_model=self.config.llm_model,
-                        max_txt_len=64,
-                        use_notice_prompt=self.config.agent_use_notice,
-                        )
-        
-        print('Loading checkpoint...')
-        # Load checkpoint on CPU first
-        checkpoint = torch.load(resolved_lmdrive_ckpt or self.config.lmdrive_ckpt, map_location='cpu')
-        model.load_state_dict(checkpoint["model"], strict=False)
-        del checkpoint
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        gc.collect()
-        
-        print('Converting model to half precision...')
-        # Convert to fp16 BEFORE moving to GPU (saves ~50% memory)
-        model = model.half()
-        
-        print('Moving model to CUDA with 8-bit quantization...')
-
-        # Try using device_map for automatic offloading
-        try:
-            # Use accelerate's device_map for better memory management
-            from accelerate import infer_auto_device_map, dispatch_model
-
-            if target_device is None:
-                raise RuntimeError("CUDA is not available for accelerate device_map")
-
-            total_gb = torch.cuda.get_device_properties(target_device).total_memory / (1024 ** 3)
-            gpu_budget_gb = max(2, int(total_gb * 0.8))
-            cpu_budget = os.environ.get('LMDRIVE_CPU_OFFLOAD_GB', '64GB')
-            max_memory = {target_device: f"{gpu_budget_gb}GB", "cpu": cpu_budget}
-            print(f"Selected CUDA device: {target_device} ({total_gb:.2f} GB total), budget={gpu_budget_gb}GB")
-            
-            device_map = infer_auto_device_map(
-                model,
-                max_memory=max_memory,
-                no_split_module_classes=["VicunaLLMBlock", "BertLayer"]  # Adjust based on your model
-            )
-            
-            print(f"Device map: {device_map}")
-
-            # Guardrail: if accelerate still maps the whole model to a small GPU,
-            # force a safer manual split instead of OOMing during .to(device).
-            if isinstance(device_map, dict) and device_map.get('') == target_device and total_gb < 12:
-                raise RuntimeError(
-                    f"Unsafe full-model placement on {total_gb:.2f}GB GPU; using manual split"
-                )
-
-            model = dispatch_model(model, device_map=device_map)
-
-        except (ImportError, RuntimeError) as e:
-            print(f"Accelerate auto-placement unavailable/unsafe: {e}")
-            print("Trying manual device placement...")
-            
-            # Manual approach: keep LLM on CPU, only vision encoder on GPU
-            try:
-                if target_device is None:
-                    raise RuntimeError("No CUDA device available for manual split")
-
-                # Move only the vision encoder to GPU
-                if hasattr(model, 'visual_encoder'):
-                    model.visual_encoder = model.visual_encoder.to(f'cuda:{target_device}')
-                    print(f"✓ Visual encoder on cuda:{target_device}")
-                
-                # Keep LLM on CPU or use CPU offloading
-                if hasattr(model, 'llm_model'):
-                    # LLM stays on CPU by default
-                    print("✓ LLM kept on CPU")
-                
-                # Move other small components to GPU
-                if hasattr(model, 'llm_proj'):
-                    model.llm_proj = model.llm_proj.to(f'cuda:{target_device}')
-                    print(f"✓ LLM projection on cuda:{target_device}")
-                    
-            except RuntimeError as e:
-                print(f"Error during manual device placement: {e}")
-                print("Falling back to full CPU mode...")
-                # Keep entire model on CPU
-                model = model.cpu()
-        
-        model.eval()
-        
-        # Enable gradient checkpointing if available
-        if hasattr(model, 'gradient_checkpointing_enable'):
-            model.gradient_checkpointing_enable()
-        
+                          preception_model_ckpt=self.config.preception_model_ckpt,
+                          llm_model=self.config.llm_model,
+                          max_txt_len=64,
+                          use_notice_prompt=self.config.agent_use_notice,
+                          )
         self.net = model
-        
-        # Print GPU status after loading
-        if torch.cuda.is_available() and target_device is not None:
-            print(f"After loading model:")
-            print(f"  Device: cuda:{target_device}")
-            print(f"  Allocated: {torch.cuda.memory_allocated(target_device) / 1024**3:.2f} GB")
-            print(f"  Cached: {torch.cuda.memory_reserved(target_device) / 1024**3:.2f} GB")
-            print(
-                f"  Free: {(torch.cuda.get_device_properties(target_device).total_memory - torch.cuda.memory_allocated(target_device)) / 1024**3:.2f} GB"
-            )
-        
+
+        print('load model...')
+        self.net.load_state_dict(torch.load(self.config.lmdrive_ckpt)["model"], strict=False)
+        self.net.cuda()
+        self.net.eval()
         self.softmax = torch.nn.Softmax(dim=1)
         self.prev_lidar = None
         self.prev_control = None
@@ -566,15 +429,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         else:
             sample_rate = 2
         sample_rate = 2
-
         self.visual_feature_buffer.append(image_embeds)
-
-        # Limit buffer size to prevent OOM (reduce from 400 to 200)
-        max_buffer_size = 200
-        if len(self.visual_feature_buffer) > max_buffer_size:
-            # Keep only recent frames
-            self.visual_feature_buffer = self.visual_feature_buffer[-max_buffer_size:]
-        
         result = self.visual_feature_buffer[::self.sample_rate]
         if (len(self.visual_feature_buffer) -1) % self.sample_rate != 0:
             result.append(self.visual_feature_buffer[-1])
@@ -602,40 +457,38 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         velocity = tick_data["speed"]
         command = tick_data["next_command"]
 
-        # Convert images to half precision to match model
         rgb_front = (
             self.rgb_front_transform(Image.fromarray(tick_data["rgb_front"]))
             .unsqueeze(0)
             .cuda()
-            .half()  # Changed from .float() to .half()
+            .float()
         )
         rgb_left = (
             self.rgb_left_transform(Image.fromarray(tick_data["rgb_left"]))
             .unsqueeze(0)
             .cuda()
-            .half()
+            .float()
         )
         rgb_right = (
             self.rgb_right_transform(Image.fromarray(tick_data["rgb_right"]))
             .unsqueeze(0)
             .cuda()
-            .half()
+            .float()
         )
         rgb_rear = (
             self.rgb_right_transform(Image.fromarray(tick_data["rgb_rear"]))
             .unsqueeze(0)
             .cuda()
-            .half()
+            .float()
         )
         rgb_center = (
             self.rgb_center_transform(Image.fromarray(cv2.resize(tick_data["rgb_front"], (800, 600))))
             .unsqueeze(0)
             .cuda()
-            .half()
+            .float()
         )
 
         last_instruction = self._instruction_planner.command2instruct(tick_data=tick_data, routes=self._route_planner.route)
-        #last_notice = self._instruction_planner.pos2notice(self.sampled_scenarios, tick_data)
         last_notice = self._instruction_planner.pos2notice([], tick_data)
         last_traffic_light_notice = self._instruction_planner.traffic_notice(tick_data)
         last_misleading_instruction = self._instruction_planner.command2mislead(tick_data=tick_data)
@@ -643,7 +496,7 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         if last_notice == '':
             last_notice = last_traffic_light_notice
 
-        if self.curr_instruction != last_instruction or len(self.visual_feature_buffer) > 200:
+        if self.curr_instruction != last_instruction or len(self.visual_feature_buffer) > 400:
             if self.remaining_misleading_frames > 0:
                 self.remaining_misleading_frames = self.remaining_misleading_frames - 1
             else:
@@ -665,19 +518,14 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         input_data["rgb_right"] = rgb_right
         input_data["rgb_center"] = rgb_center
         input_data["rgb_rear"] = rgb_rear
-        input_data['target_point'] = torch.tensor(tick_data['target_point']).cuda().view(1,2).half()  # Changed to .half()
+        input_data['target_point'] = torch.tensor(tick_data['target_point']).cuda().view(1,2).float()
         input_data["lidar"] = (
-            torch.from_numpy(tick_data["lidar"]).half().cuda().unsqueeze(0)  # Changed to .half()
+            torch.from_numpy(tick_data["lidar"]).float().cuda().unsqueeze(0)
         )
         input_data['num_points'] = torch.tensor([tick_data['num_points']]).cuda().unsqueeze(0)
-        input_data['velocity'] = torch.tensor([tick_data['speed']]).cuda().view(1, 1).half()  # Changed to .half()
+        input_data['velocity'] = torch.tensor([tick_data['speed']]).cuda().view(1, 1).float()
         input_data['text_input'] = [self.curr_instruction]
-
-
-        # Use autocast for mixed precision
-        with torch.cuda.amp.autocast(enabled=True, dtype=torch.float16):
-            image_embeds = self.net.visual_encoder(input_data)
-        
+        image_embeds = self.net.visual_encoder(input_data)
         image_embeds = self.update_and_collect(image_embeds)
         input_data['valid_frames'] = [image_embeds.size(1)]
 
@@ -696,9 +544,9 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
             waypoints, is_end = self.net(input_data, inference_mode=True, image_embeds=image_embeds)
 
         # Clear intermediate tensors to free GPU memory
-        del image_embeds
-        if self.step % 10 == 0:
-            torch.cuda.empty_cache()
+        #del image_embeds
+        #if self.step % 10 == 0:
+            #torch.cuda.empty_cache()
 
         waypoints = waypoints[-1]
         waypoints = waypoints.view(5, 2)
@@ -771,35 +619,29 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
 
         # flip y is (forward is negative in our waypoints)
         waypoints[:,1] *= -1
-        
-        # PCLA
-        # Scale waypoints if they're too small (LLM output issue)
-        # Check distance between first two waypoints specifically
-        wp_dist_01 = np.linalg.norm(waypoints[0] - waypoints[1])
-        if wp_dist_01 < 0.05:  # If first two waypoints are closer than 5cm
-            # Scale all waypoints to make first two points ~10cm apart
-            scale_factor = 0.1 / wp_dist_01 if wp_dist_01 > 0 else 10.0
-            waypoints = waypoints * scale_factor
-            if self.step % 5 == 0:
-                print(f"    [SCALING] Waypoints scaled by {scale_factor:.2f}x (wp0-wp1 dist was {wp_dist_01:.4f}m)")
-        # PCLA
 
         speed = velocity
 
         desired_speed = np.linalg.norm(waypoints[0] - waypoints[1]) * 2.0
-        
-        # PCLA
-        # Ensure minimum desired speed to prevent brake from being stuck on
-        min_desired_speed = 0.5  # Minimum 0.5 m/s when starting from rest
-        if speed < 0.1 and desired_speed > 0:  # If car is stationary and waypoints exist
-            desired_speed = np.float64(max(desired_speed, min_desired_speed))
-            if self.step % 5 == 0:
-                print(f"    [MIN SPEED] Enforcing minimum desired_speed: {desired_speed:.4f} m/s")
-        
-        # Lower brake_speed threshold to handle small waypoints from LLM
-        effective_brake_speed = min(self.config.brake_speed, 0.01)  # Allow speeds as low as 0.01 m/s
-        brake = desired_speed < effective_brake_speed or (speed / desired_speed) > self.config.brake_ratio
-        # PCLA
+
+        # --- Cold-start deadlock breaker (PCLA) ---
+        # LMDrive waypoints are ~0.5 s apart, so the desired_speed above reflects
+        # only the first half-second of the plan. Pulling away from a dead stop,
+        # wp0 and wp1 nearly coincide (~0), collapsing desired_speed below
+        # brake_speed -> the car brakes forever, even though the later waypoints
+        # show a clear forward plan. When essentially stopped but the model plans
+        # real motion, seed desired_speed from the largest planned step (its
+        # intended cruising speed) so the car starts moving; once it is rolling,
+        # wp0/wp1 separate and the normal control law resumes unchanged. A genuine
+        # stop (e.g. red light) keeps all waypoints ~0, so the path stays below the
+        # threshold and the car correctly holds position.
+        if speed < self.config.brake_speed:
+            wp_steps = np.linalg.norm(np.diff(waypoints, axis=0), axis=1)
+            if wp_steps.sum() > 0.5:
+                desired_speed = np.maximum(desired_speed, wp_steps.max() * 2.0)
+        # --- end cold-start breaker ---
+
+        brake = desired_speed < self.config.brake_speed or (speed / desired_speed) > self.config.brake_ratio
 
         aim = (waypoints[1] + waypoints[0]) / 2.0
         angle = np.degrees(np.pi / 2 - np.arctan2(aim[1], aim[0])) / 90
