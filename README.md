@@ -244,6 +244,8 @@ PCLA includes **36** different autonomous agents and **27** additional training 
 
 #### Learning from All Vehicles (LAV)
 
+-   Make sure to run CARLA with the `-vulkan` flag before running this agent family.
+
 -   `lav_lav`: The original LAV agent.
         
 -   `lav_fast`: Leaderboard submission optimized for inference speed with temporal LiDAR scans.
@@ -251,12 +253,16 @@ PCLA includes **36** different autonomous agents and **27** additional training 
 
 #### Learning By Cheating (LBC)
 
+-   Make sure to run CARLA with the `-vulkan` flag before running this agent family.
+
 -   `lbc_nc`: Learning By Cheating, the NoCrash model.
         
 -   `lbc_lb`: Learning By Cheating, the Leaderboard model.
         
 
 #### World on Rails (WoR)
+
+-   Make sure to run CARLA with the `-vulkan` flag before running this agent family.
 
 -   `wor_nc`: World on Rails, the NoCrash model.
         
