@@ -186,6 +186,18 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
         self.iter = self.config_path.split("epoch=")[-1].split("/")[0]
         self.session = self.config_path.split("/")[-4]
         
+        # Cache conversation template module (loaded once at setup, reused in tick)
+        conv_cache_dir = f"pretrained/{(cfg.model.vision_model.variant.split('/')[1])}"
+        conv_cache_dir = to_absolute_path(conv_cache_dir)
+        conv_model_path = f"{conv_cache_dir}/conversation.py"
+        if not os.path.exists(conv_model_path):
+            from huggingface_hub import snapshot_download
+            snapshot_download(repo_id=cfg.model.vision_model.variant, local_dir=conv_cache_dir)
+        spec = importlib.util.spec_from_file_location('get_conv_template', conv_model_path)
+        self.conv_module = importlib.util.module_from_spec(spec)
+        sys.modules['get_conv_template'] = self.conv_module
+        spec.loader.exec_module(self.conv_module)
+        
         self.T = 1
         self.stuck_detector = 0
         self.force_move = 0
@@ -599,19 +611,7 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
                         questions.append(conv[i]['content'][0]['text'])
                         conv[i]['content'] = conv[i]['content'][0]['text']
                         
-        cache_dir = f"pretrained/{(self.cfg.model.vision_model.variant.split('/')[1])}"
-        # get absolute path from workspace dir not wokring dir
-        cache_dir = to_absolute_path(cache_dir)
-        model_path = f"{cache_dir}/conversation.py"
-        if not os.path.exists(model_path):
-                from huggingface_hub import snapshot_download
-                snapshot_download(repo_id=self.cfg.model.vision_model.variant, local_dir=cache_dir)
-                
-        #import from file from model_path
-        spec = importlib.util.spec_from_file_location('get_conv_template', model_path)
-        conv_module = importlib.util.module_from_spec(spec)
-        sys.modules['get_conv_template'] = conv_module
-        spec.loader.exec_module(conv_module)
+        # Use cached conv_module loaded in setup()
         
         if not hasattr(self, 'tmp_config'):
                 self.tmp_config = AutoConfig.from_pretrained(self.cfg.model.vision_model.variant, trust_remote_code=True)
@@ -625,10 +625,10 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
                 question = questions[idx]
                 if '<image>' not in question:
                         question = '<image>\n' + question
-                template = conv_module.get_conv_template('internlm2-chat')
+                template = self.conv_module.get_conv_template('internlm2-chat')
                 template_inference = None
                 
-                template_inference = conv_module.get_conv_template('internlm2-chat')
+                template_inference = self.conv_module.get_conv_template('internlm2-chat')
                 for conv_part_idx, conv_part in enumerate(conv):
                         if conv_part['role'] == 'assistant':
                                 # template.append_message(template.roles[1], conv_part['content'])
