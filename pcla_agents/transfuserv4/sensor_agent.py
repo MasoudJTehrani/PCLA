@@ -138,6 +138,18 @@ class SensorAgent(autonomous_agent.AutonomousAgent):
     self.commands.append(4)
     self.target_point_prev = [1e5, 1e5]
 
+    # --- GNSS convention guard ---
+    # CARLA 0.9.16 flipped the sign of the GNSS *latitude* relative to the route's
+    # _location_to_gps convention. That mirrors the ego in Y (position reads (x, -y)),
+    # so the whole route appears on the wrong side and the agent veers off-route on the
+    # first step. We auto-detect the sign convention once against a ground-truth
+    # reference and apply it to the live GNSS only. Identity on 0.9.15 (no behavior
+    # change); corrects 0.9.16. The route conversion is left untouched.
+    self._gps_lat_sign = 1.0
+    self._gps_lon_sign = 1.0
+    self._gps_calibrated = False
+    self._gt_vehicle = None
+
     # Filtering
     self.points = MerweScaledSigmaPoints(n=4, alpha=0.00001, beta=2, kappa=0, subtract=residual_state_x)
     self.ukf = UKF(dim_x=4,
@@ -265,6 +277,37 @@ class SensorAgent(autonomous_agent.AutonomousAgent):
 
     return sensors
 
+  def _calibrate_gps(self, raw_gps):
+    """One-time detection of the GNSS lat/lon sign convention (see setup()).
+
+    Picks the sign combination whose converted position best matches a
+    ground-truth reference: the true ego pose if the harness provides the
+    vehicle, else the route start. Leaves the signs at (1, 1) when the GNSS is
+    already consistent (e.g. CARLA 0.9.15), so healthy setups are unchanged.
+    """
+    ref = None
+    veh = getattr(self, '_gt_vehicle', None)
+    if veh is not None:
+      try:
+        loc = veh.get_transform().location
+        ref = (loc.x, loc.y)
+      except Exception:
+        ref = None
+    if ref is None and len(self._route_planner.route) > 0:
+      r0 = self._route_planner.route[0][0]
+      ref = (float(r0[0]), float(r0[1]))
+    if ref is None:
+      return  # no reference available yet; retry on the next tick
+    best = None
+    for ls in (1.0, -1.0):
+      for lo in (1.0, -1.0):
+        p = self._route_planner.convert_gps_to_carla(np.array([raw_gps[0] * ls, raw_gps[1] * lo]))
+        err = (p[0] - ref[0]) ** 2 + (p[1] - ref[1]) ** 2
+        if best is None or err < best[0]:
+          best = (err, ls, lo)
+    _, self._gps_lat_sign, self._gps_lon_sign = best
+    self._gps_calibrated = True
+
   @torch.inference_mode()  # Turns off gradient computation
   def tick(self, input_data):
     """Pre-processes sensor data and runs the Unscented Kalman Filter"""
@@ -284,7 +327,11 @@ class SensorAgent(autonomous_agent.AutonomousAgent):
     rgb = np.concatenate(rgb, axis=1)
     rgb = torch.from_numpy(rgb).to(self.device, dtype=torch.float32).unsqueeze(0)
 
-    gps_pos = self._route_planner.convert_gps_to_carla(input_data['gps'][1][:2])
+    raw_gps = np.asarray(input_data['gps'][1][:2], dtype=np.float64)
+    if not self._gps_calibrated:
+      self._calibrate_gps(raw_gps)
+    gps_pos = self._route_planner.convert_gps_to_carla(
+        np.array([raw_gps[0] * self._gps_lat_sign, raw_gps[1] * self._gps_lon_sign]))
     speed = input_data['speed'][1]['speed']
     compass = t_u.preprocess_compass(input_data['imu'][1][-1])
 
@@ -341,6 +388,7 @@ class SensorAgent(autonomous_agent.AutonomousAgent):
   @torch.inference_mode()  # Turns off gradient computation
   def run_step(self, input_data, timestamp, sensors=None, vehicle=None):  # pylint: disable=locally-disabled, unused-argument
     self.step += 1
+    self._gt_vehicle = vehicle  # ground-truth ref for one-time GNSS sign calibration only
 
     if not self.initialized:
       self._init()
