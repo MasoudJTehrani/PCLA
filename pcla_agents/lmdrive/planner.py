@@ -661,7 +661,7 @@ class InstructionPlanner(object):
         waypoint = self._map.get_waypoint(location)
         self.curr_command_mislead = command
         if self.curr_command_mislead in [1,2,3]:
-            for tjunction_loc in self.tjunction_mapping[town_id]:
+            for tjunction_loc in self.tjunction_mapping.get(town_id, []):
                 if math.sqrt(pow(-tjunction_loc[1]-gps_pos[0],2)+pow(tjunction_loc[0]-gps_pos[1],2))<tjunction_loc[2]:
                     target_angle_left = (tjunction_loc[3] * np.pi / 2) % (np.pi * 2)
                     target_angle_right = (tjunction_loc[3] * np.pi / 2 + np.pi) % (np.pi * 2)

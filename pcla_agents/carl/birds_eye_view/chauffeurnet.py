@@ -189,7 +189,7 @@ class ObsManager(ObsManagerBase):
     # road_mask, lane_mask 0.3 - 0.5 ms
     # Batched together for higher efficiency.
 
-    warped_hd_map = cv.warpAffine(self.hd_map_array, m_warp, (self._width, self._width))
+    warped_hd_map = self._warp_hd_map(m_warp)
     lane_mask_broken = warped_hd_map[:, :, 2].astype(bool)
 
     # 0.1 ms
@@ -371,6 +371,79 @@ class ObsManager(ObsManagerBase):
     src_pts = np.stack((bottom_left, top_left, top_right), axis=0).astype(np.float32)
     dst_pts = np.array([[0, self._width - 1], [0, 0], [self._width - 1, 0]], dtype=np.float32)
     return cv.getAffineTransform(src_pts, dst_pts)
+
+  def _warp_hd_map(self, m_warp):
+    """Warp the HD map into the current local BEV frame.
+
+    m_warp is the affine transform already computed by the original code. It maps
+    coordinates from the global HD map raster to coordinates in the local BEV
+    output image, whose size is self._width x self._width.
+
+    Computes which source pixels are needed for the
+    current local BEV frame, crops that region, adjusts the affine transform to
+    the crop coordinate system, and then calls cv.warpAffine() on the crop.
+    """
+
+    # self.hd_map_array has shape (height, width, channels).
+    map_height, map_width = self.hd_map_array.shape[:2]
+
+    # If the full map is small enough, keep exactly the originalbehavior.
+    if map_height < 32767 and map_width < 32767:
+      return cv.warpAffine(self.hd_map_array, m_warp, (self._width, self._width))
+
+    # For large maps:
+    
+    # Invert the transform so that we can map points from the
+    # destination BEV image back to the global map coordinate system.
+    inv_warp = cv.invertAffineTransform(m_warp)
+
+    # The four corners of the destination BEV image.
+    dst_corners = np.array([[
+        [0, 0],
+        [self._width - 1, 0],
+        [self._width - 1, self._width - 1],
+        [0, self._width - 1],
+    ]], dtype=np.float32)
+
+    # Project the BEV corners back into the global HD map coordinate system.
+    src_corners = cv.transform(dst_corners, inv_warp)[0]
+
+    # Build a bounding box around those four source points.
+    # This rectangle is the smallest simple crop that contains all map pixels that contribute to the current BEV frame,
+    # with a small margin added.
+    margin = 8
+    x_min = max(0, int(np.floor(np.min(src_corners[:, 0]))) - margin)
+    y_min = max(0, int(np.floor(np.min(src_corners[:, 1]))) - margin)
+    x_max = min(map_width, int(np.ceil(np.max(src_corners[:, 0]))) + margin + 1)
+    y_max = min(map_height, int(np.ceil(np.max(src_corners[:, 1]))) + margin + 1)
+
+    # Safety check: if the requested BEV area is completely outside the map, the crop would be empty.
+    if x_min >= x_max or y_min >= y_max:
+      return np.zeros((self._width, self._width, self._image_channels), dtype=np.uint8)
+
+    # Extracts only the local region of the full HD map that is needed for
+    # the current BEV image.
+    hd_map_crop = self.hd_map_array[y_min:y_max, x_min:x_max]
+
+    # Safety check: the crop should now be small enough for OpenCV, otherwise fail.
+    crop_height, crop_width = hd_map_crop.shape[:2]
+    if crop_height >= 32767 or crop_width >= 32767:
+      raise RuntimeError(
+          f"Roach HD map crop is still too large for OpenCV: "
+          f"{crop_width}x{crop_height}"
+      )
+
+    # Update the translation term so that crop local coordinates are mapped to the
+    # same BEV pixels as the corresponding global map coordinates.
+    crop_warp = m_warp.copy()
+    crop_warp[:, 2] = (
+        m_warp[:, 0] * x_min
+        + m_warp[:, 1] * y_min
+        + m_warp[:, 2]
+    )
+
+    # Apply the same BEV warp, but using the local crop as the source.
+    return cv.warpAffine(hd_map_crop, crop_warp, (self._width, self._width))
 
   def _world_to_pixel(self, location, projective=False):
     """Converts the world coordinates to pixel coordinates"""

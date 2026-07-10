@@ -11,3 +11,23 @@ env/
 .ipynb_checkpoints/
 pcla_agents/pretrained.zip
 .vscode
+graphify-out/
+
+# Run logs (e.g. Autoware agent: sample_autoware.log, tl_test.log)
+*.log
+
+# Apollo agent — SHELVED, not ready to publish (resume: pcla_agents/apollo/RESUME_HERE.md).
+# Keep everything Apollo local until the 0.9.16 bridge (Option 3) is built.
+pcla_agents/apollo/
+documents/apollo_integration_plan.md
+
+# Big runtime assets — kept OUT of git, delivered via a GitHub Release and fetched by
+# pcla_functions/download_assets.py (BEV maps, speed limits, town pickles, car_data).
+pcla_agents/**/birds_eye_view/maps*/
+pcla_agents/**/hdmap/maps*/
+pcla_agents/**/speed_limits/*.npy
+pcla_agents/**/util/Town*.pickle
+pcla_agents/plant2/car_data.npy
+# local build dir + the archive itself (upload the archive to the Release; never commit it)
+_release_assets/
+pcla_assets.zip

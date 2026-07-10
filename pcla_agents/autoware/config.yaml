@@ -1,0 +1,32 @@
+# PCLA <-> Autoware adapter config (jazzy stack: CARLA 0.9.16 / Autoware 1.8.0).
+# See project memory: autoware-carla-phase1-proven.
+
+autoware_container: aw_autoware   # running Autoware docker container (ros2 control-plane via docker exec)
+vehicle_role: v1                  # ego MUST be spawned with role_name = "autoware_" + vehicle_role
+localization_timeout_s: 40        # max seconds to wait for NDT localization before setting the goal
+
+# Traffic lights: Autoware's camera classifier returns UNKNOWN on CARLA's rendered lights,
+# so we inject CARLA's ground-truth light state into the planner's traffic_signals topic
+# (carla_gt_bridge; mirrors a real V2I deployment). Requires Autoware launched with
+# use_traffic_light_recognition:=false (start_stack.sh / run_autoware_*.sh already do this).
+traffic_lights: true
+# The CARLA-light -> Autoware-group table is auto-selected per town from the loaded map:
+#   external/zenoh_autoware_v2x/carla_maps/<Town>/map_info.json  (built by kit/gen_map_info.py).
+# Uncomment to force a specific table instead:
+# traffic_light_map_info: external/zenoh_autoware_v2x/carla_maps/Town01/map_info.json
+
+# --- Where to drive ---------------------------------------------------------------------------
+# Autoware is GOAL-based: you give it ONE destination and it plans its own lane-level route there
+# on the HD map (it does NOT trace sample_route.xml's dense waypoints like the neural agents do).
+# The destination is chosen in this priority order:
+#     goal_override  >  goal_ahead_m  >  the PCLA route's endpoint (last point of sample_route.xml)
+# All poses below are in the Autoware `map` frame = CARLA with y flipped:  (x_aw, y_aw, yaw_aw) =
+# (x_carla, -y_carla, -yaw_carla).  With all three commented out, it drives to the route endpoint.
+# goal_ahead_m: 100                        # drive this many metres forward from the spawn (no coords needed)
+# goal_override: [241.75, -195.15, 180.0]  # explicit destination [x, y, yaw_deg] (highest priority)
+
+# Optional: force the route through ordered via-points (choose the PATH, not just the endpoint).
+# Each is [x, y, yaw_deg] in the Autoware map frame; the route becomes ego -> cp1 -> cp2 -> ... -> goal.
+# checkpoints:
+#   - [120.0, -55.0, 90.0]
+#   - [90.0, -110.0, 180.0]

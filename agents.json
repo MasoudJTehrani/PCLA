@@ -1,4 +1,10 @@
 {
+    "autoware":{
+        "v1": {
+            "agent": "pcla_agents/autoware/autoware_agent.py",
+            "config": "pcla_agents/autoware/config.yaml"
+        }
+    },
     "plant2":{
         "plant2": {
             "agent": "pcla_agents/plant2/PlanT_agent.py",
