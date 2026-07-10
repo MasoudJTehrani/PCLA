@@ -18,11 +18,13 @@ A versatile framework for deploying, testing and evaluating pretrained autonomou
 
 ## Supported Autonomous Agents
 
-PCLA currently supports **36** agents and 27 additional training seeds from 15 major autonomous driving projects:
+PCLA currently supports **37** agents and 27 additional training seeds from 15 major autonomous driving projects:
 
-[**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**TransfuserV3**](https://github.com/autonomousvision/transfuser) | [**TransfuserV4**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**TransfuserV5**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_2) | [**TransfuserV6 / Lead**](https://github.com/autonomousvision/lead) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT2**](https://github.com/autonomousvision/plant2) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV) | [**Autoware**](pcla_agents/autoware/README.md)
+[**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**TransfuserV3**](https://github.com/autonomousvision/transfuser) | [**TransfuserV4**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**TransfuserV5**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_2) | [**TransfuserV6 / Lead**](https://github.com/autonomousvision/lead) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT2**](https://github.com/autonomousvision/plant2) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV)
 
-> [**Autoware**](pcla_agents/autoware/README.md) is the odd one out: not an end-to-end neural net but the open-source, HD-map-based modular AD stack, running as a ROS 2/Docker stack bridged to CARLA. It drives any town (localizing on a pointcloud map generated from the sim) and obeys traffic lights. See its [README](pcla_agents/autoware/README.md).
+## Additional Agents
+You can now use [**Autoware**](https://github.com/autowarefoundation/autoware) ⭐ bridge in PCLA
+> **Autoware** is not an end-to-end neural net but the open-source, HD-map-based modular AD stack, running as a ROS 2/Docker stack bridged to CARLA. It drives any town (localizing on a pointcloud map generated from the sim) and obeys traffic lights. See its dedicated [Autoware README](pcla_agents/autoware/README.md).
 
 ---
 
@@ -74,13 +76,14 @@ A video tutorial on how to use PCLA is available below (an updated version is co
 
 ### Installation Steps
 
-1.  **Clone the repository and build the Conda environment:**
+1.  **Clone the repository, build the Conda environment, and setup big assets:**
 
     ```bash
     git clone https://github.com/MasoudJTehrani/PCLA
     cd PCLA
     conda env create -f environment.yml
     conda activate PCLA
+    python pcla_functions/download_assets.py 
     ```
 2.  **Install `torch-scatter` and CUDA Toolkit:**
     > **Note:** Please make sure to install `torch-scatter` and `CUDA Toolkit` according to your specific CUDA version. You can check your CUDA version using the included `python cuda.py` script.
@@ -138,19 +141,9 @@ Ensure that the downloaded pre-trained weight folders are placed directly next t
 │   ├── ...
 ```
 
-### Map & Data Assets
-
-A few agents also load large per-town **assets** (bird's-eye-view maps, speed limits, town data) that, like the weights, are hosted separately from the code. Download and unpack them into place with:
-
-```bash
-python pcla_functions/download_assets.py
-```
-
-Alternatively, download `pcla_assets.zip` from the [Releases page](https://github.com/MasoudJTehrani/PCLA/releases) and extract it into the `PCLA/` root directory (it recreates the files under `pcla_agents/`).
-
 ## 3. Autonomous Agents
 
-PCLA includes **36** different autonomous agents and **27** additional training seeds to choose from. 
+PCLA includes **37** different autonomous agents and **27** additional training seeds to choose from. 
 > **Find the repository of each agent at the top of this page.**
 
 ### SimLingo
@@ -162,11 +155,11 @@ PCLA includes **36** different autonomous agents and **27** additional training 
 
 ### LMDrive
 
--   `lmdrive_llava`: Best performing LMDrive agent.
+-   `lmdrive_llava`: Best-performing LMDrive agent.
         
--   `lmdrive_vicuna`: Second best performing LMDrive agent.
+-   `lmdrive_vicuna`: Second-best-performing LMDrive agent.
         
--   `lmdrive_llama`: Third best performing LMDrive agent.
+-   `lmdrive_llama`: Third-best-performing LMDrive agent.
         
 
 ### TransfuserV3
@@ -216,7 +209,7 @@ PCLA includes **36** different autonomous agents and **27** additional training 
 
 -   `tfv6_noradar`: Uses resnet34 but no radar sensor. Also known as the "− Radar" variant.
 
--   `tfv6_visiononly`: Vision-only driving model and resnet34.
+-   `tfv6_visiononly`: Vision-only driving model and ResNet34.
 
 -   `tfv6_notown13`: Uses resnet34 but Town13 is excluded. Also known as the "Town13 held out" variant.
 
@@ -281,6 +274,10 @@ PCLA includes **36** different autonomous agents and **27** additional training 
         
 -   `wor_lb`: World on Rails, the Leaderboard model.
 
+
+#### Autoware
+
+-   `autoware_v1`: Autoware bridge in PCLA. For a tutorial on using Autoware, please refer to the [Autoware README](pcla_agents/autoware/README.md).
 
 ----------
 
