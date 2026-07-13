@@ -46,6 +46,8 @@ The corresponding paper is available at [Foundations of Software Engineering (FS
 
 PCLA was tested on **Linux Ubuntu 22** and **[CARLA 0.9.16](https://github.com/carla-simulator/carla/releases/tag/0.9.16/) (Unreal Engine 4)**.
 
+:warning: CARLA 0.9.15 is more compatible with the agents
+
 A video tutorial on how to use PCLA is available below.
 
 [![PCLA Video Tutorial](https://img.youtube.com/vi/_ghqJV4Ee40/0.jpg)](https://youtu.be/_ghqJV4Ee40)
