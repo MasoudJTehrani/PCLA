@@ -18,9 +18,9 @@ A versatile framework for deploying, testing and evaluating pretrained autonomou
 
 ## Supported Autonomous Agents
 
-PCLA currently supports **37** agents and 27 additional training seeds from 15 major autonomous driving projects:
+PCLA currently supports **38** agents and 27 additional training seeds from 17 major autonomous driving projects:
 
-[**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**TransfuserV3**](https://github.com/autonomousvision/transfuser) | [**TransfuserV4**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**TransfuserV5**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_2) | [**TransfuserV6 / Lead**](https://github.com/autonomousvision/lead) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT2**](https://github.com/autonomousvision/plant2) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV)
+[**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**ThinkTwice**](https://github.com/OpenDriveLab/ThinkTwice) | [**TransfuserV3**](https://github.com/autonomousvision/transfuser) | [**TransfuserV4**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**TransfuserV5**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_2) | [**TransfuserV6 / Lead**](https://github.com/autonomousvision/lead) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT2**](https://github.com/autonomousvision/plant2) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV)
 
 ## Additional Agents
 You can now use [**Autoware**](https://github.com/autowarefoundation/autoware) ⭐ bridge in PCLA
@@ -145,7 +145,7 @@ Ensure that the downloaded pre-trained weight folders are placed directly next t
 
 ## 3. Autonomous Agents
 
-PCLA includes **37** different autonomous agents and **27** additional training seeds to choose from. 
+PCLA includes **38** different autonomous agents and **27** additional training seeds to choose from. 
 > **Find the repository of each agent at the top of this page.**
 
 ### SimLingo
@@ -162,8 +162,13 @@ PCLA includes **37** different autonomous agents and **27** additional training 
 -   `lmdrive_vicuna`: Second-best-performing LMDrive agent.
         
 -   `lmdrive_llama`: Third-best-performing LMDrive agent.
-        
 
+        
+### ThinkTwice
+
+-   `tt_tt`: The base ThinkTwice agent.
+        
+  
 ### TransfuserV3
 
 -   Also known as Transfuser. See [the history of Transfuser](https://ln2697.github.io/lead/docs/transfuser_versions.html).
