@@ -1,13 +1,15 @@
-Agent Test Results - 2026-03-24 14:57:41
+Agent Test Results - 2026-07-14 09:26:00
 ======================================================================
 
-Summary: 36 passed, 0 failed out of 36 agents
+Summary: 38 passed, 0 failed out of 38 agents
 
 Skipped agents: 0
 ======================================================================
 
 PASSED AGENTS:
 ----------------------------------------------------------------------
+tt_tt
+autoware_v1
 plant2_plant2_0
 tfv5_alltowns
 tfv5_notown13

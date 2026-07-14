@@ -1,4 +1,10 @@
 {
+    "tt":{
+        "tt": {
+            "agent": "pcla_agents/tt/thinktwice_agent.py",
+            "config": "pcla_agents/tt_pretrained/thinktwice.pth"
+        }
+    },
     "autoware":{
         "v1": {
             "agent": "pcla_agents/autoware/autoware_agent.py",

@@ -66,4 +66,13 @@ def give_path(name, PCLA_dir, routePath):
             os.environ['PLANT_VIZ'] = ""
             os.environ['PLANT_CHECKPOINT'] = os.path.join(PCLA_dir, config)
 
+        if agent_name == "tt":
+            # ThinkTwice's agent setup() expects a single conf string of the form
+            # "<checkpoint.pth>+<network_config.py>" (it splits on '+'). `config` from
+            # agents.json is the checkpoint path; the mmdet3d network config lives in the
+            # staged model tree. Return both as absolute paths joined by '+'.
+            tt_ckpt = os.path.join(PCLA_dir, config)
+            tt_cfg = os.path.join(PCLA_dir, "pcla_agents/tt/open_loop_training/configs/thinktwice.py")
+            return os.path.join(PCLA_dir, agent), tt_ckpt + "+" + tt_cfg
+
     return os.path.join(PCLA_dir, agent), os.path.join(PCLA_dir, config)
