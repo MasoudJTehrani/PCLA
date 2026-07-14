@@ -174,9 +174,11 @@ class PCLA():
         # Stop and destroy any remaining sensors
         alive_sensors = self.world.get_actors().filter('*sensor*')
         for sensor in alive_sensors:
-            if sensor.is_listening():
-                sensor.stop()
-            sensor.destroy()
+            # We only want to destroy sensors attached to the ego vehicle
+            if sensor.parent and sensor.parent.id == self.vehicle.id:
+                if sensor.is_listening():
+                    sensor.stop()
+                sensor.destroy()
 
         # Destroy the vehicle after sensors are cleaned up
         try:
