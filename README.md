@@ -33,7 +33,7 @@ You can now use [**Autoware**](https://github.com/autowarefoundation/autoware) â
 PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework designed to decouple the autonomous driving agents (ADAs) from the restrictive CARLA Leaderboard codebase.
 
 * **Decoupled Deployment:** Deploy high-performing ADAs onto a vehicle without relying on the original Leaderboard core codebase.
-* **Easy Switching:** Effortlessly switch between **37 different agents** and their **27 additional training seeds** without requiring changes to CARLA versions or programming environments.
+* **Easy Switching:** Effortlessly switch between **38 different agents** and their **27 additional training seeds** without requiring changes to CARLA versions or programming environments.
 * **Version Independent:** Fully compatible with the latest version of CARLA, independent of the Leaderboardâ€™s specific CARLA version.
 * **Multi-Agent Support:** Run multiple vehicles with different autonomous agents simultaneously (note: requires high graphical memory).
 * **CARLA Action Access:** Retrieve the computed CARLA movement action from the chosen agent for use in any custom application.
