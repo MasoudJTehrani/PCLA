@@ -29,6 +29,7 @@ from torchvision import transforms
 from leaderboard_codes import autonomous_agent1 as autonomous_agent
 from planner import RoutePlanner, InstructionPlanner
 from pid_controller import PIDController
+from pcla_functions.gnss_guard import GnssSignGuard
 from timm.models import create_model
 from lavis.common.registry import registry
 
@@ -265,13 +266,20 @@ class LMDriveAgent(autonomous_agent.AutonomousAgent):
         self._route_planner.set_route(self._global_plan, True)
         # self._instruction_planner = InstructionPlanner(self.scenario_cofing_name, True)
         self._instruction_planner = InstructionPlanner(vehicle = vehicle, scenario_cofing_name = '', notice_light_switch = True)
+        self._gnss_guard = GnssSignGuard('lmdrive')
         self.initialized = True
         random.seed(''.join([str(x[0]) for x in self._global_plan]))
 
+    def _to_route_frame(self, gps):
+        return (np.array(gps) - self._route_planner.mean) * self._route_planner.scale
+
     def _get_position(self, tick_data):
         gps = tick_data["gps"]
-        gps = (gps - self._route_planner.mean) * self._route_planner.scale
-        return gps
+        # CARLA 0.9.16 flips the GNSS latitude sign; detect it once against the
+        # route start and correct the live reading. Identity on 0.9.15.
+        if not self._gnss_guard.calibrated and len(self._route_planner.route) > 0:
+            self._gnss_guard.calibrate(gps, self._to_route_frame, self._route_planner.route[0][0])
+        return self._to_route_frame(self._gnss_guard.apply(gps)[:2])
 
     def sensors(self):
         return [

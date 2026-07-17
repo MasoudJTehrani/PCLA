@@ -16,6 +16,7 @@ from utils import visualize_obs
 
 from rails.models import EgoModel, CameraModel
 from waypointer import Waypointer
+from pcla_functions.gnss_guard import GnssSignGuard
 
 def get_entry_point():
     return 'ImageAgent'
@@ -65,6 +66,7 @@ class ImageAgent(AutonomousAgent):
         self.vizs = []
 
         self.waypointer = None
+        self._gnss_guard = GnssSignGuard('wor')
 
         if self.log_wandb:
             wandb.init(project='carla_evaluate')
@@ -140,6 +142,14 @@ class ImageAgent(AutonomousAgent):
         _, ego = input_data.get('EGO')
         _, gps = input_data.get('GPS')
 
+        # CARLA 0.9.16 flips the GNSS latitude sign, mirroring the ego against the
+        # route the Waypointer builds from the plan's lat/lon. Detect the sign once
+        # against the route start; latlon_to_xy is linear per axis, so matching in
+        # lat/lon space picks the same combination as matching in xy. Identity on 0.9.15.
+        if not self._gnss_guard.calibrated and len(self._global_plan) > 0:
+            _ref = self._global_plan[0][0]
+            self._gnss_guard.calibrate(gps, lambda g: (g[0], g[1]), (_ref['lat'], _ref['lon']))
+        gps = self._gnss_guard.apply(gps)
 
         if self.waypointer is None:
             self.waypointer = Waypointer(self._global_plan, gps)

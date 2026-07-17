@@ -11,6 +11,7 @@ import lead.common.common_utils as common_utils
 from lead.common import ransac
 from lead.common.kalman_filter import KalmanFilter
 from lead.common.route_planner import RoutePlanner
+from pcla_functions.gnss_guard import GnssSignGuard
 from lead.expert.config_expert import ExpertConfig
 from lead.expert.expert_utils import step_cached_property
 
@@ -92,6 +93,23 @@ class BaseAgent:
             )
             self.gps_waypoint_planners_dict[dist] = planner
 
+        self._gnss_guard = GnssSignGuard("tfv6")
+
+    def _gps_to_carla_xy(self, gps):
+        """(lat, lon) -> CARLA (x, y), the frame the route waypoints live in."""
+        return common_utils.convert_gps_to_carla(
+            np.array([gps[0], gps[1], 0.0]),
+            self.noisy_lat_ref,
+            self.noisy_lon_ref,
+        )[:2]
+
+    def _gnss_reference(self):
+        """Route start in CARLA (x, y), used once to detect the GNSS sign convention."""
+        for planner in self.gps_waypoint_planners_dict.values():
+            if len(planner.route) > 0:
+                return np.asarray(planner.route[0][0], dtype=np.float64)[:2]
+        return None
+
     @beartype
     def tick(self, input_data: dict, use_kalman_filter: bool = True) -> dict:
         # Get the vehicle's speed from sensor
@@ -109,9 +127,19 @@ class BaseAgent:
             ]  # Unbounded range
         self.yaws_queue.append(self.compass)
 
-        # Filter the GPS position with Kalman filter
+        # Filter the GPS position with Kalman filter.
+        # CARLA 0.9.16 flips the GNSS latitude sign; detect it once against the
+        # route start and correct the live reading. Identity on 0.9.15. The route
+        # conversion (and the fitted noisy_lat_ref/lon_ref) are left untouched.
+        gps_raw = input_data["gps"][1]
+        if not self._gnss_guard.calibrated:
+            self._gnss_guard.calibrate(
+                gps_raw,
+                self._gps_to_carla_xy,
+                self._gnss_reference(),
+            )
         noisy_gps_pos = common_utils.convert_gps_to_carla(
-            input_data["gps"][1],
+            self._gnss_guard.apply(gps_raw),
             self.noisy_lat_ref,
             self.noisy_lon_ref,
         )

@@ -20,6 +20,7 @@ from pid import PIDController
 from point_painting import CoordConverter, point_painting
 from planner import RoutePlanner
 from waypointer import Waypointer
+from pcla_functions.gnss_guard import GnssSignGuard
 
 
 
@@ -142,6 +143,7 @@ class LAVAgent(AutonomousAgent):
         self.waypointer = None
         self.planner    = None
         self.prev_lidar = None
+        self._gnss_guard = GnssSignGuard('lav')
 
         self.turn_controller = PIDController(K_P=self.turn_KP, K_I=self.turn_KI, K_D=self.turn_KD, n=self.turn_n)
         self.speed_controller = PIDController(K_P=self.speed_KP, K_I=self.speed_KI, K_D=self.speed_KD, n=self.speed_n)
@@ -154,6 +156,7 @@ class LAVAgent(AutonomousAgent):
         self.waypointer = None
         self.planner    = None
         self.prev_lidar = None
+        self._gnss_guard.reset()  # re-detect the GNSS sign on the next route
         self.coord_converters = None
         self.turn_controller = None
         self.speed_controller = None
@@ -178,6 +181,16 @@ class LAVAgent(AutonomousAgent):
         _, imu   = input_data.get('IMU')
         _, ego   = input_data.get('EGO')
         spd      = ego.get('speed')
+
+        # CARLA 0.9.16 flips the GNSS latitude sign, mirroring the ego against the
+        # route the Waypointer/RoutePlanner build from the plan's lat/lon. Detect the
+        # sign once against the route start; latlon_to_xy is linear per axis, so
+        # matching in lat/lon space picks the same combination as matching in xy.
+        # Identity on 0.9.15. Applied here so every downstream user of `gps` is fixed.
+        if not self._gnss_guard.calibrated and len(self._global_plan) > 0:
+            _ref = self._global_plan[0][0]
+            self._gnss_guard.calibrate(gps, lambda g: (g[0], g[1]), (_ref['lat'], _ref['lon']))
+        gps = self._gnss_guard.apply(gps)
 
         if self.num_frames <= 1:
             self.prev_lidar = lidar

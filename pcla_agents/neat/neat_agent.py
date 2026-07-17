@@ -17,6 +17,7 @@ from neat.architectures import AttentionField
 from neat.config import GlobalConfig
 from neat.utils import flow_to_color
 from planner import RoutePlanner
+from pcla_functions.gnss_guard import GnssSignGuard
 
 
 SAVE_PATH = os.environ.get('SAVE_PATH', None)
@@ -88,14 +89,21 @@ class MultiTaskAgent(autonomous_agent.AutonomousAgent):
 	def _init(self):
 		self._route_planner = RoutePlanner(4.0, 50.0)
 		self._route_planner.set_route(self._global_plan, True)
+		self._gnss_guard = GnssSignGuard('neat')
 
 		self.initialized = True
 
+	def _to_route_frame(self, gps):
+		return (np.array(gps) - self._route_planner.mean) * self._route_planner.scale
+
 	def _get_position(self, tick_data):
 		gps = tick_data['gps']
-		gps = (gps - self._route_planner.mean) * self._route_planner.scale
+		# CARLA 0.9.16 flips the GNSS latitude sign; detect it once against the
+		# route start and correct the live reading. Identity on 0.9.15.
+		if not self._gnss_guard.calibrated and len(self._route_planner.route) > 0:
+			self._gnss_guard.calibrate(gps, self._to_route_frame, self._route_planner.route[0][0])
 
-		return gps
+		return self._to_route_frame(self._gnss_guard.apply(gps)[:2])
 
 	def sensors(self):
 		return [

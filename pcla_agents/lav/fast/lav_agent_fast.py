@@ -23,6 +23,7 @@ from ekf import EKF
 from point_painting import CoordConverter, point_painting
 from planner import RoutePlanner
 from waypointer import Waypointer
+from pcla_functions.gnss_guard import GnssSignGuard
 from model_inference import InferModel
 
 
@@ -91,6 +92,7 @@ class LAVAgent(AutonomousAgent):
 
         self.waypointer = None
         self.planner    = None
+        self._gnss_guard = GnssSignGuard('lav_fast')
 
         wandb.init(project='lav_eval')
 
@@ -227,6 +229,16 @@ class LAVAgent(AutonomousAgent):
         _, imu   = input_data.get('IMU')
         _, ego   = input_data.get('EGO')
         spd      = ego.get('speed')
+
+        # CARLA 0.9.16 flips the GNSS latitude sign, mirroring the ego against the
+        # route the Waypointer/RoutePlanner build from the plan's lat/lon. Detect the
+        # sign once against the route start; latlon_to_xy is linear per axis, so
+        # matching in lat/lon space picks the same combination as matching in xy.
+        # Identity on 0.9.15. Applied here so every downstream user of `gps` is fixed.
+        if not self._gnss_guard.calibrated and len(self._global_plan) > 0:
+            _ref = self._global_plan[0][0]
+            self._gnss_guard.calibrate(gps, lambda g: (g[0], g[1]), (_ref['lat'], _ref['lon']))
+        gps = self._gnss_guard.apply(gps)
 
         compass = imu[-1]
         

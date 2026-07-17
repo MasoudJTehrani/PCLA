@@ -21,6 +21,7 @@ from model import LidarCenterNet
 from config import GlobalConfig
 from data import CARLA_Data
 from nav_planner import RoutePlanner
+from pcla_functions.gnss_guard import GnssSignGuard
 from nav_planner import extrapolate_waypoint_route
 
 from filterpy.kalman import MerweScaledSigmaPoints
@@ -269,7 +270,24 @@ class SensorAgent(autonomous_agent.AutonomousAgent):
     self._route_planner = RoutePlanner(self.config.route_planner_min_distance, self.config.route_planner_max_distance,
                                        self.lat_ref, self.lon_ref)
     self._route_planner.set_route(self._global_plan, True)
+    self._gnss_guard = GnssSignGuard('tfv5')
     self.initialized = True
+
+  def _gps_to_carla_xy(self, gps):
+    """(lat, lon) -> CARLA (x, y), the frame the route waypoints live in."""
+    return self._route_planner.convert_gps_to_carla(np.array([gps[0], gps[1], 0.0]))[:2]
+
+  def _gnss_reference(self, vehicle):
+    """Ground-truth CARLA (x, y) used once to detect the GNSS sign convention."""
+    if vehicle is not None:
+      try:
+        loc = vehicle.get_transform().location
+        return np.array([loc.x, loc.y])
+      except Exception:
+        pass
+    if len(self._route_planner.route) > 0:
+      return np.asarray(self._route_planner.route[0][0], dtype=np.float64)[:2]
+    return None
 
   def sensors(self):
     sensors = [{
@@ -345,7 +363,13 @@ class SensorAgent(autonomous_agent.AutonomousAgent):
     rgb = np.concatenate(rgb, axis=1)
     rgb = torch.from_numpy(rgb).to(self.device, dtype=torch.float32).unsqueeze(0)
 
-    gps_pos = self._route_planner.convert_gps_to_carla(input_data['gps'][1])
+    # CARLA 0.9.16 flips the GNSS latitude sign; detect it once against the true
+    # ego pose (route start as fallback) and correct the live reading. Identity
+    # on 0.9.15. The route conversion itself is left untouched.
+    gps_raw = input_data['gps'][1]
+    if not self._gnss_guard.calibrated:
+      self._gnss_guard.calibrate(gps_raw, self._gps_to_carla_xy, self._gnss_reference(vehicle))
+    gps_pos = self._route_planner.convert_gps_to_carla(self._gnss_guard.apply(gps_raw))
     speed = input_data['speed'][1]['speed']
     compass = t_u.preprocess_compass(input_data['imu'][1][-1])
 
