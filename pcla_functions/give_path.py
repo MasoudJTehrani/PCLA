@@ -75,4 +75,42 @@ def give_path(name, PCLA_dir, routePath):
             tt_cfg = os.path.join(PCLA_dir, "pcla_agents/tt/open_loop_training/configs/thinktwice.py")
             return os.path.join(PCLA_dir, agent), tt_ckpt + "+" + tt_cfg
 
+        if agent_name == "minddrive":
+            # MindDrive's setup() splits its conf string on '+' and takes
+            # "<network_config.py>+<checkpoint.pth>" -- note this is the OPPOSITE
+            # order to ThinkTwice above. `config` from agents.json is the checkpoint;
+            # the matching PCLA config variant (local llm_path, flash_attn=False)
+            # lives in the staged model tree, and differs per model size.
+            md_configs = {
+                "05b": "minddrive_qwen2_05B_infer_pcla.py",
+                "3b": "minddrive_qwen25_3B_infer_pcla.py",
+            }
+            if variant not in md_configs:
+                raise ValueError(
+                    f"Unknown minddrive variant '{variant}'. "
+                    f"Expected one of: {', '.join(sorted(md_configs))}")
+            md_ckpt = os.path.join(PCLA_dir, config)
+            md_cfg = os.path.join(
+                PCLA_dir, "pcla_agents/minddrive/adzoo/minddrive/configs", md_configs[variant])
+            return os.path.join(PCLA_dir, agent), md_cfg + "+" + md_ckpt
+
+        if agent_name == "orion":
+            # ORION uses the same "<network_config.py>+<checkpoint.pth>" conf string as
+            # minddrive (MindDrive is a fork of ORION). The fp16 config is used
+            # deliberately: ORION is a ~7B model and needs fp16 to fit a 20 GB card.
+            or_configs = {
+                # Derived from `orion_stage3_agent.py` -- the only inference config
+                # that defines `inference_only_pipeline`, which the agent requires --
+                # plus fp16 inference so ~7.5B params fit a 20 GB card.
+                "base": "orion_stage3_agent_fp16_pcla.py",
+            }
+            if variant not in or_configs:
+                raise ValueError(
+                    f"Unknown orion variant '{variant}'. "
+                    f"Expected one of: {', '.join(sorted(or_configs))}")
+            or_ckpt = os.path.join(PCLA_dir, config)
+            or_cfg = os.path.join(
+                PCLA_dir, "pcla_agents/orion/adzoo/orion/configs", or_configs[variant])
+            return os.path.join(PCLA_dir, agent), or_cfg + "+" + or_ckpt
+
     return os.path.join(PCLA_dir, agent), os.path.join(PCLA_dir, config)

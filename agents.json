@@ -1,4 +1,20 @@
 {
+    "orion":{
+        "base": {
+            "agent": "pcla_agents/orion/orion_agent.py",
+            "config": "pcla_agents/orion_pretrained/Orion.pth"
+        }
+    },
+    "minddrive":{
+        "05b": {
+            "agent": "pcla_agents/minddrive/minddrive_agent.py",
+            "config": "pcla_agents/minddrive_pretrained/minddrive_rltrain.pth"
+        },
+        "3b": {
+            "agent": "pcla_agents/minddrive/minddrive_agent.py",
+            "config": "pcla_agents/minddrive_pretrained/minddrive_3b_rltrain.pth"
+        }
+    },
     "tt":{
         "tt": {
             "agent": "pcla_agents/tt/thinktwice_agent.py",

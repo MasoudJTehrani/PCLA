@@ -23,7 +23,8 @@ if os.path.exists(lmdrive_vision_encoder) and lmdrive_vision_encoder not in sys.
 import carla
 import traceback
 import torch
-from pcla_functions import give_path, setup_sensor_attributes, location_to_waypoint, route_maker
+from pcla_functions import (give_path, setup_sensor_attributes, location_to_waypoint, route_maker,
+                            clear_agent_modules)
 from leaderboard_codes.watchdog import Watchdog
 from leaderboard_codes.timer import GameTime
 from leaderboard_codes.route_indexer import RouteIndexer
@@ -73,26 +74,10 @@ class PCLA():
             sys.path.remove(module_dir)
         sys.path.insert(0, module_dir)
 
-        # Drop previously loaded local agent modules to avoid cross-agent contamination
-        # (e.g., plant2's dataset being reused by plant1).
-        module_names_to_clear = {
-            module_key,
-            'model', 'models', 'dataset', 'lit_module', 'plant_variables',
-            'nav_planner', 'config', 'transfuser', 'transfuser_utils',
-            'utils', 'util', 'data', 'gaussian_target',
-            'planner', 'controller', 'map_agent', 'base_agent',
-            'bev_planner', 'waypointer', 'lateral_controller',
-            'longitudinal_controller', 'kinematic_bicycle_model'
-        }
-        module_prefixes_to_clear = (
-            'models.',
-            'util.',
-            'carla_garage.',
-            'birds_eye_view.',
-        )
-        for key in list(sys.modules.keys()):
-            if key in module_names_to_clear or key == 'carla_garage' or key.startswith(module_prefixes_to_clear):
-                del sys.modules[key]
+        # Drop previously loaded agent-local modules so the path prepended above is
+        # actually consulted (see pcla_functions/clear_agent_modules.py for the list
+        # of colliding names and why each is there).
+        clear_agent_modules(module_key)
 
         try:
             spec = importlib.util.spec_from_file_location(module_key, self.agentPath)

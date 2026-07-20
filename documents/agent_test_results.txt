@@ -1,13 +1,16 @@
-Agent Test Results - 2026-07-17 11:28:50
+Agent Test Results - 2026-07-20 15:15:56
 ======================================================================
 
-Summary: 37 passed, 1 failed out of 38 agents
+Summary: 41 passed, 0 failed out of 41 agents
 
 Skipped agents: 0
 ======================================================================
 
 PASSED AGENTS:
 ----------------------------------------------------------------------
+orion_base
+minddrive_05b
+minddrive_3b
 tt_tt
 autoware_v1
 plant2_plant2_0
@@ -33,6 +36,7 @@ lbc_lb
 lbc_nc
 wor_lb
 wor_nc
+lmdrive_llava
 lmdrive_vicuna
 lmdrive_llama
 simlingo_simlingo
@@ -49,9 +53,4 @@ if_if
 ======================================================================
 
 FAILED AGENTS:
-----------------------------------------------------------------------
-
-lmdrive_llava:
-OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 19.68 GiB of which 229.25 MiB is free. Process 141646 has 5.60 GiB memory in use. Including non-PyTorch memory, this process has 13.49 GiB memory in use. Of the allocated memory 13.18 GiB is allocated by PyTorch, and 29.43 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
-
 ----------------------------------------------------------------------

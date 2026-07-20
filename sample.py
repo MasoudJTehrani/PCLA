@@ -5,8 +5,8 @@ from PCLA import PCLA
 
 
 def main():
-
-    HOST_IP  = "localhost"
+    # 10.21.13.26
+    HOST_IP  = "localhost" # Change to the IP of the machine running CARLA if not on the same machine
     client = carla.Client(HOST_IP, 2000)
     client.set_timeout(10.0)
     client.load_world("Town02")
@@ -54,7 +54,7 @@ def main():
 
         world.tick()
 
-        agent = "tt_tt"
+        agent = "orion_base"
         route = "./sample_route.xml"
         pcla = PCLA(agent, vehicle, route, client)
         

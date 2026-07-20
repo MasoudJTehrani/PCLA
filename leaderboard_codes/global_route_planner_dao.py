@@ -55,12 +55,19 @@ class GlobalRoutePlannerDAO(object):
             seg_dict['path'] = []
             endloc = wp2.transform.location
             if wp1.transform.location.distance(endloc) > self._sampling_resolution:
-                w = wp1.next(self._sampling_resolution)[0]
-                while w.transform.location.distance(endloc) > self._sampling_resolution:
-                    seg_dict['path'].append(w)
-                    w = w.next(self._sampling_resolution)[0]
+                _nx = wp1.next(self._sampling_resolution)
+                if _nx:
+                    w = _nx[0]
+                    while w.transform.location.distance(endloc) > self._sampling_resolution:
+                        seg_dict['path'].append(w)
+                        _nx = w.next(self._sampling_resolution)
+                        if not _nx:  # dead-end on large maps (Town11): stop this segment
+                            break
+                        w = _nx[0]
             else:
-                seg_dict['path'].append(wp1.next(self._sampling_resolution)[0])
+                _nx = wp1.next(self._sampling_resolution)
+                if _nx:
+                    seg_dict['path'].append(_nx[0])
             topology.append(seg_dict)
         return topology
 

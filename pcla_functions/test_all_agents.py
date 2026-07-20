@@ -115,7 +115,7 @@ def main():
     global pcla_dir
     
     # 10.21.13.26
-    HOST_IP = "10.21.13.26"
+    HOST_IP = "localhost"  # Change to the IP of the machine running CARLA if not on the same machine
     # Change to PCLA directory so relative paths in agent configs work
     os.chdir(pcla_dir)
     
