@@ -121,7 +121,7 @@ You have two options to download the required pre-trained model weights:
 Run the following script to automatically download and unzip the weights into the correct location:
 
 ```bash
-python pcla_functions/download_weights.py # download everything (bare invocation still works)
+python pcla_functions/download_weights.py                    # download everything (bare invocation still works)
 python pcla_functions/download_weights.py --all              # explicit
 python pcla_functions/download_weights.py --agents minddrive orion tt # agent names examples
 python pcla_functions/download_weights.py --list             # see valid names + what each pulls
@@ -129,9 +129,9 @@ python pcla_functions/download_weights.py --list             # see valid names +
 ```
 ### Option 2: Manual Download
 
-1.  Manually download each agent's weights file from [Hugging Face](https://huggingface.co/datasets/MasoudJTehrani/PCLA).
+1.  Manually download each agent's weights file from [Hugging Face](https://huggingface.co/datasets/MasoudJTehrani/PCLA/tree/main).
     
-2.  Copy the folders into the `PCLA/pcla_agents/` directory.
+2.  Put the folders into the `PCLA/pcla_agents/` directory.
     
 
 ### Directory Structure
@@ -154,7 +154,7 @@ PCLA includes **41** different autonomous agents and **27** additional training 
 
 ### SimLingo
 
--   Also known as CarLLava, it is a vision-language-action (VLA) model that drives from cameras only and aligns its driving actions with language reasoning; it secured first place at the SENSORS track.
+Also known as CarLLava, it is a vision-language-action (VLA) model that drives from cameras only and aligns its driving actions with language reasoning; it secured first place at the SENSORS track.
 
 -   `simlingo_simlingo`: The best-performing agent, which secured first place at [CARLA Leaderboard 2](https://leaderboard.carla.org) SENSORS track (previously named CarLLava).
         
@@ -175,18 +175,18 @@ PCLA includes **41** different autonomous agents and **27** additional training 
 
 ### ORION
 
--   A VLA model pairing a ~7B LLaVA/Vicuna LLM with an EVA-ViT backbone over six surround cameras, turning vision-language instructions into driving trajectories.
+A VLA model pairing a ~7B LLaVA/Vicuna LLM with an EVA-ViT backbone over six surround cameras, turning vision-language instructions into driving trajectories.
 -   `orion_base`: The base ORION agent.
 
 ### MindDrive
 
--   A VLA model and the direct successor to ORION, replacing the single large LLM with a compact Qwen2-0.5B or Qwen2.5-3B carrying two LoRA experts, one for scene reasoning, one for trajectory generation, refined by online reinforcement learning.
+A VLA model and the direct successor to ORION, replacing the single large LLM with a compact Qwen2-0.5B or Qwen2.5-3B carrying two LoRA experts, one for scene reasoning, one for trajectory generation, refined by online reinforcement learning.
 -   `minddrive_05b`: The smaller variant with Qwen2-0.5B
 -   `minddrive_3b`: The larger variant with Qwen2.5-3B
   
 ### TransfuserV3
 
--   Also known as Transfuser. See [the history of Transfuser](https://ln2697.github.io/lead/docs/transfuser_versions.html).
+Also known as Transfuser. See [the history of Transfuser](https://ln2697.github.io/lead/docs/transfuser_versions.html).
 
 -   `tfv3_tf`: The main Transfuser agent.
         
@@ -199,7 +199,7 @@ PCLA includes **41** different autonomous agents and **27** additional training 
 
 ### TransfuserV4
 
--   Also known as Transfuser++ for Leaderboard 1.
+Also known as Transfuser++ for Leaderboard 1.
 
 -   **Seeds:** Replace `#` with the seed number from **0 to 2** (e.g., `tfpp_l6_0`).
         
@@ -213,7 +213,7 @@ PCLA includes **41** different autonomous agents and **27** additional training 
         
 ### TransfuserV5
 
--   Also known as Transfuser++ for Leaderboard 2. This version has a bit of similar performance as TransfuserV4
+Also known as Transfuser++ for Leaderboard 2. This version has a bit of similar performance as TransfuserV4
 
 -   `tfv5_alltowns`: This agent is trained with all towns.
 
@@ -221,7 +221,7 @@ PCLA includes **41** different autonomous agents and **27** additional training 
 
 ### TransfuserV6
 
--   The most recent Transfuser agent, also known as the **Lead** agent.
+The most recent Transfuser agent, also known as the **Lead** agent.
 
 -   `tfv6_regnet`: Their best-performing agent that uses regnety032. Also known as the "Full TransFuser V6" variant.
 
@@ -272,7 +272,7 @@ PCLA includes **41** different autonomous agents and **27** additional training 
 
 #### Learning from All Vehicles (LAV)
 
--   Make sure to run CARLA with the `-vulkan` flag before running this agent family.
+Make sure to run CARLA with the `-vulkan` flag before running this agent family.
 
 -   `lav_lav`: The original LAV agent.
         
@@ -281,7 +281,7 @@ PCLA includes **41** different autonomous agents and **27** additional training 
 
 #### Learning By Cheating (LBC)
 
--   Make sure to run CARLA with the `-vulkan` flag before running this agent family.
+Make sure to run CARLA with the `-vulkan` flag before running this agent family.
 
 -   `lbc_nc`: Learning By Cheating, the NoCrash model.
         
@@ -290,7 +290,7 @@ PCLA includes **41** different autonomous agents and **27** additional training 
 
 #### World on Rails (WoR)
 
--   Make sure to run CARLA with the `-vulkan` flag before running this agent family.
+Make sure to run CARLA with the `-vulkan` flag before running this agent family.
 
 -   `wor_nc`: World on Rails, the NoCrash model.
         
