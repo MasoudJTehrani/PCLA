@@ -7,7 +7,7 @@
 
 <p align="center">
 <b>A framework for testing autonomous agents in the CARLA simulator</b> </br>
-A versatile framework for deploying, testing and evaluating pretrained autonomous driving agents (ADAs) from the CARLA Leaderboard on your own vehicle.
+A versatile framework for deploying, testing, and evaluating pretrained autonomous driving agents (ADAs) from the CARLA Leaderboard on your own vehicle.
 </p>
 
 [![FSE 2025 Paper](https://img.shields.io/badge/Paper-FSE%202025-blue.svg)](https://dl.acm.org/doi/abs/10.1145/3696630.3728577)
@@ -18,9 +18,9 @@ A versatile framework for deploying, testing and evaluating pretrained autonomou
 
 ## Supported Autonomous Agents
 
-PCLA currently supports **38** agents and 27 additional training seeds from 17 major autonomous driving projects:
+PCLA currently supports **41** agents and 27 additional training seeds from 17 major autonomous driving projects:
 
-[**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**ThinkTwice**](https://github.com/OpenDriveLab/ThinkTwice) | [**TransfuserV3**](https://github.com/autonomousvision/transfuser) | [**TransfuserV4**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**TransfuserV5**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_2) | [**TransfuserV6 / Lead**](https://github.com/autonomousvision/lead) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT2**](https://github.com/autonomousvision/plant2) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV)
+[**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**ThinkTwice**](https://github.com/OpenDriveLab/ThinkTwice) | [**MindDrive**](https://github.com/xiaomi-mlab/Minddrive) | [ORION](https://github.com/xiaomi-mlab/Orion) | [**TransfuserV3**](https://github.com/autonomousvision/transfuser) | [**TransfuserV4**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**TransfuserV5**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_2) | [**TransfuserV6 / Lead**](https://github.com/autonomousvision/lead) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT2**](https://github.com/autonomousvision/plant2) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV)
 
 ## Additional Agents
 You can now use [**Autoware**](https://github.com/autowarefoundation/autoware) ⭐ bridge in PCLA
@@ -33,7 +33,7 @@ You can now use [**Autoware**](https://github.com/autowarefoundation/autoware) �
 PCLA (Pretrained CARLA Leaderboard Agents) is a versatile framework designed to decouple the autonomous driving agents (ADAs) from the restrictive CARLA Leaderboard codebase.
 
 * **Decoupled Deployment:** Deploy high-performing ADAs onto a vehicle without relying on the original Leaderboard core codebase.
-* **Easy Switching:** Effortlessly switch between **38 different agents** and their **27 additional training seeds** without requiring changes to CARLA versions or programming environments.
+* **Easy Switching:** Effortlessly switch between **41 different agents** and their **27 additional training seeds** without requiring changes to CARLA versions or programming environments.
 * **Version Independent:** Fully compatible with the latest version of CARLA, independent of the Leaderboard’s specific CARLA version.
 * **Multi-Agent Support:** Run multiple vehicles with different autonomous agents simultaneously (note: requires high graphical memory).
 * **CARLA Action Access:** Retrieve the computed CARLA movement action from the chosen agent for use in any custom application.
@@ -150,9 +150,9 @@ PCLA includes **38** different autonomous agents and **27** additional training 
 
 ### SimLingo
 
--   Also known as CarLLava.
+-   Also known as CarLLava, it is a vision-language-action (VLA) model that drives from cameras only and aligns its driving actions with language reasoning; it secured first place at the SENSORS track.
 
--   `simlingo_simlingo`: The best-performing agent, which secured **first place** at [CARLA Leaderboard 2](https://leaderboard.carla.org) SENSORS track (previously named CarLLava).
+-   `simlingo_simlingo`: The best-performing agent, which secured first place at [CARLA Leaderboard 2](https://leaderboard.carla.org) SENSORS track (previously named CarLLava).
         
 
 ### LMDrive
@@ -167,7 +167,18 @@ PCLA includes **38** different autonomous agents and **27** additional training 
 ### ThinkTwice
 
 -   `tt_tt`: The base ThinkTwice agent.
-        
+
+
+### ORION
+
+-   A VLA model pairing a ~7B LLaVA/Vicuna LLM with an EVA-ViT backbone over six surround cameras, turning vision-language instructions into driving trajectories.
+-   `orion_base`: The base ORION agent.
+
+### MindDrive
+
+-   A VLA model and the direct successor to ORION, replacing the single large LLM with a compact Qwen2-0.5B or Qwen2.5-3B carrying two LoRA experts, one for scene reasoning, one for trajectory generation, refined by online reinforcement learning.
+-   `minddrive_05b`: The smaller variant with Qwen2-0.5B
+-   `minddrive_3b`: The larger variant with Qwen2.5-3B
   
 ### TransfuserV3
 
@@ -184,7 +195,7 @@ PCLA includes **38** different autonomous agents and **27** additional training 
 
 ### TransfuserV4
 
--   Also know as Transfuser++ for Leaderboard 1.
+-   Also known as Transfuser++ for Leaderboard 1.
 
 -   **Seeds:** Replace `#` with the seed number from **0 to 2** (e.g., `tfpp_l6_0`).
         
