@@ -18,7 +18,7 @@ A versatile framework for deploying, testing, and evaluating pretrained autonomo
 
 ## Supported Autonomous Agents
 
-PCLA currently supports **41** agents and 27 additional training seeds from 17 major autonomous driving projects:
+PCLA currently supports **41** agents and 27 additional training seeds from 18 major autonomous driving projects:
 
 [**SimLingo**](https://github.com/RenzKa/simlingo) | [**LMDrive**](https://github.com/opendilab/LMDrive) | [**ThinkTwice**](https://github.com/OpenDriveLab/ThinkTwice) | [**MindDrive**](https://github.com/xiaomi-mlab/Minddrive) | [**ORION**](https://github.com/xiaomi-mlab/Orion) | [**TransfuserV3**](https://github.com/autonomousvision/transfuser) | [**TransfuserV4**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_1) | [**TransfuserV5**](https://github.com/autonomousvision/carla_garage/tree/leaderboard_2) | [**TransfuserV6 / Lead**](https://github.com/autonomousvision/lead) | [**CaRL**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**Roach**](https://github.com/autonomousvision/CaRL/tree/main/CARLA) | [**PlanT2**](https://github.com/autonomousvision/plant2) | [**PlanT**](https://github.com/autonomousvision/CaRL/tree/main/PlanT) | [**Interfuser**](https://github.com/opendilab/InterFuser) | [**NEAT**](https://github.com/autonomousvision/neat) | [**WoR**](https://github.com/dotchen/WorldOnRails) | [**LBC**](https://github.com/dotchen/WorldOnRails) | [**LAV**](https://github.com/dotchen/LAV)
 
@@ -121,13 +121,17 @@ You have two options to download the required pre-trained model weights:
 Run the following script to automatically download and unzip the weights into the correct location:
 
 ```bash
-python pcla_functions/download_weights.py
+python pcla_functions/download_weights.py # download everything (bare invocation still works)
+python pcla_functions/download_weights.py --all              # explicit
+python pcla_functions/download_weights.py --agents minddrive orion tt # agent names examples
+python pcla_functions/download_weights.py --list             # see valid names + what each pulls
+
 ```
 ### Option 2: Manual Download
 
-1.  Manually download the `pretrained.zip` file from [Hugging Face](https://huggingface.co/datasets/MasoudJTehrani/PCLA/blob/main/pretrained.zip).
+1.  Manually download each agent's weights file from [Hugging Face](https://huggingface.co/datasets/MasoudJTehrani/PCLA).
     
-2.  Extract the contents into the `PCLA/pcla_agents/` directory.
+2.  Copy the folders into the `PCLA/pcla_agents/` directory.
     
 
 ### Directory Structure
@@ -145,7 +149,7 @@ Ensure that the downloaded pre-trained weight folders are placed directly next t
 
 ## 3. Autonomous Agents
 
-PCLA includes **38** different autonomous agents and **27** additional training seeds to choose from. 
+PCLA includes **41** different autonomous agents and **27** additional training seeds to choose from. 
 > **Find the repository of each agent at the top of this page.**
 
 ### SimLingo
