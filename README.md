@@ -55,7 +55,7 @@ A video tutorial on how to use PCLA is available below.
 
 ---
 ## PCLA bridge
-The PCLA bridge bridge lets you drive a PCLA sensor agent from *any* source of sensor data and route it to any usecase without the need for the CARLA simulator. To use and learn more, visit [PCLA bridge README](pcla_bridge/README.md)
+The PCLA bridge bridge lets you drive a PCLA sensor agent from *any* source of sensor data and route it to any usecase without the need for the CARLA simulator. To use and learn more, visit [PCLA bridge](pcla_bridge)
 
 ---
 
@@ -73,7 +73,7 @@ The PCLA bridge bridge lets you drive a PCLA sensor agent from *any* source of s
 ---
 
 ## 1. Setup
-If you want to use PCLA outside and without the CARLA simulator, go to [PCLA bridge README](pcla_bridge/README.md).
+If you want to use PCLA outside and without the CARLA simulator, go to [PCLA bridge](pcla_bridge).
 ### Prerequisites
 
 1.  Download and install the [CARLA simulator](https://carla.readthedocs.io/en/latest/) from the official website (quick installation or build from source).
