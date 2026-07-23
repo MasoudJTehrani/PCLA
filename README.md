@@ -7,6 +7,7 @@
 
 <p align="center">
 <b>A framework for testing autonomous agents in the CARLA simulator</b> </br>
+<b>With PCLA bridge you can run the agents without the CARLA</b> </br>
 A versatile framework for deploying, testing, and evaluating pretrained autonomous driving agents (ADAs) from the CARLA Leaderboard on your own vehicle.
 </p>
 
@@ -53,6 +54,10 @@ A video tutorial on how to use PCLA is available below.
 [![PCLA Video Tutorial](https://img.youtube.com/vi/_ghqJV4Ee40/0.jpg)](https://youtu.be/_ghqJV4Ee40)
 
 ---
+## PCLA bridge
+The PCLA bridge bridge lets you drive a PCLA sensor agent from *any* source of sensor data and route it to any usecase without the need for the CARLA simulator. To use and learn more, visit [PCLA bridge README](pcla_bridge/README.md)
+
+---
 
 ## Table of Contents
 
@@ -68,7 +73,7 @@ A video tutorial on how to use PCLA is available below.
 ---
 
 ## 1. Setup
-
+If you want to use PCLA outside and without the CARLA simulator, go to [PCLA bridge README](pcla_bridge/README.md).
 ### Prerequisites
 
 1.  Download and install the [CARLA simulator](https://carla.readthedocs.io/en/latest/) from the official website (quick installation or build from source).
@@ -123,7 +128,7 @@ Run the following script to automatically download and unzip the weights into th
 ```bash
 python pcla_functions/download_weights.py                    # download everything (bare invocation still works)
 python pcla_functions/download_weights.py --all              # explicit
-python pcla_functions/download_weights.py --agents minddrive orion tt # agent names examples
+python pcla_functions/download_weights.py --agents minddrive orion tt # if you only want the weights from specific agents
 python pcla_functions/download_weights.py --list             # see valid names + what each pulls
 
 ```
