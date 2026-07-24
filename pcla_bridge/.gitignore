@@ -1,2 +1,6 @@
-samples/*/replay_out/
+# samples/*/replay_out/
 __pycache__/
+
+# nuScenes-derived sample: CC BY-NC-SA (non-commercial). Do NOT commit to a public
+# repo without checking redistribution terms. Kept local for the demo/poster.
+samples/nuscenes_run/
