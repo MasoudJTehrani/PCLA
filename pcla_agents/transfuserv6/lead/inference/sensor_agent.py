@@ -170,20 +170,27 @@ class SensorAgent(BaseAgent, autonomous_agent.AutonomousAgent):
         # construction (via set_global_plan), so initialise them here.
         self.init_route_planners()
 
-        # Get the hero vehicle and the CARLA world
+        # Get the hero vehicle and the CARLA world. When driven outside CARLA (e.g.
+        # through PCLA-Bridge from a foreign sim / log / real car) there is no vehicle
+        # and no world: run sensor-only. Weather and the debug video recorder both
+        # require the CARLA world and neither affects the control the model returns,
+        # so they are skipped in that case. The per-step uses are all safe without a
+        # world: video_recorder calls are hasattr-guarded, and the "town" model input
+        # falls back to a placeholder (it is not consumed by the network).
         self._vehicle = vehicle
-        self._world: carla.World = self._vehicle.get_world()
+        self._world = vehicle.get_world() if vehicle is not None else None
 
-        # Set up video recorder
-        self.video_recorder = VideoRecorder(
-            config_closed_loop=self.config_closed_loop,
-            vehicle=self._vehicle,
-            world=self._world,
-            step_counter=self.step,
-            training_config=self.training_config,
-        )
+        if self._world is not None:
+            # Set up video recorder
+            self.video_recorder = VideoRecorder(
+                config_closed_loop=self.config_closed_loop,
+                vehicle=self._vehicle,
+                world=self._world,
+                step_counter=self.step,
+                training_config=self.training_config,
+            )
 
-        self.set_weather()
+            self.set_weather()
 
         self.initialized = True
 
@@ -486,7 +493,13 @@ class SensorAgent(BaseAgent, autonomous_agent.AutonomousAgent):
             "next_command": torch.Tensor(input_data["next_command"])
             .to(self.device, dtype=torch.float32)
             .view(1, 6),
-            "town": np.array([self._world.get_map().name.split("/")[-1]]),
+            "town": np.array(
+                [
+                    self._world.get_map().name.split("/")[-1]
+                    if self._world is not None
+                    else "Town01"  # no CARLA world (bridge): placeholder, unused by the net
+                ],
+            ),
         }
 
         # Add radar data if available

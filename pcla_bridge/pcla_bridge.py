@@ -173,6 +173,23 @@ class PCLAAgentBridge:
         # marshal each incoming reading (image vs lidar vs gnss vs imu vs speed).
         self._sensor_specs = {s["id"]: s for s in self.agent.sensors()}
 
+        # Some agents DECLARE sensors their loaded checkpoint does not actually use.
+        # The clear case is TransFuser-v6's "noradar"/"visiononly" variants: tfv6's
+        # sensors() hardcodes radar=True, so it always declares 4 radars, but those
+        # configs set use_radar_detection=False -> the model's radar branch is off.
+        # The agent still *reads* input_data["radarN"] in tick(), so the key must
+        # exist; we auto-supply an empty (0,4) radar return (a valid "no detections"
+        # frame) rather than forcing a radar-less source (foreign sim, log, real car)
+        # to invent radar. Radar-USING variants (use_radar_detection=True) are left
+        # strict: their radar stays required, so we never silently degrade them.
+        self._auto_zero_radar = set()
+        cfg = getattr(self.agent, "training_config", None)
+        if cfg is not None and getattr(cfg, "use_radar_detection", True) is False:
+            self._auto_zero_radar = {
+                sid for sid, s in self._sensor_specs.items()
+                if s["type"] == "sensor.other.radar"
+            }
+
         self._frame = 0
         self._sim_time = 0.0
         self._route_set = False
@@ -268,6 +285,13 @@ class PCLAAgentBridge:
 
     def _marshal(self, sensors):
         """Convert natural readings into CARLA's { id: (frame, array) } format."""
+        # Fill in radars the loaded model ignores (tfv6 noradar/visiononly) with an
+        # empty "no detections" frame, unless the caller supplied one. See __init__.
+        if self._auto_zero_radar:
+            sensors = dict(sensors)  # don't mutate the caller's dict
+            for sid in self._auto_zero_radar:
+                sensors.setdefault(sid, np.zeros((0, 4), dtype=np.float32))
+
         missing = set(self._sensor_specs) - set(sensors)
         # The debug top-down 'bev' camera and the optional pseudo/event sensors
         # (opendrive map, collision) need not be supplied every step.
@@ -294,7 +318,11 @@ class PCLAAgentBridge:
             elif stype == "sensor.other.imu":
                 out[sid] = (self._frame, np.asarray(value, dtype=np.float64))          # 7-vector
             elif stype == "sensor.speedometer":
-                out[sid] = (self._frame, {"speed": float(value)})
+                # CARLA's speedometer yields np.float64. Match it exactly: np.float64
+                # both has .item() (some agents call speed.item()) AND is a subclass of
+                # python float (so strict float type-hints accept it) — np.float32 is
+                # neither, and a bare python float lacks .item().
+                out[sid] = (self._frame, {"speed": np.float64(value)})
             else:
                 out[sid] = (self._frame, value)  # radar / anything else: pass through
         return out
@@ -376,6 +404,8 @@ if __name__ == "__main__":
                 s[sid] = np.zeros((spec["height"], spec["width"], 3), dtype=np.uint8)
             elif t == "sensor.lidar.ray_cast":
                 s[sid] = np.zeros((1000, 4), dtype=np.float32)
+            elif t == "sensor.other.radar":
+                s[sid] = np.zeros((0, 4), dtype=np.float32)   # empty "no detections"
             elif t == "sensor.other.gnss":
                 s[sid] = np.array([route[0][0], route[0][1], 0.0])   # at route start
             elif t == "sensor.other.imu":

@@ -21,6 +21,7 @@ sensor data and route it to any sink:
 | [`samples/carla_run/`](samples/) | A bundled real Town02 recording (video + route + telemetry) to try immediately |
 | [`samples/sensor_packs/`](samples/sensor_packs/) | Per-agent reference of the exact `input_data` each agent expects (specs, shapes, units, example frames, real captured values) |
 | [`make_sensor_packs.py`](make_sensor_packs.py) | Regenerates the sensor packs from a CARLA server (needs one running) |
+| [`sim2sim/`](sim2sim/) | Drive a PCLA agent **live in another simulator** (MetaDrive) over a socket — sim-to-sim reuse, no CARLA server |
 
 ---
 

@@ -381,6 +381,14 @@ def _write_index(out_dir, agent_index, nonportable=None):
         "folder is named to list every variant it covers (seed numbers dropped). Find your "
         "agent below:",
         "",
+        "> **Declared vs. used.** A pack lists every sensor the agent *declares* (its "
+        "`sensors()`), which for a few variants includes sensors the loaded checkpoint "
+        "ignores. In particular `tfv6_noradar` and `tfv6_visiononly` still declare 4 "
+        "radars (TransFuser-v6 hardcodes `radar=True` in `sensors()`), but their configs "
+        "set `use_radar_detection=False`, so the model drops the radar branch. The bridge "
+        "auto-fills those radars with empty “no detections” frames, so a radar-less "
+        "source can still drive them; radar-using variants keep radar required.",
+        "",
         "| agent | sensor pack | sensors |",
         "|---|---|---|",
     ]
