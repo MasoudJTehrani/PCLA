@@ -458,21 +458,11 @@ Citation for **PCLA**
 ```
 Citation for **PCLA-Bridge**
 ```bibtex
-@inproceedings{10.1145/3832783.3844559,
-author = {Jamshidiyan Tehrani, Masoud},
-title = {PCLA-Bridge: The Reusability of CARLA-Trained Autonomous Driving Agents beyond the CARLA Simulator},
-year = {2026},
-isbn = {9798400728822},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi.org/10.1145/3832783.3844559},
-doi = {10.1145/3832783.3844559},
-abstract = {While many high-performing autonomous driving agents (ADAs) are published via the CARLA Leaderboard, they remain rigidly bound to the simulator's specific APIs, sensor formats, and coordinate frames. This work investigates whether these simulation-trained models can be deployed outside their native environments, such as on real-world logs or physical vehicles, without retraining. Building upon the PCLA framework, we introduce two contributions: (1) PCLA-Bridge, an execution adapter that drives agents from arbitrary sensor streams without requiring an active CARLA server; and (2) a reusability taxonomy defining the architectural constraints that govern agent portability. We evaluate PCLA-Bridge via offline replay on both in-domain CARLA logs and real-world nuScenes datasets. The unmodified bridge successfully drives a CARLA-trained agent using physical nuScenes data, producing accurate steering commands, while effectively quantifying the sim-to-real domain gap through observed throttle caution.},
-booktitle = {Proceedings of the 41st IEEE/ACM International Conference on Automated Software Engineering},
-pages = {4636–4638},
-numpages = {3},
-keywords = {AI-augmented Systems, Autonomous Driving, CARLA, Simulator},
-location = {Munich, Germany},
-series = {ASE '26}
+@inproceedings{jamshidiyan2026pcla,
+  title={PCLA-Bridge: The Reusability of CARLA-Trained Autonomous Driving Agents beyond the CARLA Simulator},
+  author={Jamshidiyan Tehrani, Masoud},
+  booktitle={Proceedings of the 41st IEEE/ACM International Conference on Automated Software Engineering},
+  pages={4636--4638},
+  year={2026}
 }
 ```
