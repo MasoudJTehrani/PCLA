@@ -18,13 +18,13 @@ sensor data and route it to any sink:
 |---|---|
 | [`pcla_bridge.py`](pcla_bridge.py) | The bridge: `PCLAAgentBridge` — load an agent, feed sensors, get control |
 | [`bridge_sample.py`](bridge_sample.py) | Sample code of running an agent over a recorded drive |
+| [`samples/carla_run/`](samples/) | A bundled real Town02 recording (video + route + telemetry) to try immediately |
 | [`samples/sensor_packs/`](samples/sensor_packs/) | Per-agent reference of the exact `input_data` each agent expects (specs, shapes, units, example frames, real captured values) |
 | [`make_sensor_packs.py`](make_sensor_packs.py) | Regenerates the sensor packs from a CARLA server (needs one running) |
+| [`sim2sim/`](sim2sim/) | Drive a PCLA agent **live in another simulator** (MetaDrive) over a socket — sim-to-sim reuse, no CARLA server |
 
 ---
 
-## Artifacts of our runs
-You can find our artifacts of offline and simulation runs plus the sim-to-sim integration code used to produce them on [Huggingface](https://huggingface.co/datasets/MasoudJTehrani/pcla-bridge-evaluations).
 ## Using the bridge in your own code
 
 Acticate the PCLA environment first.
