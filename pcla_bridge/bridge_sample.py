@@ -1,50 +1,24 @@
-"""Run a PCLA agent over a recorded drive — no CARLA server.
+#!/usr/bin/env python
+"""Minimal offline-replay demo: drive a PCLA agent from a RECORDED log, no CARLA server.
 
-Reads a sample directory (the bundled samples/carla_run, or one you export from
-your own application in the same layout):
+    python bridge_sample.py neat_aim2dsem samples/nuscenes_run   # real-world data
+    python bridge_sample.py neat_aim2dsem samples/carla_run      # in-domain CARLA
 
-    <sample>/
-      route.json       # {"waypoints": [[lat,lon], ...]}
-      video.mp4        # front-camera frames (one per telemetry row)
-      telemetry.jsonl  # per-frame {gps:[lat,lon,alt], speed, imu:[7], dt}
+A log is just three files: route.json ({"waypoints":[[lat,lon],...]}),
+video.mp4 (front-camera frames), and telemetry.jsonl (one row per frame:
+{"frame":<i>, "gps":[lat,lon,alt], "imu":[7], "speed":<m/s>, "dt":<s>}).
 
-feeds each frame through PCLAAgentBridge, and writes the control the agent asked
-for to <out>/control.csv. With --overlay it also renders <out>/overlay.mp4 with
-the throttle/steer/brake drawn on each frame, so you can *watch* the agent react.
-
-Cameras: the single front video is resized to every forward-facing camera the
-agent declares. Agents that also want side/rear cameras or LiDAR get zero-filled
-placeholders for those (with a warning) — fine for a plumbing test, but such an
-agent won't drive sensibly from one video. Prefer a front-camera-only agent such
-as `neat_aim2dsem`.
-
-Usage:
-    python bridge_sample.py --agent neat_aim2dsem --sample samples/carla_run --overlay
+A fuller version of this script (overlay-video rendering, control.csv export, summary
+stats) is archived with the evaluation artifacts as `bridge_sample_full.py`:
+https://huggingface.co/datasets/MasoudJTehrani/pcla-bridge-evaluations
 """
-import argparse
-import csv
 import json
-import os
 import sys
 
 import cv2
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from pcla_bridge import PCLAAgentBridge
-
-
-def load_sample(sample_dir):
-    with open(os.path.join(sample_dir, "route.json")) as f:
-        route = json.load(f)["waypoints"]
-    telemetry = []
-    with open(os.path.join(sample_dir, "telemetry.jsonl")) as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                telemetry.append(json.loads(line))
-    video_path = os.path.join(sample_dir, "video.mp4")
-    return route, telemetry, video_path
+from pcla_bridge import PCLAAgentBridge          # the tool
 
 
 def build_sensors(bridge, frame_bgr, tele, warned):
@@ -76,81 +50,27 @@ def build_sensors(bridge, frame_bgr, tele, warned):
     return sensors
 
 
-def draw_overlay(frame_bgr, i, ctrl):
-    img = frame_bgr.copy()
-    h, w = img.shape[:2]
-    cv2.rectangle(img, (0, 0), (w, 74), (0, 0, 0), -1)
-    cv2.putText(img, f"frame {i:04d}", (10, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
-
-    def bar(x, label, val, lo, hi, color):
-        cv2.putText(img, f"{label} {val:+.2f}", (x, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-        frac = (val - lo) / (hi - lo)
-        cv2.rectangle(img, (x, 34), (x + 150, 50), (60, 60, 60), -1)
-        cv2.rectangle(img, (x, 34), (x + int(150 * max(0, min(1, frac))), 50), color, -1)
-
-    bar(130, "thr", ctrl.throttle, 0, 1, (0, 200, 0))
-    bar(330, "brk", ctrl.brake, 0, 1, (0, 0, 220))
-    bar(530, "str", ctrl.steer, -1, 1, (220, 160, 0))
-    return img
-
-
 def main():
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--agent", default="neat_aim2dsem",
-                    help="agent to drive (front-camera agents work best here)")
-    ap.add_argument("--sample", default=os.path.join(os.path.dirname(__file__), "samples", "carla_run"),
-                    help="sample directory (route.json + video.mp4 + telemetry.jsonl)")
-    ap.add_argument("--out", default=None, help="output directory (default: <sample>/replay_out)")
-    ap.add_argument("--overlay", action="store_true", help="also render overlay.mp4")
-    args = ap.parse_args()
+    agent = sys.argv[1] if len(sys.argv) > 1 else "neat_aim2dsem"
+    log   = sys.argv[2] if len(sys.argv) > 2 else "samples/nuscenes_run"
 
-    out_dir = args.out or os.path.join(args.sample, "replay_out")
-    os.makedirs(out_dir, exist_ok=True)
+    # 1) Load the agent standalone -- NO CARLA server is started.
+    bridge = PCLAAgentBridge(agent)
 
-    route, telemetry, video_path = load_sample(args.sample)
-    print(f"Loading agent {args.agent} ...")
-    bridge = PCLAAgentBridge(args.agent)
-    bridge.set_route([(w[0], w[1]) for w in route])
+    # 2) Set the route (list of [lat, lon] GPS waypoints).
+    bridge.set_route(json.load(open(f"{log}/route.json"))["waypoints"])
 
-    cap = cv2.VideoCapture(video_path)
-    writer, warned = None, set()
-    rows = []
-    i = 0
-    while True:
-        ok, frame = cap.read()
-        if not ok or i >= len(telemetry):
+    # 3) Replay: one video frame + one telemetry row per step -> one control each.
+    cap, warned = cv2.VideoCapture(f"{log}/video.mp4"), set()
+    for line in open(f"{log}/telemetry.jsonl"):
+        tele = json.loads(line)
+        ok, frame_bgr = cap.read()
+        if not ok:
             break
-        tele = telemetry[i]
-        ctrl = bridge.step(build_sensors(bridge, frame, tele, warned), dt=tele.get("dt", 0.05))
-        rows.append((i, ctrl.throttle, ctrl.steer, ctrl.brake))
-
-        if args.overlay:
-            over = draw_overlay(frame, i, ctrl)
-            if writer is None:
-                h, w = over.shape[:2]
-                writer = cv2.VideoWriter(os.path.join(out_dir, "overlay.mp4"),
-                                         cv2.VideoWriter_fourcc(*"mp4v"), 20, (w, h))
-            writer.write(over)
-        i += 1
-
-    cap.release()
-    if writer is not None:
-        writer.release()
-
-    with open(os.path.join(out_dir, "control.csv"), "w", newline="") as f:
-        cw = csv.writer(f)
-        cw.writerow(["frame", "throttle", "steer", "brake"])
-        cw.writerows(rows)
-
-    if rows:
-        thr = np.mean([r[1] for r in rows]); steer = [r[2] for r in rows]
-        print(f"\nReplayed {len(rows)} frames.")
-        print(f"  throttle: mean {thr:.3f}")
-        print(f"  steer   : min {min(steer):+.3f}  max {max(steer):+.3f}  mean {np.mean(steer):+.3f}")
-        print(f"  -> {os.path.join(out_dir, 'control.csv')}"
-              + (f"\n  -> {os.path.join(out_dir, 'overlay.mp4')}" if args.overlay else ""))
-    else:
-        print("No frames replayed — check that video.mp4 and telemetry.jsonl line up.")
+        sensors = build_sensors(bridge, frame_bgr, tele, warned)   # resize cameras, zero-fill LiDAR
+        ctrl = bridge.step(sensors, dt=tele["dt"])                 # calls agent.run_step() in-process
+        print(f"frame {tele['frame']:4d}  throttle={ctrl.throttle:.2f}  "
+              f"steer={ctrl.steer:+.2f}  brake={ctrl.brake:.2f}")
 
 
 if __name__ == "__main__":

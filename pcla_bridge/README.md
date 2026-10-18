@@ -17,7 +17,7 @@ sensor data and route it to any sink:
 | file | what it does |
 |---|---|
 | [`pcla_bridge.py`](pcla_bridge.py) | The bridge: `PCLAAgentBridge` — load an agent, feed sensors, get control |
-| [`bridge_sample.py`](bridge_sample.py) | Sample code of running an agent over a recorded drive |
+| [`bridge_sample.py`](bridge_sample.py) | Minimal sample (~75 lines): replay a recorded drive through an agent, printing its per-frame control |
 | [`samples/carla_run/`](samples/) | A bundled real Town02 recording (video + route + telemetry) to try immediately |
 | [`samples/sensor_packs/`](samples/sensor_packs/) | Per-agent reference of the exact `input_data` each agent expects (specs, shapes, units, example frames, real captured values) |
 | [`make_sensor_packs.py`](make_sensor_packs.py) | Regenerates the sensor packs from a CARLA server (needs one running) |
@@ -67,13 +67,18 @@ bridge immediately without a CARLA server. From this folder, with the `PCLA` con
 env active:
 
 ```bash
-python bridge_sample.py --agent neat_aim2dsem --sample samples/carla_run --overlay
+python bridge_sample.py neat_aim2dsem samples/carla_run
 ```
 
-You'll get `samples/carla_run/replay_out/control.csv` and `overlay.mp4`. The overlay
-draws the throttle/steer/brake the agent produced on each frame, over the actual
-camera footage, so you can *watch* it react. `neat_aim2dsem` is a good first target:
+`bridge_sample.py` loads the agent standalone, sets the route, and replays the sample
+one frame at a time, printing the throttle/steer/brake the agent produces each step —
+all in ~75 lines you can read top to bottom. `neat_aim2dsem` is a good first target:
 a single front camera (+ IMU / GPS / speed), **no LiDAR**.
+
+A fuller version of this script — which also renders an `overlay.mp4` (the controls
+drawn over the footage, so you can *watch* the agent react) and writes a `control.csv`
+— ships with the evaluation artifacts as
+[`bridge_sample_full.py`](https://huggingface.co/datasets/MasoudJTehrani/pcla-bridge-evaluations).
 
 ---
 

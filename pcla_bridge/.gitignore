@@ -1,22 +1,7 @@
-# samples/*/replay_out/
+
 __pycache__/
 
-# nuScenes-derived sample: redistributable under CC BY-NC-SA 4.0 (non-commercial,
-# share-alike, WITH attribution — see samples/nuscenes_run/ATTRIBUTION.md). Un-ignored
-# and prepped, but VERIFY nuscenes.org/terms-of-use before actually pushing. To keep it
-# out of git again, re-add this line:  samples/nuscenes_run/
-
-# also strays some agents write to relative paths (e.g. SimLingo's InternVL2 download)
-samples/pretrained/
-samples/eval/
-samples/wandb/
-
-# sim2sim runtime artifacts (keep samples/metadrive_run/, ignore local runs)
-sim2sim/.server.log
-sim2sim/md_out/
-sim2sim/__pycache__/
-sim2sim/cal_*/
-
-# temporary samples remover
-samples/
+samples/alpasim_run
+samples/awsim_run
+samples/metadrive_run
 sim2sim/
