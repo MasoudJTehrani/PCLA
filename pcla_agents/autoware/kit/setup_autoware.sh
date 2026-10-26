@@ -25,12 +25,15 @@ echo "     make prepare_bridge  && make build_bridge"
 echo "     make prepare_autoware && make build_autoware"
 read -r -p "   Press Enter once both images are built (or Ctrl-C to do it now and re-run)... " _
 
-echo "== 3/5  create the aw_bridge + aw_autoware containers =="
+echo "== 3/5  create the bridge + Autoware containers =="
 echo "   Use the upstream container scripts (mount the repo, remap HOST_UID/GID, add --gpus all,"
 echo "   and for RViz add X11: -e DISPLAY -e NVIDIA_DRIVER_CAPABILITIES=all -v /tmp/.X11-unix:/tmp/.X11-unix):"
 echo "     bash $AWROOT/container/run-bridge-docker.sh"
 echo "     bash $AWROOT/container/run-autoware-docker.sh"
-read -r -p "   Press Enter once 'docker ps' shows aw_bridge and aw_autoware Up... " _
+echo "   Keep both running (rocker starts them with --rm: once one exits it is gone and must be"
+echo "   re-created). Any names are fine -- start_stack.sh finds them by image and names them"
+echo "   aw_bridge / aw_autoware -- and the Autoware container may use host or bridge networking."
+read -r -p "   Press Enter once 'docker ps' shows both containers Up... " _
 
 echo "== 4/5  install the PCLA kit into the clone =="
 bash "$KIT/install_kit.sh" "$AWROOT"

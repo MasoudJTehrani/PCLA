@@ -48,7 +48,13 @@ bash pcla_agents/autoware/kit/setup_autoware.sh
 
 The image build is large and GPU-bound; it defers to the upstream `make` targets and container
 scripts. `kit/install_kit.sh` (called by setup, and re-runnable) deploys just the PCLA pieces
-into an existing `autoware_carla_launch` clone.
+into an existing `autoware_carla_launch` clone. The kit runs from those deployed copies, so
+**re-run `install_kit.sh` after updating PCLA**.
+
+The containers can have any names (`start_stack.sh` finds them by image and renames them to
+`aw_bridge`/`aw_autoware`), and the Autoware container works with either host or bridge
+networking: `kit/host_addr.sh` resolves where the host (CARLA + the zenoh router) is from inside
+it. To force an address, create the container with `-e AW_HOST_IP=<addr>`.
 
 ## Running
 
@@ -157,11 +163,17 @@ and (empty, unless you annotate lights) traffic-light table.
 | `prepare_town.sh` | Orchestrates a town's map prep (osm + projector + pointcloud + table). |
 | `start_stack.sh` | One-shot clean bring-up of CARLA + bridge + Autoware (verifies a single instance). |
 | `run_autoware_headless.sh` / `run_autoware_rviz.sh` | Autoware launch wrappers (camera TL off). |
+| `host_addr.sh` | Prints the host's address as seen from the Autoware container (loopback or Docker gateway). |
 | `install_kit.sh` | Deploys the runtime pieces into an `autoware_carla_launch` clone. |
 | `setup_autoware.sh` | One-time end-to-end setup. |
 
 ## Troubleshooting
 
+- **"localization did not initialize" and `start_stack.sh` reports no `/clock`:** Autoware is not
+  receiving data from the bridge. On Docker's bridge network, `127.0.0.1` inside the container is the
+  container itself, not the host; `host_addr.sh` handles this, so re-run `kit/install_kit.sh` if your
+  deployed copies predate it. Otherwise set `AW_HOST_IP` to an address where the host's port 7447 is
+  reachable from the container.
 - **Car doesn't move / "routing never accepted":** ensure your shell has Docker access — the adapter
   drives Autoware via `docker exec`. `sample_autoware.py` re-execs under `sg docker` if needed;
   otherwise log out/in once to join the `docker` group.

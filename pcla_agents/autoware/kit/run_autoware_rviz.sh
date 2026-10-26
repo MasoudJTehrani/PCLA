@@ -10,7 +10,9 @@ source install/setup.bash
 
 LOG_PATH=autoware_log/rviz_$(date '+%Y-%m-%d_%H-%M-%S')
 mkdir -p "${LOG_PATH}"
-echo "logdir=${LOG_PATH}  DISPLAY=${DISPLAY}"
+# Where the host's zenoh router is reachable from this container (see host_addr.sh).
+HOST_ADDR=$(bash ./host_addr.sh)
+echo "logdir=${LOG_PATH}  DISPLAY=${DISPLAY}  zenoh router=${HOST_ADDR}:7447"
 
 # Camera traffic-light recognition OFF (UNKNOWN in CARLA); the PCLA carla_gt_bridge
 # injects ground-truth light state instead. Two publishers on the signals topic would fight.
@@ -21,7 +23,7 @@ AW_PID=$!
 
 "${AUTOWARE_CARLA_ROOT}/external/zenoh-plugin-ros2dds/target/release/zenoh-bridge-ros2dds" \
     -n "/${VEHICLE_NAME}" -d "${ROS_DOMAIN_ID}" -c "${ZENOH_BRIDGE_ROS2DDS_CONFIG}" \
-    -e tcp/127.0.0.1:7447 -e tcp/127.0.0.1:7887 \
+    -e tcp/${HOST_ADDR}:7447 -e tcp/${HOST_ADDR}:7887 \
     > "${LOG_PATH}/zenoh_ros2dds.log" 2>&1 &
 ZB_PID=$!
 

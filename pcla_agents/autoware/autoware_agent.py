@@ -192,11 +192,16 @@ class AutowareAgent(autonomous_agent.AutonomousAgent):
             "external/zenoh_autoware_v2x/carla_maps/%s/map_info.json" % town)
         subprocess.run(["docker", "exec", self.container, "pkill", "-9", "-f",
                         "carla_gt_bridge"], capture_output=True)
+        # The injector runs inside the container, so "localhost" is only CARLA's host when the
+        # container is host-networked; host_addr.sh resolves it either way (falls back to
+        # localhost on an older kit install without the helper).
         cmd = (
             "cd ~/autoware_carla_launch && source env.sh >/dev/null 2>&1 && "
             "uv run --project external/zenoh_autoware_v2x "
             "external/zenoh_autoware_v2x/carla_gt_bridge/main.py "
-            "-v %s --map-info %s > /tmp/carla_gt_bridge.log 2>&1"
+            "-v %s --map-info %s "
+            "--carla-host \"$(bash ./host_addr.sh 2>/dev/null || echo localhost)\" "
+            "> /tmp/carla_gt_bridge.log 2>&1"
             % (self.vehicle_role, map_info)
         )
         subprocess.run(["docker", "exec", "-d", "-u", "aw", self.container, "bash", "-lc",

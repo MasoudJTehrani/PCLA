@@ -19,8 +19,9 @@ mkdir -p "$V2X/carla_gt_bridge"
 cp "$KIT/carla_gt_bridge.py" "$V2X/carla_gt_bridge/main.py"
 
 # 2) Autoware launch wrappers -- camera traffic-light recognition OFF (UNKNOWN in CARLA);
-#    the injector provides ground-truth light states instead.
-cp "$KIT/run_autoware_headless.sh" "$KIT/run_autoware_rviz.sh" "$AWROOT/"
+#    the injector provides ground-truth light states instead. host_addr.sh tells them (and the
+#    injector) where the host is from inside the container, for host- or bridge-networked Docker.
+cp "$KIT/run_autoware_headless.sh" "$KIT/run_autoware_rviz.sh" "$KIT/host_addr.sh" "$AWROOT/"
 
 # 3) One-shot stack bring-up.
 cp "$KIT/start_stack.sh" "$HOME/start_stack.sh"

@@ -9,7 +9,10 @@ source install/setup.bash
 
 LOG_PATH=autoware_log/headless_$(date '+%Y-%m-%d_%H-%M-%S')
 mkdir -p "${LOG_PATH}"
-echo "logdir=${LOG_PATH}"
+# Where the host's zenoh router is reachable from this container (127.0.0.1 if host-networked,
+# else the Docker gateway; AW_HOST_IP overrides). See host_addr.sh.
+HOST_ADDR=$(bash ./host_addr.sh)
+echo "logdir=${LOG_PATH}  zenoh router=${HOST_ADDR}:7447"
 
 # 1) Autoware stack (no rviz). Camera-based traffic-light recognition is OFF: it returns
 #    UNKNOWN on CARLA's rendered lights. The PCLA carla_gt_bridge injects CARLA's
@@ -23,7 +26,7 @@ AW_PID=$!
 # 2) Zenoh <-> ROS2 DDS bridge (connects Autoware DDS to the Carla-side zenoh router on 7447)
 "${AUTOWARE_CARLA_ROOT}/external/zenoh-plugin-ros2dds/target/release/zenoh-bridge-ros2dds" \
     -n "/${VEHICLE_NAME}" -d "${ROS_DOMAIN_ID}" -c "${ZENOH_BRIDGE_ROS2DDS_CONFIG}" \
-    -e tcp/127.0.0.1:7447 -e tcp/127.0.0.1:7887 \
+    -e tcp/${HOST_ADDR}:7447 -e tcp/${HOST_ADDR}:7887 \
     > "${LOG_PATH}/zenoh_ros2dds.log" 2>&1 &
 ZB_PID=$!
 

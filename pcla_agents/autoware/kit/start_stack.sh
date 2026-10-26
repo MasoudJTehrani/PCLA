@@ -33,11 +33,28 @@ if docker ps >/dev/null 2>&1; then DOCKER="docker"; else DOCKER="sudo docker"; f
 echo "[start_stack] docker command: $DOCKER"
 
 # --- sanity: containers must exist ---
-if ! $DOCKER ps -a --format '{{.Names}}' | grep -q '^aw_bridge$' \
-   || ! $DOCKER ps -a --format '{{.Names}}' | grep -q '^aw_autoware$'; then
-    echo "[start_stack] ERROR: aw_bridge / aw_autoware containers not found. Ask Claude to recreate them."
-    exit 1
-fi
+# Upstream's container scripts (rocker) don't name their containers, so a fresh install gets random
+# names (e.g. focused_wu). Everything in this kit addresses them as aw_bridge / aw_autoware, so find
+# each one by the image it was started from and give it the canonical name once.
+ensure_container_name() {   # $1 = canonical name, $2 = image the container was started from
+    local want="$1" image="$2" found
+    $DOCKER ps -a --format '{{.Names}}' | grep -qx "$want" && return 0
+    found=$($DOCKER ps --filter "ancestor=$image" --format '{{.Names}}')            # running first
+    [ -z "$found" ] && found=$($DOCKER ps -a --filter "ancestor=$image" --format '{{.Names}}')
+    if [ "$(printf '%s\n' "$found" | grep -c .)" != 1 ]; then
+        echo "[start_stack] ERROR: no '$want' container, and no single container from image $image."
+        if [ -n "$found" ]; then
+            echo "               candidates: $(echo "$found" | tr '\n' ' ')  pick one:  $DOCKER rename <name> $want"
+        else
+            echo "               create it first (see kit/setup_autoware.sh, step 3)."
+        fi
+        exit 1
+    fi
+    echo "[start_stack] naming container '$found' -> '$want'"
+    $DOCKER rename "$found" "$want"
+}
+ensure_container_name aw_bridge   "${AW_BRIDGE_IMAGE:-zenoh-carla-bridge-jazzy-1.8.0}"
+ensure_container_name aw_autoware "${AW_AUTOWARE_IMAGE:-zenoh-autoware-jazzy-1.8.0}"
 
 echo "[start_stack] 1/6  killing anything already running..."
 pkill -INT -f sample_autoware.py 2>/dev/null
@@ -90,7 +107,13 @@ n=0; for i in $(seq 1 40); do n=$(ros2 node list 2>/dev/null | wc -l); [ "$n" -g
 dups=$(ros2 node list 2>/dev/null | sort | uniq -d | tr "\n" " ")
 echo "    nodes: $n"
 echo "    duplicate node names (MUST be empty): [$dups]"
-echo -n "    clock rate (want ~20 Hz): "; timeout 8 ros2 topic hz /clock 2>/dev/null | grep -m1 average || echo none
+hz=$(timeout 8 ros2 topic hz /clock 2>/dev/null | grep -m1 average)
+echo "    clock rate (want ~20 Hz): ${hz:-none}"
+if [ -z "$hz" ]; then
+    echo "    WARNING: no /clock -> Autoware is not receiving data from the bridge and will never"
+    echo "             localize. Its zenoh-bridge-ros2dds connects to $(bash ./host_addr.sh):7447;"
+    echo "             aw_bridge must be reachable there (log: autoware_log/<latest>/zenoh_ros2dds.log)."
+fi
 '
 
 echo
