@@ -465,4 +465,10 @@ Citation for **PCLA-Bridge**
   pages={4636--4638},
   year={2026}
 }
+@article{tehrani2026pcla,
+  title={PCLA-Bridge: A Framework for Cross-Domain Deployment of CARLA Agents},
+  author={Tehrani, Masoud Jamshidiyan and Kim, Jinhan and Tonella, Paolo},
+  journal={arXiv preprint arXiv:2610.28696},
+  year={2026}
+}
 ```
