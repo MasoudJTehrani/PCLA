@@ -1,5 +1,6 @@
 import copy
 import logging
+import math
 import numpy as np
 #import os
 import time
@@ -10,6 +11,7 @@ from queue import Empty
 
 import carla
 from .carla_data_provider import CarlaDataProvider
+from .route_manipulation import _get_latlon_ref, _location_to_gps
 from .timer import GameTime
 
 
@@ -138,10 +140,56 @@ class OpenDriveMapReader(BaseReader):
         return {'opendrive': CarlaDataProvider.get_map().to_opendrive()}
 
 
+class GnssProjectionFix(object):
+    """
+    Converts GNSS readings to the projection of the route GPS (``_location_to_gps``).
+
+    CARLA 0.9.16 changed the GNSS projection to a transverse Mercator around the map's
+    geoReference, while the route GPS and the agents still use the 0.9.15 formula. On maps
+    anchored at lat/lon (0, 0) the two differ mainly by the latitude sign; on maps with a real
+    anchor (Town11, Town13, Town15) the reading is mirrored around the anchor latitude.
+
+    Built once per route. The projection is detected per map by comparing the map's own
+    ``transform_to_geolocation`` with ``_location_to_gps`` at a probe location, so no server
+    version check is needed. When they agree (CARLA 0.9.15) ``active`` is False and readings
+    pass through unchanged. Otherwise each reading is mapped back to a world location with
+    ``Map.geolocation_to_transform`` and re-projected with ``_location_to_gps``.
+    """
+    PROBE = carla.Location(x=1000.0, y=1000.0, z=0.0)
+    TOLERANCE_M = 1.0
+    EARTH_RADIUS_EQUA = 6378137.0
+
+    def __init__(self, world):
+        self._map = world.get_map()
+        self._lat_ref, self._lon_ref = _get_latlon_ref(world)
+
+        geo = self._map.transform_to_geolocation(self.PROBE)
+        ref = _location_to_gps(self._lat_ref, self._lon_ref, self.PROBE)
+        metres_per_deg = math.pi * self.EARTH_RADIUS_EQUA / 180.0
+        mismatch = math.hypot((geo.latitude - ref['lat']) * metres_per_deg,
+                              (geo.longitude - ref['lon']) * metres_per_deg * math.cos(math.radians(ref['lat'])))
+
+        self.active = mismatch > self.TOLERANCE_M
+        if self.active and not hasattr(self._map, 'geolocation_to_transform'):
+            logging.warning('GNSS projection differs from the route GPS by %.1f m, but this CARLA client has no '
+                            'Map.geolocation_to_transform; GNSS readings are left unchanged.', mismatch)
+            self.active = False
+
+    def __call__(self, latitude, longitude):
+        location = self._map.geolocation_to_transform(carla.GeoLocation(latitude, longitude, 0.0))
+        gps = _location_to_gps(self._lat_ref, self._lon_ref, location)
+        return gps['lat'], gps['lon']
+
+
 class CallBack(object):
     def __init__(self, tag, sensor_type, sensor, data_provider):
         self._tag = tag
         self._data_provider = data_provider
+        self._gnss_fix = None
+        if sensor_type.startswith('sensor.other.gnss'):
+            gnss_fix = GnssProjectionFix(CarlaDataProvider.get_world())
+            if gnss_fix.active:
+                self._gnss_fix = gnss_fix
 
         self._data_provider.register_sensor(tag, sensor_type, sensor)
 
@@ -183,8 +231,11 @@ class CallBack(object):
         self._data_provider.update_sensor(tag, points, radar_data.frame)
 
     def _parse_gnss_cb(self, gnss_data, tag):
-        array = np.array([gnss_data.latitude,
-                          gnss_data.longitude,
+        latitude, longitude = gnss_data.latitude, gnss_data.longitude
+        if self._gnss_fix is not None:
+            latitude, longitude = self._gnss_fix(latitude, longitude)
+        array = np.array([latitude,
+                          longitude,
                           gnss_data.altitude], dtype=np.float64)
         self._data_provider.update_sensor(tag, array, gnss_data.frame)
 
